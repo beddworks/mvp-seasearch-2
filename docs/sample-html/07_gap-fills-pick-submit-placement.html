@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sea Search — Complete Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F8F7F4;--surface:#FFFFFF;--surface2:#F2F1EE;--surface3:#ECEAE6;
+  --border:#E5E3DE;--border2:#D0CEC9;--border3:#B8B6B0;
+  --text:#1A1917;--text2:#6B6860;--text3:#A09E99;--text4:#C8C6C0;
+  --blue:#185FA5;--blue2:#378ADD;--blue-bg:#E6F1FB;--blue-mid:#B5D4F4;
+  --green:#27500A;--green2:#639922;--green-bg:#EAF3DE;--green-mid:#C0DD97;
+  --amber:#633806;--amber2:#BA7517;--amber-bg:#FAEEDA;--amber-mid:#FAC775;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-mid:#F7C1C1;
+  --purple:#3C3489;--purple2:#534AB7;--purple-bg:#EEEDFE;--purple-mid:#AFA9EC;
+  --teal:#085041;--teal-bg:#E1F5EE;
+  --radius:10px;--radius-sm:6px;--radius-xs:4px;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --nav-h:52px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+a{text-decoration:none;color:inherit}
+
+/* ── NAV ── */
+.nav{height:var(--nav-h);background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:50}
+.nav-logo{font-size:15px;font-weight:500;letter-spacing:-0.02em;color:var(--text)}
+.nav-logo span{color:var(--blue)}
+.nav-sep{width:1px;height:20px;background:var(--border)}
+.nav-links{display:flex;gap:2px}
+.nav-link{font-size:12px;padding:5px 10px;border-radius:var(--radius-sm);color:var(--text2);cursor:pointer}
+.nav-link:hover{background:var(--surface2);color:var(--text)}
+.nav-link.active{background:var(--blue-bg);color:var(--blue);font-weight:500}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.nav-notif{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;
+  background:var(--surface);color:var(--text2);position:relative}
+.notif-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;
+  background:#E24B4A;border:1.5px solid var(--surface)}
+.nav-av{width:32px;height:32px;border-radius:50%;background:var(--blue-bg);color:var(--blue);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;cursor:pointer}
+
+/* ── SCREEN SWITCHER ── */
+.screens{position:relative}
+.screen{display:none;animation:fadeIn 0.2s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── PAGE LABELS (demo nav) ── */
+.demo-bar{background:var(--purple-bg);border-bottom:1px solid var(--purple-mid);
+  padding:6px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.demo-label{font-size:11px;color:var(--purple2);font-weight:500}
+.demo-btns{display:flex;gap:5px;flex-wrap:wrap}
+.demo-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--purple-mid);
+  background:transparent;color:var(--purple);cursor:pointer;font-family:var(--font)}
+.demo-btn:hover{background:var(--purple-mid)}
+.demo-btn.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+
+/* ── SHARED ── */
+.page{padding:28px 28px;max-width:1100px;margin:0 auto}
+.page-sm{padding:28px 28px;max-width:680px;margin:0 auto}
+.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.b-blue{background:var(--blue-bg);color:var(--blue)}
+.b-green{background:var(--green-bg);color:var(--green)}
+.b-amber{background:var(--amber-bg);color:var(--amber)}
+.b-purple{background:var(--purple-bg);color:var(--purple)}
+.b-gray{background:var(--surface2);color:var(--text2)}
+.b-red{background:var(--red-bg);color:var(--red)}
+.b-teal{background:var(--teal-bg);color:var(--teal)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius)}
+.section-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;
+  letter-spacing:0.06em;margin-bottom:8px}
+.btn{font-size:12px;padding:7px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);
+  background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font);
+  display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--surface2)}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-blue:hover{background:#0C447C;border-color:#0C447C}
+.btn-green{background:var(--green-bg);color:var(--green);border-color:var(--green-mid)}
+.btn-green:hover{background:#d4eab8}
+.btn-danger{color:var(--red);border-color:var(--red-mid)}
+.btn-danger:hover{background:var(--red-bg)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.chip{font-size:11px;padding:3px 8px;border-radius:20px;background:var(--surface2);
+  color:var(--text2);border:1px solid var(--border)}
+
+/* ══════════════════════════════════════════
+   SCREEN 1 — PICK CONFIRMATION MODAL
+══════════════════════════════════════════ */
+.modal-backdrop{background:var(--bg);min-height:calc(100vh - var(--nav-h) - 40px);
+  display:flex;align-items:center;justify-content:center;padding:24px}
+.pick-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  width:100%;max-width:520px;overflow:hidden}
+.pm-top{padding:28px 28px 20px;text-align:center;border-bottom:1px solid var(--border)}
+.pm-icon-wrap{width:64px;height:64px;border-radius:50%;background:var(--green-bg);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 14px;
+  border:2px solid var(--green-mid)}
+.pm-icon{font-size:26px}
+.pm-title{font-size:18px;font-weight:500;color:var(--text);margin-bottom:4px}
+.pm-sub{font-size:13px;color:var(--text2);line-height:1.5}
+.pm-role-card{margin:16px 28px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px 16px}
+.prc-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.prc-logo{width:40px;height:40px;border-radius:8px;background:var(--blue-bg);color:var(--blue);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;
+  flex-shrink:0;border:1px solid var(--border)}
+.prc-title{font-size:14px;font-weight:500;color:var(--text)}
+.prc-co{font-size:12px;color:var(--text2)}
+.prc-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.prc-meta-item{text-align:center;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:8px 6px}
+.pmi-val{font-size:13px;font-weight:500;color:var(--text)}
+.pmi-lbl{font-size:10px;color:var(--text3);margin-top:1px}
+.pm-checklist{padding:16px 28px;border-bottom:1px solid var(--border)}
+.pmcl-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:10px}
+.pmcl-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;font-size:12px;color:var(--text2);line-height:1.5}
+.pmcl-check{width:16px;height:16px;border-radius:50%;background:var(--green-bg);color:var(--green);
+  display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;margin-top:1px}
+.pm-actions{padding:16px 28px;display:flex;gap:8px}
+.pm-upgrade{padding:12px 28px;background:linear-gradient(135deg,var(--blue-bg),var(--purple-bg));
+  border-top:1px solid var(--blue-mid);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pu-text{font-size:12px;color:var(--blue);font-weight:500}
+.pu-sub{font-size:11px;color:var(--text2)}
+
+/* ══════════════════════════════════════════
+   SCREEN 2 — SUBMIT PROFILE
+══════════════════════════════════════════ */
+.submit-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
+.submit-main{}
+.sh-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;margin-bottom:14px}
+.sh-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}
+.sh-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:500;flex-shrink:0}
+.sh-name{font-size:16px;font-weight:500;color:var(--text);margin-bottom:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sh-sub{font-size:12px;color:var(--text2);margin-bottom:8px}
+.sh-chips{display:flex;gap:5px;flex-wrap:wrap}
+
+/* Brief preview */
+.brief-preview{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;margin-bottom:14px}
+.bp-header{background:var(--blue);padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+.bp-logo{font-size:14px;font-weight:500;color:#fff;letter-spacing:-0.01em}
+.bp-date{font-size:11px;color:rgba(255,255,255,0.7)}
+.bp-body{padding:18px}
+.bp-section{margin-bottom:16px}
+.bp-section:last-child{margin-bottom:0}
+.bp-sec-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--text3);margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:4px}
+.bp-row{display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;
+  padding:3px 0;color:var(--text2)}
+.bp-row strong{color:var(--text);font-weight:500}
+.bp-highlight{background:var(--green-bg);border-radius:var(--radius-sm);padding:10px 12px;
+  display:flex;justify-content:space-between;align-items:center}
+.bp-score{font-size:22px;font-weight:500;color:var(--green)}
+.bp-score-lbl{font-size:11px;color:var(--green2)}
+.bp-bar-wrap{flex:1;margin:0 16px}
+.bp-bar-bg{height:6px;background:var(--green-mid);border-radius:3px;opacity:0.4;margin-bottom:3px}
+.bp-bar-fill{height:6px;background:var(--green2);border-radius:3px}
+.bp-flag{display:flex;align-items:flex-start;gap:6px;font-size:11px;padding:2px 0;line-height:1.5}
+.bp-flag-g{color:var(--green)}
+.bp-flag-r{color:var(--red)}
+.bp-exp-item{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;
+  border-bottom:1px solid var(--border)}
+.bp-exp-item:last-child{border-bottom:none}
+
+/* Submit sidebar */
+.submit-sidebar{}
+.ss-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;margin-bottom:12px}
+.ss-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:12px;
+  display:flex;align-items:center;gap:6px}
+.reward-display{text-align:center;background:var(--green-bg);border-radius:var(--radius-sm);
+  padding:16px;margin-bottom:10px;border:1px solid var(--green-mid)}
+.rd-num{font-size:28px;font-weight:500;color:var(--green)}
+.rd-lbl{font-size:11px;color:var(--green2);margin-top:2px}
+.rd-breakdown{font-size:11px;color:var(--text3);margin-top:6px}
+.checklist-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);
+  padding:4px 0;border-bottom:1px solid var(--border)}
+.checklist-item:last-child{border-bottom:none}
+.cli-check{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:9px;flex-shrink:0}
+.cli-ok{background:var(--green-bg);color:var(--green)}
+.cli-warn{background:var(--amber-bg);color:var(--amber)}
+.submit-btn-wrap{display:flex;flex-direction:column;gap:6px}
+
+/* ══════════════════════════════════════════
+   SCREEN 3 — PLACEMENT CONFIRMED
+══════════════════════════════════════════ */
+.placement-wrap{min-height:calc(100vh - var(--nav-h) - 40px);display:flex;
+  align-items:center;justify-content:center;padding:24px}
+.placement-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;width:100%;max-width:580px;overflow:hidden}
+.pc-celebrate{background:var(--green);padding:28px;text-align:center;position:relative;overflow:hidden}
+.pc-confetti{position:absolute;inset:0;opacity:0.15;font-size:40px;display:flex;
+  align-items:center;justify-content:center;letter-spacing:8px;pointer-events:none}
+.pc-icon{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.2);
+  display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px}
+.pc-title{font-size:20px;font-weight:500;color:#fff;margin-bottom:4px}
+.pc-sub{font-size:13px;color:rgba(255,255,255,0.8)}
+.pc-reward-banner{background:rgba(255,255,255,0.15);border-radius:var(--radius-sm);
+  padding:12px 16px;margin:16px 0 0;display:flex;align-items:center;justify-content:center;gap:12px}
+.pc-reward-num{font-size:28px;font-weight:500;color:#fff}
+.pc-reward-lbl{font-size:12px;color:rgba(255,255,255,0.8)}
+.pc-body{padding:24px}
+.pc-placement-detail{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
+.pc-detail-item{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px}
+.pdi-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px}
+.pdi-val{font-size:12px;font-weight:500;color:var(--text)}
+.pc-timeline{margin-bottom:20px}
+.pct-item{display:flex;gap:10px;padding:8px 0}
+.pct-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.pct-line{width:1.5px;background:var(--border);margin:2px 0 2px 3px;height:16px;flex-shrink:0}
+.pct-label{font-size:12px;font-weight:500;color:var(--text)}
+.pct-sub{font-size:11px;color:var(--text2)}
+.pc-payout{background:var(--green-bg);border:1px solid var(--green-mid);
+  border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
+.pp-title{font-size:12px;font-weight:500;color:var(--green);margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.pp-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:var(--text2)}
+.pp-row.total{font-weight:500;color:var(--green);border-top:1px solid var(--green-mid);
+  margin-top:4px;padding-top:6px}
+.pc-actions{display:flex;gap:8px}
+
+/* ══════════════════════════════════════════
+   SCREEN 4 — RECRUITER DASHBOARD
+══════════════════════════════════════════ */
+.dashboard{padding:24px 28px;max-width:1200px;margin:0 auto}
+.dash-welcome{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.dw-name{font-size:20px;font-weight:500;color:var(--text);margin-bottom:2px}
+.dw-sub{font-size:13px;color:var(--text2)}
+.dw-actions{display:flex;gap:8px}
+
+/* Earnings hero */
+.earnings-hero{background:var(--blue);border-radius:var(--radius);padding:20px 24px;
+  margin-bottom:20px;display:flex;gap:0;align-items:stretch;overflow:hidden;position:relative}
+.eh-main{flex:1;padding-right:24px;border-right:1px solid rgba(255,255,255,0.15)}
+.eh-lbl{font-size:11px;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+.eh-num{font-size:32px;font-weight:500;color:#fff;letter-spacing:-0.02em;margin-bottom:2px}
+.eh-change{font-size:12px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:4px}
+.eh-change-up{color:#86E87C}
+.eh-stats{display:flex;gap:0;margin-left:24px}
+.eh-stat{padding:0 20px;border-right:1px solid rgba(255,255,255,0.15);text-align:center}
+.eh-stat:last-child{border-right:none;padding-right:0}
+.eh-stat-num{font-size:20px;font-weight:500;color:#fff}
+.eh-stat-lbl{font-size:11px;color:rgba(255,255,255,0.65);margin-top:1px}
+.eh-bg{position:absolute;right:-20px;top:-20px;font-size:120px;opacity:0.04;pointer-events:none}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.sc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.sc-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;
+  justify-content:center;font-size:14px}
+.sc-trend{font-size:11px;font-weight:500}
+.sc-trend-up{color:var(--green2)}
+.sc-trend-dn{color:var(--red)}
+.sc-num{font-size:22px;font-weight:500;color:var(--text);margin-bottom:2px}
+.sc-lbl{font-size:11px;color:var(--text3)}
+
+/* Two-col layout */
+.dash-grid{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+
+/* Active roles */
+.active-roles-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.arc-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.arc-title{font-size:13px;font-weight:500;color:var(--text)}
+.role-item{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.role-item:last-child{border-bottom:none}
+.role-item:hover{background:var(--surface2)}
+.ri-logo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;border:1px solid var(--border)}
+.ri-body{flex:1;min-width:0}
+.ri-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:1px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.ri-co{font-size:11px;color:var(--text2);margin-bottom:5px}
+.ri-progress{height:4px;background:var(--surface2);border-radius:2px;margin-bottom:3px}
+.ri-progress-fill{height:4px;border-radius:2px}
+.ri-stage{font-size:10px;color:var(--text3)}
+.ri-right{text-align:right;flex-shrink:0}
+.ri-reward{font-size:12px;font-weight:500;color:var(--text)}
+.ri-days{font-size:10px;color:var(--text3)}
+
+/* Right col */
+.right-col{display:flex;flex-direction:column;gap:12px}
+
+/* Activity feed */
+.activity-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.ac-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.ac-title{font-size:12px;font-weight:500;color:var(--text)}
+.ac-item{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.ac-item:last-child{border-bottom:none}
+.ac-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ac-text{font-size:11px;color:var(--text);font-weight:500;line-height:1.4}
+.ac-sub{font-size:11px;color:var(--text2);line-height:1.4}
+.ac-time{font-size:10px;color:var(--text3);margin-top:1px}
+
+/* Earnings chart placeholder */
+.earnings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.ec-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.ec-title{font-size:12px;font-weight:500;color:var(--text)}
+.ec-bars{display:flex;align-items:flex-end;gap:5px;height:80px;padding:10px 14px 0;margin-bottom:8px}
+.ec-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.ec-bar{width:100%;border-radius:3px 3px 0 0}
+.ec-bar-lbl{font-size:9px;color:var(--text3)}
+.ec-total{padding:8px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.ec-total-lbl{font-size:11px;color:var(--text2)}
+.ec-total-num{font-size:13px;font-weight:500;color:var(--green)}
+
+/* Leaderboard */
+.lb-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.lb-head{padding:12px 14px;border-bottom:1px solid var(--border)}
+.lb-title{font-size:12px;font-weight:500;color:var(--text)}
+.lb-item{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border)}
+.lb-item:last-child{border-bottom:none}
+.lb-rank{font-size:11px;font-weight:500;color:var(--text3);width:16px;flex-shrink:0;text-align:center}
+.lb-rank.you{color:var(--blue)}
+.lb-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.lb-name{font-size:11px;font-weight:500;color:var(--text);flex:1}
+.lb-name.you{color:var(--blue)}
+.lb-earn{font-size:11px;font-weight:500;color:var(--text2)}
+.lb-earn.you{color:var(--blue)}
+
+/* Notifications dropdown */
+.notif-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  position:absolute;top:calc(var(--nav-h) + 4px);right:24px;width:300px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.08);z-index:100;display:none}
+.notif-panel.open{display:block}
+.np-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.np-title{font-size:12px;font-weight:500;color:var(--text)}
+.np-clear{font-size:11px;color:var(--blue);cursor:pointer}
+.np-item{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+.np-item:hover{background:var(--surface2)}
+.np-item.unread{background:var(--blue-bg)}
+.np-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.np-text{font-size:11px;color:var(--text);line-height:1.5;font-weight:500}
+.np-sub{font-size:11px;color:var(--text2);line-height:1.4}
+.np-time{font-size:10px;color:var(--text3);margin-top:1px}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* responsive */
+@media(max-width:780px){
+  .submit-layout,.dash-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .eh-stats{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">Sea<span>Search</span></div>
+  <div class="nav-sep"></div>
+  <div class="nav-links">
+    <div class="nav-link" onclick="showScreen('dashboard');setNavActive(this)">Dashboard</div>
+    <div class="nav-link" onclick="showScreen('jobs');setNavActive(this)">Job listings</div>
+    <div class="nav-link active" onclick="showScreen('dashboard');setNavActive(this)">My roles</div>
+    <div class="nav-link" onclick="showScreen('dashboard');setNavActive(this)">Candidates</div>
+    <div class="nav-link" onclick="showScreen('dashboard');setNavActive(this)">Earnings</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-notif" onclick="toggleNotif()">
+      🔔<div class="notif-dot"></div>
+    </div>
+    <div class="nav-av">AY</div>
+  </div>
+</nav>
+
+<!-- NOTIFICATIONS PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="np-head"><div class="np-title">Notifications</div><div class="np-clear" onclick="closeNotif()">Mark all read</div></div>
+  <div class="np-item unread">
+    <div class="np-dot" style="background:#639922"></div>
+    <div><div class="np-text">Sarah Wong moved to Offered</div><div class="np-sub">Chief HR Officer — DBS Bank</div><div class="np-time">2 hours ago</div></div>
+  </div>
+  <div class="np-item unread">
+    <div class="np-dot" style="background:#378ADD"></div>
+    <div><div class="np-text">Client feedback received</div><div class="np-sub">Michelle Ng — DBS Bank interview done</div><div class="np-time">Yesterday</div></div>
+  </div>
+  <div class="np-item">
+    <div class="np-dot" style="background:#534AB7"></div>
+    <div><div class="np-text">New exclusive role available</div><div class="np-sub">CFO — Temasek Holdings · SGD 120K reward</div><div class="np-time">2 days ago</div></div>
+  </div>
+  <div class="np-item">
+    <div class="np-dot" style="background:#BA7517"></div>
+    <div><div class="np-text">Reward payment processed</div><div class="np-sub">VP Engineering · Sea Limited — SGD 38K</div><div class="np-time">1 week ago</div></div>
+  </div>
+</div>
+
+<!-- DEMO BAR -->
+<div class="demo-bar">
+  <div class="demo-label">📺 View screen:</div>
+  <div class="demo-btns">
+    <button class="demo-btn" onclick="showScreen('pick');setDemoActive(this)">① Pick confirmation</button>
+    <button class="demo-btn" onclick="showScreen('submit');setDemoActive(this)">② Submit profile</button>
+    <button class="demo-btn" onclick="showScreen('placed');setDemoActive(this)">③ Placement confirmed</button>
+    <button class="demo-btn active" onclick="showScreen('dashboard');setDemoActive(this)">④ Recruiter dashboard</button>
+  </div>
+</div>
+
+<!-- SCREENS -->
+<div class="screens">
+
+<!-- ① PICK CONFIRMATION -->
+<div class="screen" id="screen-pick">
+  <div class="modal-backdrop">
+    <div class="pick-modal">
+      <div class="pm-top">
+        <div class="pm-icon-wrap"><div class="pm-icon">✓</div></div>
+        <div class="pm-title">Role picked successfully!</div>
+        <div class="pm-sub">This mandate is now in your active pipeline. Start sourcing candidates immediately to stay ahead.</div>
+      </div>
+      <div class="pm-role-card">
+        <div class="prc-row">
+          <div class="prc-logo">DB</div>
+          <div>
+            <div class="prc-title">Chief HR Officer</div>
+            <div class="prc-co">DBS Bank · Singapore</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:5px;flex-wrap:wrap">
+            <span class="badge b-green">✓ Active</span>
+            <span class="badge b-blue">Exclusive available</span>
+          </div>
+        </div>
+        <div class="prc-meta">
+          <div class="prc-meta-item">
+            <div class="pmi-val">SGD 72K–95K</div>
+            <div class="pmi-lbl">Your reward</div>
+          </div>
+          <div class="prc-meta-item">
+            <div class="pmi-val">19%</div>
+            <div class="pmi-lbl">Placement fee</div>
+          </div>
+          <div class="prc-meta-item">
+            <div class="pmi-val">3 weeks</div>
+            <div class="pmi-lbl">Shortlist deadline</div>
+          </div>
+        </div>
+      </div>
+      <div class="pm-checklist">
+        <div class="pmcl-title">Your workspace is ready. Here's what to do next:</div>
+        <div class="pmcl-item"><div class="pmcl-check">1</div><span>Review the full job description, green/red flags and ideal candidates</span></div>
+        <div class="pmcl-item"><div class="pmcl-check">2</div><span>Source candidates from your network matching the CHRO banking profile</span></div>
+        <div class="pmcl-item"><div class="pmcl-check">3</div><span>Upload CVs — AI will score and rank each candidate against the role</span></div>
+        <div class="pmcl-item"><div class="pmcl-check">4</div><span>Submit your top candidate to the client within 3 weeks</span></div>
+      </div>
+      <div class="pm-upgrade">
+        <div>
+          <div class="pu-text">⭐ Lock this role exclusively to you</div>
+          <div class="pu-sub">Block other recruiters from working this mandate for 30 days</div>
+        </div>
+        <button class="btn btn-blue" style="white-space:nowrap;font-size:11px">SGD 500 — Get exclusive</button>
+      </div>
+      <div class="pm-actions" style="flex-direction:column;gap:8px">
+        <button class="btn btn-blue" style="width:100%;justify-content:center;padding:10px;font-size:13px" onclick="showAddCandidateModal()">📄 Add first candidate &amp; upload CV</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn" style="flex:1;justify-content:center" onclick="showScreen('dashboard');setDemoActive(document.querySelector('.demo-btn:nth-child(4)'))">Go to dashboard</button>
+          <button class="btn" style="flex:1;justify-content:center">View role details</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CANDIDATE MODAL (triggered from pick confirmation) -->
+<div id="addCandModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:10px;border:1px solid var(--border);padding:24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="font-size:15px;font-weight:500;color:var(--text)">Add your first candidate</div>
+      <button onclick="closeAddCandidateModal()" style="font-size:16px;cursor:pointer;background:none;border:none;color:var(--text3)">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.5">Adding a candidate to <strong style="font-weight:500">Chief HR Officer — DBS Bank</strong>. Upload their CV and Claude will auto-parse their profile and score them against the role.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px">
+      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">First name</div><input type="text" placeholder="Sarah" style="width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--border2);border-radius:6px;background:#fff;color:var(--text);outline:none;font-family:var(--font)"></div>
+      <div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Last name</div><input type="text" placeholder="Wong" style="width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--border2);border-radius:6px;background:#fff;color:var(--text);outline:none;font-family:var(--font)"></div>
+    </div>
+    <div style="margin-bottom:9px"><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Current role &amp; company</div><input type="text" placeholder="CHRO, OCBC Bank" style="width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--border2);border-radius:6px;background:#fff;color:var(--text);outline:none;font-family:var(--font)"></div>
+    <div style="margin-bottom:9px"><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Email</div><input type="email" placeholder="sarah@email.com" style="width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--border2);border-radius:6px;background:#fff;color:var(--text);outline:none;font-family:var(--font)"></div>
+
+    <!-- CV UPLOAD — prominent -->
+    <div style="background:#F2F1EE;border:1.5px dashed var(--border2);border-radius:8px;padding:18px;text-align:center;cursor:pointer;margin-bottom:12px;transition:all .15s" id="pickUploadZone" onclick="document.getElementById('pickFileInput').click()">
+      <div style="font-size:26px;margin-bottom:7px">📄</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px" id="pickUploadLabel">Upload CV (PDF or DOCX)</div>
+      <div style="font-size:11px;color:var(--text2)">Claude will auto-parse skills, experience &amp; education — then score against the role</div>
+      <input type="file" id="pickFileInput" accept=".pdf,.doc,.docx" style="display:none" onchange="handlePickFile(this)">
+      <div id="pickFileName" style="margin-top:8px;font-size:11px;color:#27500A;font-weight:500;display:none"></div>
+    </div>
+
+    <div style="background:#EEEDFE;border:1px solid #AFA9EC;border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:#3C3489;line-height:1.55">
+      ⚙ <strong style="font-weight:500">What happens after you click Add:</strong> Claude reads the CV, extracts their full profile, then scores them against the Chief HR Officer requirements — giving you a match score, breakdown, and recruiter brief automatically.
+    </div>
+
+    <button onclick="closeAddCandidateModal();showScreen('dashboard');setDemoActive(document.querySelector('.demo-btn:nth-child(4)'))" style="width:100%;padding:10px;font-size:13px;font-weight:500;border-radius:6px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:6px">Add candidate &amp; run AI analysis</button>
+    <button onclick="closeAddCandidateModal()" style="width:100%;padding:8px;font-size:12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font)">Skip for now — add candidates later</button>
+  </div>
+</div>
+
+<!-- ② SUBMIT PROFILE -->
+<div class="screen" id="screen-submit">
+  <div class="page" style="padding-top:20px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <span style="font-size:12px;color:var(--text3)">← DBS Bank — Chief HR Officer</span>
+      <span style="font-size:12px;color:var(--text3)">›</span>
+      <span style="font-size:12px;color:var(--text);font-weight:500">Submit candidate profile</span>
+    </div>
+    <div class="submit-layout">
+      <!-- Main -->
+      <div>
+        <div class="sh-card">
+          <div class="sh-head">
+            <div class="sh-av" style="background:#E6F1FB;color:#0C447C">SW</div>
+            <div style="flex:1">
+              <div class="sh-name">Sarah Wong <span class="badge b-green">92% AI match</span><span class="badge b-blue">Shortlisted</span></div>
+              <div class="sh-sub">CHRO, OCBC Bank · Singapore · 22 years experience</div>
+              <div class="sh-chips">
+                <span class="chip">✉ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="32415340535a1c455d5c5572575f535b5e1c515d5f">[email&#160;protected]</a></span>
+                <span class="chip">☏ +65 9123 4567</span>
+                <span class="chip">↗ linkedin.com/in/sarahwong</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="font-size:11px;padding:3px 8px;border-radius:5px;background:var(--green-bg);color:var(--green)">✓ 22 yrs HR leadership</span>
+            <span style="font-size:11px;padding:3px 8px;border-radius:5px;background:var(--green-bg);color:var(--green)">✓ CHRO at Tier-1 bank</span>
+            <span style="font-size:11px;padding:3px 8px;border-radius:5px;background:var(--green-bg);color:var(--green)">✓ 18-market scope</span>
+            <span style="font-size:11px;padding:3px 8px;border-radius:5px;background:var(--red-bg);color:var(--red)">✕ Possible non-compete</span>
+          </div>
+        </div>
+
+        <div class="section-label">Candidate brief — what the client will see</div>
+        <div class="brief-preview">
+          <div class="bp-header">
+            <div class="bp-logo">Sea Search</div>
+            <div class="bp-date">Prepared: 28 March 2026 · Confidential</div>
+          </div>
+          <div class="bp-body">
+            <div class="bp-section">
+              <div class="bp-sec-title">Candidate overview</div>
+              <div class="bp-row"><span>Name</span><strong>Sarah Wong</strong></div>
+              <div class="bp-row"><span>Current role</span><strong>CHRO, OCBC Bank</strong></div>
+              <div class="bp-row"><span>Location</span><strong>Singapore</strong></div>
+              <div class="bp-row"><span>Experience</span><strong>22 years HR leadership</strong></div>
+              <div class="bp-row"><span>Notice period</span><strong>3 months</strong></div>
+              <div class="bp-row"><span>Expected compensation</span><strong>SGD 480K–520K total</strong></div>
+            </div>
+            <div class="bp-section">
+              <div class="bp-sec-title">AI match score</div>
+              <div class="bp-highlight">
+                <div><div class="bp-score">92%</div><div class="bp-score-lbl">Match to role requirements</div></div>
+                <div class="bp-bar-wrap">
+                  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:3px"><span>Experience</span><span>95%</span></div>
+                  <div class="bp-bar-bg"><div class="bp-bar-fill" style="width:95%"></div></div>
+                  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:3px;margin-top:4px"><span>Industry fit</span><span>90%</span></div>
+                  <div class="bp-bar-bg"><div class="bp-bar-fill" style="width:90%"></div></div>
+                  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:3px;margin-top:4px"><span>Leadership scope</span><span>95%</span></div>
+                  <div class="bp-bar-bg"><div class="bp-bar-fill" style="width:95%"></div></div>
+                </div>
+              </div>
+            </div>
+            <div class="bp-section">
+              <div class="bp-sec-title">Strengths & risks</div>
+              <div class="bp-flag bp-flag-g">✓ 22 years progressive HR leadership in banking and financial services</div>
+              <div class="bp-flag bp-flag-g">✓ Currently CHRO at OCBC Bank — peer institution to DBS at comparable scale</div>
+              <div class="bp-flag bp-flag-g">✓ Led HRIS transformation (Workday) across 15 markets, 30,000 employees</div>
+              <div class="bp-flag bp-flag-g">✓ Board People Committee chairperson — direct board-level exposure</div>
+              <div class="bp-flag bp-flag-r" style="margin-top:4px">⚠ Potential non-compete clause from OCBC — to be clarified at offer stage</div>
+            </div>
+            <div class="bp-section">
+              <div class="bp-sec-title">Career history</div>
+              <div class="bp-exp-item"><span>Chief HR Officer — OCBC Bank</span><span style="color:var(--text3)">2018 – Present</span></div>
+              <div class="bp-exp-item"><span>Group HR Director — Standard Chartered</span><span style="color:var(--text3)">2013 – 2018</span></div>
+              <div class="bp-exp-item"><span>HR Vice President — DBS Bank</span><span style="color:var(--text3)">2009 – 2013</span></div>
+            </div>
+            <div class="bp-section">
+              <div class="bp-sec-title">Recruiter note</div>
+              <div style="font-size:12px;color:var(--text2);line-height:1.7;background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;border-left:2px solid var(--purple2)">
+                Sarah is the strongest candidate in this pool. Her OCBC background is a near-perfect match for DBS's mandate — same scale, same regulatory environment, direct banking CHRO experience. She is actively exploring options and has confirmed availability to engage. I recommend prioritising her for a first-round interview this week.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="submit-sidebar">
+        <div class="ss-card">
+          <div class="ss-title">💰 Your reward on placement</div>
+          <div class="reward-display">
+            <div class="rd-num">SGD 95,000</div>
+            <div class="rd-lbl">estimated reward</div>
+            <div class="rd-breakdown">19% × SGD 500K salary</div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);text-align:center">Paid within 30 days of candidate start date</div>
+        </div>
+        <div class="ss-card">
+          <div class="ss-title">✅ Pre-submission checklist</div>
+          <div class="checklist-item"><div class="cli-check cli-ok">✓</div><span>Resume uploaded & AI extracted</span></div>
+          <div class="checklist-item"><div class="cli-check cli-ok">✓</div><span>Candidate Q&A answers collected</span></div>
+          <div class="checklist-item"><div class="cli-check cli-ok">✓</div><span>AI match score generated (92%)</span></div>
+          <div class="checklist-item"><div class="cli-check cli-ok">✓</div><span>Recruiter notes added</span></div>
+          <div class="checklist-item"><div class="cli-check cli-warn">!</div><span>Non-compete clause — flag to client</span></div>
+          <div class="checklist-item"><div class="cli-check cli-ok">✓</div><span>Candidate consent confirmed</span></div>
+        </div>
+        <div class="ss-card">
+          <div class="ss-title">📋 Submitting to</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;border:1px solid var(--border)">DB</div>
+            <div><div style="font-size:12px;font-weight:500">DBS Bank</div><div style="font-size:11px;color:var(--text2)">Chief HR Officer · Singapore</div></div>
+          </div>
+          <div style="font-size:11px;color:var(--text2);background:var(--surface2);border-radius:var(--radius-sm);padding:8px 10px;line-height:1.6">
+            Client will receive candidate brief + your note via the Sea Search platform. You will be notified when they review.
+          </div>
+        </div>
+        <div class="submit-btn-wrap">
+          <button class="btn btn-blue" style="width:100%;justify-content:center;padding:10px;font-size:13px" onclick="showScreen('placed');setDemoActive(document.querySelector('.demo-btn:nth-child(3)'))">Submit to DBS Bank →</button>
+          <button class="btn" style="width:100%;justify-content:center">Save as draft</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ③ PLACEMENT CONFIRMED -->
+<div class="screen" id="screen-placed">
+  <div class="placement-wrap">
+    <div class="placement-card">
+      <div class="pc-celebrate">
+        <div class="pc-confetti">🎉 ⭐ 🎉</div>
+        <div class="pc-icon">🏆</div>
+        <div class="pc-title">Placement confirmed!</div>
+        <div class="pc-sub">Sarah Wong has accepted the offer from DBS Bank</div>
+        <div class="pc-reward-banner">
+          <div><div class="pc-reward-num">SGD 95,000</div></div>
+          <div><div class="pc-reward-lbl">Reward earned</div><div style="font-size:11px;color:rgba(255,255,255,0.65)">Processing in 30 days</div></div>
+        </div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-placement-detail">
+          <div class="pc-detail-item"><div class="pdi-lbl">Candidate placed</div><div class="pdi-val">Sarah Wong</div></div>
+          <div class="pc-detail-item"><div class="pdi-lbl">Client</div><div class="pdi-val">DBS Bank</div></div>
+          <div class="pc-detail-item"><div class="pdi-lbl">Role</div><div class="pdi-val">Chief HR Officer</div></div>
+          <div class="pc-detail-item"><div class="pdi-lbl">Start date</div><div class="pdi-val">1 July 2026</div></div>
+          <div class="pc-detail-item"><div class="pdi-lbl">Salary</div><div class="pdi-val">SGD 500,000</div></div>
+          <div class="pc-detail-item"><div class="pdi-lbl">Time to place</div><div class="pdi-val">18 days</div></div>
+        </div>
+
+        <div class="section-label">Timeline</div>
+        <div class="pc-timeline">
+          <div class="pct-item"><div class="pct-dot" style="background:#639922"></div><div><div class="pct-label">Role picked</div><div class="pct-sub">10 March 2026</div></div></div>
+          <div class="pct-item"><div class="pct-dot" style="background:#534AB7"></div><div><div class="pct-label">AI matching run — Sarah scored 92%</div><div class="pct-sub">12 March 2026</div></div></div>
+          <div class="pct-item"><div class="pct-dot" style="background:#378ADD"></div><div><div class="pct-label">Profile submitted to DBS Bank</div><div class="pct-sub">14 March 2026</div></div></div>
+          <div class="pct-item"><div class="pct-dot" style="background:#BA7517"></div><div><div class="pct-label">Interview completed</div><div class="pct-sub">20 March 2026</div></div></div>
+          <div class="pct-item"><div class="pct-dot" style="background:#639922"></div><div><div class="pct-label">Offer accepted by candidate</div><div class="pct-sub">28 March 2026</div></div></div>
+        </div>
+
+        <div class="pc-payout">
+          <div class="pp-title">💰 Payout breakdown</div>
+          <div class="pp-row"><span>Gross reward (19% × SGD 500K)</span><span>SGD 95,000</span></div>
+          <div class="pp-row"><span>Sea Search platform fee (20%)</span><span>− SGD 19,000</span></div>
+          <div class="pp-row total"><span>Your net payout</span><span>SGD 76,000</span></div>
+        </div>
+
+        <div class="pc-actions">
+          <button class="btn btn-blue" style="flex:1;justify-content:center" onclick="showScreen('dashboard');setDemoActive(document.querySelector('.demo-btn:nth-child(4)'))">Go to dashboard</button>
+          <button class="btn" style="flex:1;justify-content:center">View placement record</button>
+          <button class="btn btn-green" style="flex:1;justify-content:center">Share to network</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ④ RECRUITER DASHBOARD -->
+<div class="screen active" id="screen-dashboard">
+  <div class="dashboard">
+
+    <!-- Welcome -->
+    <div class="dash-welcome">
+      <div>
+        <div class="dw-name">Good morning, Andika 👋</div>
+        <div class="dw-sub">You have 3 active roles and 2 candidates awaiting client review</div>
+      </div>
+      <div class="dw-actions">
+        <button class="btn">Browse new roles</button>
+        <button class="btn btn-blue">+ Add candidate</button>
+      </div>
+    </div>
+
+    <!-- Earnings hero -->
+    <div class="earnings-hero">
+      <div class="eh-bg">💰</div>
+      <div class="eh-main">
+        <div class="eh-lbl">Total earnings — 2026 YTD</div>
+        <div class="eh-num">SGD 228,500</div>
+        <div class="eh-change"><span class="eh-change-up">↑ 34%</span> vs same period last year</div>
+      </div>
+      <div class="eh-stats">
+        <div class="eh-stat">
+          <div class="eh-stat-num">4</div>
+          <div class="eh-stat-lbl">Placements YTD</div>
+        </div>
+        <div class="eh-stat">
+          <div class="eh-stat-num">3</div>
+          <div class="eh-stat-lbl">Active roles</div>
+        </div>
+        <div class="eh-stat">
+          <div class="eh-stat-num">SGD 95K</div>
+          <div class="eh-stat-lbl">Pending payout</div>
+        </div>
+        <div class="eh-stat">
+          <div class="eh-stat-num">18d</div>
+          <div class="eh-stat-lbl">Avg. time to place</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="sc-top">
+          <div class="sc-icon" style="background:var(--blue-bg)">📋</div>
+          <span class="sc-trend sc-trend-up">↑ 2</span>
+        </div>
+        <div class="sc-num">3</div>
+        <div class="sc-lbl">Active roles picked</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-top">
+          <div class="sc-icon" style="background:var(--purple-bg)">👥</div>
+          <span class="sc-trend sc-trend-up">↑ 5</span>
+        </div>
+        <div class="sc-num">14</div>
+        <div class="sc-lbl">Candidates in pipeline</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-top">
+          <div class="sc-icon" style="background:var(--amber-bg)">📤</div>
+          <span class="sc-trend sc-trend-up">↑ 1</span>
+        </div>
+        <div class="sc-num">2</div>
+        <div class="sc-lbl">Awaiting client review</div>
+      </div>
+      <div class="stat-card">
+        <div class="sc-top">
+          <div class="sc-icon" style="background:var(--green-bg)">💰</div>
+          <span class="sc-trend sc-trend-up">↑ 34%</span>
+        </div>
+        <div class="sc-num">SGD 95K</div>
+        <div class="sc-lbl">Pending reward</div>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="dash-grid">
+      <!-- Active roles -->
+      <div>
+        <div class="active-roles-card">
+          <div class="arc-head">
+            <div class="arc-title">Active roles</div>
+            <button class="btn" style="font-size:11px;padding:4px 10px">Browse more</button>
+          </div>
+          <div class="role-item">
+            <div class="ri-logo" style="background:#E6F1FB;color:#0C447C">DB</div>
+            <div class="ri-body">
+              <div class="ri-title">Chief HR Officer <span class="badge b-gray" style="font-size:9px">⭐ Exclusive</span> <span class="badge b-gray" style="font-size:9px">🏆 #1 match</span></div>
+              <div class="ri-co">DBS Bank · Singapore</div>
+              <div class="ri-progress"><div class="ri-progress-fill" style="width:90%;background:#639922"></div></div>
+              <div class="ri-stage">Offered · 90% to placement</div>
+            </div>
+            <div class="ri-right">
+              <div class="ri-reward">SGD 72K–95K</div>
+              <div class="ri-days">18d active</div>
+            </div>
+          </div>
+          <div class="role-item">
+            <div class="ri-logo" style="background:#EAF3DE;color:#27500A">SL</div>
+            <div class="ri-body">
+              <div class="ri-title">VP Engineering <span class="badge b-gray" style="font-size:9px">New</span></div>
+              <div class="ri-co">Sea Limited · Singapore</div>
+              <div class="ri-progress"><div class="ri-progress-fill" style="width:40%;background:#BA7517"></div></div>
+              <div class="ri-stage">Screened · 40% to placement</div>
+            </div>
+            <div class="ri-right">
+              <div class="ri-reward">SGD 35K–48K</div>
+              <div class="ri-days">5d active</div>
+            </div>
+          </div>
+          <div class="role-item">
+            <div class="ri-logo" style="background:#FAECE7;color:#993C1D">PP</div>
+            <div class="ri-body">
+              <div class="ri-title">Chief Digital Officer <span class="badge b-gray" style="font-size:9px">High reward</span></div>
+              <div class="ri-co">Parkway Pantai · Singapore</div>
+              <div class="ri-progress"><div class="ri-progress-fill" style="width:15%;background:#888780"></div></div>
+              <div class="ri-stage">Sourced · 15% to placement</div>
+            </div>
+            <div class="ri-right">
+              <div class="ri-reward">SGD 57K–80K</div>
+              <div class="ri-days">2d active</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Earnings chart -->
+        <div class="earnings-card" style="margin-top:14px">
+          <div class="ec-head">
+            <div class="ec-title">Monthly earnings — 2026</div>
+            <span class="badge b-green">On track for SGD 400K year</span>
+          </div>
+          <div class="ec-bars">
+            <div class="ec-bar-wrap"><div class="ec-bar" style="height:55%;background:var(--blue2);border:1px solid var(--blue-mid)"></div><div class="ec-bar-lbl">Jan</div></div>
+            <div class="ec-bar-wrap"><div class="ec-bar" style="height:70%;background:var(--blue2);border:1px solid var(--blue-mid)"></div><div class="ec-bar-lbl">Feb</div></div>
+            <div class="ec-bar-wrap"><div class="ec-bar" style="height:90%;background:var(--blue2);border:1px solid var(--blue-mid)"></div><div class="ec-bar-lbl">Mar</div></div>
+            <div class="ec-bar-wrap"><div class="ec-bar" style="height:30%;background:var(--surface2);border:1px solid var(--border)"></div><div class="ec-bar-lbl">Apr</div></div>
+            <div class="ec-bar-wrap"><div class="ec-bar" style="height:10%;background:var(--surface2);border:1px solid var(--border)"></div><div class="ec-bar-lbl">May</div></div>
+            <div class="ec-bar-wrap"><div class="ec-bar" style="height:10%;background:var(--surface2);border:1px solid var(--border)"></div><div class="ec-bar-lbl">Jun</div></div>
+          </div>
+          <div class="ec-total">
+            <div class="ec-total-lbl">YTD total</div>
+            <div class="ec-total-num">SGD 228,500</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="right-col">
+
+        <!-- Activity -->
+        <div class="activity-card">
+          <div class="ac-head">
+            <div class="ac-title">Recent activity</div>
+            <span class="badge b-blue">5 new</span>
+          </div>
+          <div class="ac-item">
+            <div class="ac-dot" style="background:#639922"></div>
+            <div><div class="ac-text">Sarah Wong — Offer accepted</div><div class="ac-sub">Chief HR Officer · DBS Bank</div><div class="ac-time">2h ago</div></div>
+          </div>
+          <div class="ac-item">
+            <div class="ac-dot" style="background:#378ADD"></div>
+            <div><div class="ac-text">Client feedback received</div><div class="ac-sub">Michelle Ng · DBS Bank interview</div><div class="ac-time">Yesterday</div></div>
+          </div>
+          <div class="ac-item">
+            <div class="ac-dot" style="background:#534AB7"></div>
+            <div><div class="ac-text">AI matching completed</div><div class="ac-sub">VP Engineering · Sea Limited — 6 scored</div><div class="ac-time">2d ago</div></div>
+          </div>
+          <div class="ac-item">
+            <div class="ac-dot" style="background:#BA7517"></div>
+            <div><div class="ac-text">New exclusive role posted</div><div class="ac-sub">CFO · Temasek · SGD 120K reward</div><div class="ac-time">2d ago</div></div>
+          </div>
+          <div class="ac-item">
+            <div class="ac-dot" style="background:#27500A"></div>
+            <div><div class="ac-text">Reward payment processed</div><div class="ac-sub">VP Engineering — SGD 38,000</div><div class="ac-time">1 week ago</div></div>
+          </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="lb-card">
+          <div class="lb-head">
+            <div class="lb-title">Top recruiters — March 2026</div>
+          </div>
+          <div class="lb-item">
+            <div class="lb-rank">1</div>
+            <div class="lb-av" style="background:#FAEEDA;color:#633806">PN</div>
+            <div class="lb-name">Priya Nair</div>
+            <div class="lb-earn">SGD 95K</div>
+          </div>
+          <div class="lb-item">
+            <div class="lb-rank">2</div>
+            <div class="lb-av" style="background:#E6F1FB;color:#0C447C">ML</div>
+            <div class="lb-name">Marcus Lee</div>
+            <div class="lb-earn">SGD 76K</div>
+          </div>
+          <div class="lb-item">
+            <div class="lb-rank you">3</div>
+            <div class="lb-av" style="background:#EEEDFE;color:#3C3489">AY</div>
+            <div class="lb-name you">Andika Yusof (you)</div>
+            <div class="lb-earn you">SGD 57K</div>
+          </div>
+          <div class="lb-item">
+            <div class="lb-rank">4</div>
+            <div class="lb-av" style="background:#EAF3DE;color:#27500A">GT</div>
+            <div class="lb-name">Grace Tan</div>
+            <div class="lb-earn">SGD 48K</div>
+          </div>
+          <div class="lb-item">
+            <div class="lb-rank">5</div>
+            <div class="lb-av" style="background:#FAECE7;color:#993C1D">RS</div>
+            <div class="lb-name">Raj Sharma</div>
+            <div class="lb-earn">SGD 38K</div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card" style="padding:14px">
+          <div class="section-label" style="margin-bottom:10px">Quick actions</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn" style="width:100%;justify-content:flex-start" onclick="showScreen('submit');setDemoActive(document.querySelector('.demo-btn:nth-child(2)'))">📤 Submit Sarah Wong to DBS Bank</button>
+            <button class="btn" style="width:100%;justify-content:flex-start">⚙ Run AI matching — VP Engineering</button>
+            <button class="btn" style="width:100%;justify-content:flex-start">📋 Browse new high-reward roles</button>
+            <button class="btn btn-green" style="width:100%;justify-content:flex-start" onclick="showScreen('placed');setDemoActive(document.querySelector('.demo-btn:nth-child(3)'))">🏆 View placement confirmation</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /screens -->
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  closeNotif();
+}
+function setNavActive(el){
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  el.classList.add('active');
+}
+function setDemoActive(el){
+  if(!el)return;
+  document.querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function toggleNotif(){
+  document.getElementById('notifPanel').classList.toggle('open');
+}
+function closeNotif(){
+  document.getElementById('notifPanel').classList.remove('open');
+}
+function showAddCandidateModal(){
+  var m=document.getElementById('addCandModal');
+  m.style.display='flex';
+}
+function closeAddCandidateModal(){
+  document.getElementById('addCandModal').style.display='none';
+  document.getElementById('pickFileName').style.display='none';
+  document.getElementById('pickUploadLabel').textContent='Upload CV (PDF or DOCX)';
+  document.getElementById('pickUploadZone').style.borderColor='';
+}
+function handlePickFile(inp){
+  if(!inp.files[0]) return;
+  document.getElementById('pickFileName').textContent='📄 '+inp.files[0].name+' — ready to upload';
+  document.getElementById('pickFileName').style.display='block';
+  document.getElementById('pickUploadLabel').textContent='CV selected ✓';
+  document.getElementById('pickUploadZone').style.borderColor='#639922';
+}
+document.getElementById('addCandModal').addEventListener('click',function(e){
+  if(e.target===this) closeAddCandidateModal();
+});
+document.addEventListener('clic

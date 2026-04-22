@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sea Search — Pipeline Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0D0C0A;--ink2:#2A2926;--ink3:#454340;--ink4:#6B6860;
+  --mist:#F9F8F5;--mist2:#F2F0EC;--mist3:#E8E5DF;
+  --wire:#E0DDD6;--wire2:#C8C4BC;
+  --sea:#0B4F8A;--sea2:#1A6DB5;--sea3:#3589D4;--sea-pale:#E8F2FB;--sea-soft:#C5DFF5;
+  --jade:#1A4D1E;--jade2:#2E7D33;--jade3:#4CAF52;--jade-pale:#EAF4EB;--jade-soft:#B8DFB9;
+  --amber:#7A3B0A;--amber2:#B85C1A;--amber3:#E07C3A;--amber-pale:#FDF0E8;--amber-soft:#F5C49A;
+  --ruby:#7A1A1A;--ruby2:#B52525;--ruby-pale:#FBE8E8;--ruby-soft:#F7C1C1;
+  --violet:#2D1F6E;--violet2:#4B3AA8;--violet-pale:#EEE9FB;--violet-soft:#C4B8F0;
+  --gold:#6B4F00;--gold2:#C49A00;--gold-pale:#FDF8E1;
+  --font:'DM Sans',sans-serif;--head:'Syne',sans-serif;--mono:'DM Mono',monospace;
+  --r:10px;--rsm:6px;--rxs:4px;--col-w:242px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--mist2);color:var(--ink);display:flex;flex-direction:column}
+
+.nav{height:52px;background:var(--ink);display:flex;align-items:center;padding:0 20px 0 0;flex-shrink:0;border-bottom:1px solid var(--ink2);z-index:40}
+.nav-logo-wrap{width:220px;flex-shrink:0;padding:0 20px;border-right:1px solid var(--ink2);height:100%;display:flex;align-items:center}
+.logo{font-family:var(--head);font-size:16px;font-weight:700;color:#fff}
+.logo span{color:#3589D4}
+.logo-sub{font-size:9px;color:#4CAF52;display:flex;align-items:center;gap:3px;margin-top:1px}
+.logo-dot{width:5px;height:5px;border-radius:50%;background:#4CAF52}
+.nav-mid{flex:1;display:flex;align-items:center;padding:0 20px;gap:8px}
+.nav-link{font-size:12px;padding:5px 10px;border-radius:var(--rsm);color:#D4D0C8;cursor:pointer}
+.nav-link:hover{background:var(--ink2);color:#fff}
+.nav-link.on{background:var(--sea);color:#fff}
+.nav-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-btn{width:30px;height:30px;border-radius:var(--rxs);border:1px solid var(--ink2);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#D4D0C8;position:relative}
+.nav-btn:hover{background:var(--ink2)}
+.npip{position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:#E24B4A;border:1px solid var(--ink)}
+.nav-av{width:30px;height:30px;border-radius:50%;background:var(--sea);color:#E8F2FB;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;border:1.5px solid var(--sea2)}
+
+.shell{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--ink);flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--ink2);overflow-y:auto}
+.sb-s{padding:10px 10px 4px}
+.sb-lbl{font-size:9px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;padding:0 8px;margin-bottom:5px}
+.sbi{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:var(--rxs);cursor:pointer;color:#D4D0C8;font-size:12px;transition:all .15s}
+.sbi:hover{background:var(--ink2);color:#fff}
+.sbi.on{background:var(--sea);color:#fff}
+.sbi-i{font-size:12px;width:18px;text-align:center;flex-shrink:0}
+.sbi-l{flex:1}
+.sbadge{font-size:9px;font-weight:500;background:var(--sea2);color:#fff;border-radius:8px;padding:1px 5px;font-family:var(--mono)}
+.sbadge-a{background:var(--amber2)!important}
+.sbadge-r{background:var(--ruby2)!important}
+.sb-div{height:1px;background:var(--ink2);margin:6px 10px}
+.role-switcher{margin:8px 10px}
+.rs-label{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;padding:0 2px}
+.rs-role{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:var(--rsm);cursor:pointer;border:1px solid transparent;transition:all .15s}
+.rs-role:hover{background:var(--ink2)}
+.rs-role.on{background:var(--ink2);border-color:var(--ink3)}
+.rs-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.rs-name{font-size:11px;font-weight:500;color:#fff}
+.rs-co{font-size:10px;color:#D4D0C8}
+.rs-cnt{font-size:9px;color:var(--ink3);font-family:var(--mono)}
+.sb-bot{margin-top:auto;padding:10px}
+.sb-prof{display:flex;align-items:center;gap:8px;padding:8px;background:var(--ink2);border-radius:var(--rsm);cursor:pointer;border:1px solid var(--ink3)}
+.sbp-av{width:28px;height:28px;border-radius:50%;background:var(--sea);color:#E8F2FB;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.sbp-n{font-size:11px;font-weight:500;color:#fff}
+.sbp-r{font-size:9px;color:#D4D0C8}
+
+/* MAIN */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+/* TOPBAR */
+.topbar{background:#fff;border-bottom:1px solid var(--wire);padding:12px 20px;flex-shrink:0;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.tb-role{display:flex;align-items:center;gap:10px}
+.tb-logo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;border:1px solid var(--wire);background:var(--sea-pale);color:var(--sea)}
+.tb-title{font-size:15px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.tb-sub{font-size:11px;color:var(--ink4)}
+.badge{font-size:9px;font-weight:500;padding:2px 7px;border-radius:20px}
+.b-sea{background:var(--sea-pale);color:var(--sea)}
+.b-jade{background:var(--jade-pale);color:var(--jade)}
+.b-amber{background:var(--amber-pale);color:var(--amber)}
+.b-ruby{background:var(--ruby-pale);color:var(--ruby)}
+.b-gold{background:var(--gold-pale);color:var(--gold)}
+.b-violet{background:var(--violet-pale);color:var(--violet)}
+.tb-stats{display:flex;gap:16px;margin-left:auto;align-items:center}
+.tb-stat{text-align:center}
+.tb-stat-num{font-size:16px;font-weight:600;color:var(--ink);font-family:var(--head)}
+.tb-stat-lbl{font-size:10px;color:var(--ink4)}
+.tb-sep{width:1px;height:28px;background:var(--wire)}
+.tb-actions{display:flex;gap:6px}
+.tb-btn{font-size:11px;padding:6px 12px;border-radius:var(--rsm);border:1px solid var(--wire2);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font)}
+.tb-btn:hover{background:var(--mist2)}
+.tb-btn-blue{background:var(--sea);color:#fff;border-color:var(--sea)}
+.tb-btn-blue:hover{background:var(--sea2)}
+
+/* STAGE TABS */
+.stage-bar{background:#fff;border-bottom:1px solid var(--wire);padding:0 20px;display:flex;flex-shrink:0}
+.stage-tab{display:flex;align-items:center;gap:7px;padding:9px 14px;font-size:12px;color:var(--ink4);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.stage-tab:hover{color:var(--ink)}
+.stage-tab.on{color:var(--ink);border-bottom-color:var(--ink);font-weight:500}
+.st-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.st-cnt{font-size:10px;background:var(--mist2);border:1px solid var(--wire);border-radius:10px;padding:1px 6px;font-family:var(--mono)}
+.stage-tab.on .st-cnt{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sb-right{margin-left:auto;display:flex;align-items:center;gap:6px;padding:0 4px}
+.view-btn{font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--wire2);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font)}
+.view-btn:hover{background:var(--mist2)}
+
+/* KANBAN AREA */
+.kanban-shell{display:flex;flex:1;overflow:hidden}
+.kanban-area{flex:1;overflow-x:auto;overflow-y:hidden;display:flex;padding:14px 18px;gap:10px;background:var(--mist2)}
+.kcol{width:var(--col-w);min-width:var(--col-w);display:flex;flex-direction:column;flex-shrink:0}
+.kcol-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 2px}
+.kch-left{display:flex;align-items:center;gap:6px}
+.kch-dot{width:9px;height:9px;border-radius:50%}
+.kch-title{font-size:11px;font-weight:500;color:var(--ink);text-transform:uppercase;letter-spacing:.06em}
+.kch-cnt{font-size:10px;color:var(--ink4);background:#fff;border:1px solid var(--wire);border-radius:10px;padding:1px 7px;font-family:var(--mono)}
+.kch-add{width:22px;height:22px;border-radius:var(--rxs);border:1px solid var(--wire2);background:transparent;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;color:var(--ink4)}
+.kch-add:hover{background:var(--mist3)}
+.kcol-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding-bottom:4px}
+.kcol-body::-webkit-scrollbar{width:3px}
+.kcol-body::-webkit-scrollbar-thumb{background:var(--wire2);border-radius:2px}
+
+/* KANBAN CARD */
+.kcard{background:#fff;border:1px solid var(--wire);border-radius:var(--r);padding:11px 13px;cursor:grab;transition:border-color .15s,transform .15s,opacity .2s;position:relative;overflow:hidden}
+.kcard:hover{border-color:var(--wire2);transform:translateY(-1px)}
+.kcard.dragging{opacity:.45;transform:scale(.96)}
+.kcard.drag-over{border-color:var(--sea3);border-style:dashed}
+.kcard.rejected{opacity:.5;border-style:dashed}
+.kcard-accent{position:absolute;top:0;left:0;right:0;height:3px}
+.kcard-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px}
+.kcard-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.kcard-meta{flex:1;padding-left:8px;min-width:0}
+.kcard-name{font-size:12px;font-weight:500;color:var(--ink);margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kcard-role{font-size:10px;color:var(--ink4);line-height:1.35}
+.kcard-score{text-align:right;flex-shrink:0}
+.ks-num{font-size:15px;font-weight:600;font-family:var(--head);line-height:1}
+.ks-lbl{font-size:9px;color:var(--ink4)}
+.kcard-bar-bg{height:3px;background:var(--mist2);border-radius:2px;margin-bottom:7px}
+.kcard-bar-fill{height:3px;border-radius:2px}
+.kcard-chips{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px}
+.kchip{font-size:9px;padding:2px 6px;border-radius:20px;background:var(--mist2);color:var(--ink4);border:1px solid var(--wire)}
+.kchip-fb{background:var(--sea-pale);color:var(--sea);border-color:var(--sea-soft)}
+.kchip-int{background:var(--violet-pale);color:var(--violet);border-color:var(--violet-soft)}
+.kchip-rej{background:var(--ruby-pale);color:var(--ruby)}
+.kchip-cv{background:var(--jade-pale);color:var(--jade);border-color:var(--jade-soft)}
+.kcard-note{font-size:10px;color:var(--ink4);background:var(--mist2);border-radius:var(--rxs);padding:5px 7px;margin-bottom:7px;line-height:1.5;border-left:2px solid var(--wire2)}
+.kcard-flags{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px}
+.kflag{font-size:9px;padding:1px 5px;border-radius:3px}
+.kflag-g{background:var(--jade-pale);color:var(--jade)}
+.kflag-r{background:var(--ruby-pale);color:var(--ruby)}
+.kcard-footer{display:flex;align-items:center;justify-content:space-between;padding-top:7px;border-top:1px solid var(--wire)}
+.kcard-date{font-size:9px;color:var(--ink4);font-family:var(--mono)}
+.kcard-actions{display:flex;gap:3px}
+.kact{width:24px;height:24px;border-radius:var(--rxs);border:1px solid var(--wire);background:transparent;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;color:var(--ink4)}
+.kact:hover{background:var(--mist2);border-color:var(--wire2)}
+.kcol-drop{border:1.5px dashed var(--wire2);border-radius:var(--r);padding:10px;text-align:center;color:var(--ink4);font-size:10px;cursor:pointer;transition:all .15s;margin-top:4px;flex-shrink:0}
+.kcol-drop:hover{border-color:var(--sea3);background:var(--sea-pale);color:var(--sea)}
+.kcol-empty{border:1.5px dashed var(--wire2);border-radius:var(--r);padding:16px;text-align:center;color:var(--ink4);font-size:10px;margin-top:4px;display:flex;flex-direction:column;align-items:center;gap:5px}
+
+/* SIDE PANEL */
+.side-panel{width:0;background:#fff;border-left:1px solid var(--wire);overflow:hidden;transition:width .2s ease;flex-shrink:0;display:flex;flex-direction:column}
+.side-panel.open{width:310px}
+.sp-head{padding:12px 14px;border-bottom:1px solid var(--wire);display:flex;align-items:flex-start;gap:9px;flex-shrink:0}
+.sp-close{margin-left:auto;width:22px;height:22px;border-radius:var(--rxs);border:1px solid var(--wire);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink4);flex-shrink:0}
+.sp-close:hover{background:var(--mist2)}
+.sp-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.sp-name{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:1px}
+.sp-role{font-size:11px;color:var(--ink4)}
+.sp-body{flex:1;overflow-y:auto;padding:12px 14px}
+.sp-body::-webkit-scrollbar{width:3px}
+.sp-body::-webkit-scrollbar-thumb{background:var(--wire2);border-radius:2px}
+.sp-sec{margin-bottom:14px}
+.sp-sec-title{font-size:10px;font-weight:500;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.sp-sec-title::after{content:'';flex:1;height:1px;background:var(--wire)}
+.sp-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--wire)}
+.sp-row:last-child{border-bottom:none}
+.sp-lbl{color:var(--ink4)}
+.sp-val{font-weight:500;color:var(--ink)}
+.sp-bd-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.sp-bd-lbl{font-size:10px;color:var(--ink4);width:86px;flex-shrink:0}
+.sp-bd-bg{flex:1;height:4px;background:var(--mist2);border-radius:2px}
+.sp-bd-fill{height:4px;border-radius:2px}
+.sp-bd-pct{font-size:9px;color:var(--ink4);width:24px;text-align:right;font-family:var(--mono)}
+.sp-flag{font-size:10px;padding:2px 7px;border-radius:4px;margin:2px;display:inline-flex;align-items:center;gap:4px}
+.sp-f-g{background:var(--jade-pale);color:var(--jade)}
+.sp-f-r{background:var(--ruby-pale);color:var(--ruby)}
+.sp-stage-row{display:flex;gap:4px;flex-wrap:wrap}
+.sp-stg{font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid var(--wire2);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font)}
+.sp-stg:hover{background:var(--mist2)}
+.sp-stg.on{background:var(--sea-pale);color:var(--sea);border-color:var(--sea-soft)}
+
+/* Feedback section */
+.fb-existing{background:var(--mist2);border:1px solid var(--wire);border-radius:var(--rsm);padding:9px 11px;margin-bottom:8px}
+.fb-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.fb-who{font-size:11px;font-weight:500;color:var(--ink)}
+.fb-date{font-size:9px;color:var(--ink4);font-family:var(--mono)}
+.fb-text{font-size:11px;color:var(--ink4);line-height:1.55}
+.fb-sent{font-size:9px;font-weight:500;padding:2px 6px;border-radius:10px;display:inline-flex;align-items:center;gap:3px;margin-top:4px}
+.fbs-pos{background:var(--jade-pale);color:var(--jade)}
+.fbs-neu{background:var(--amber-pale);color:var(--amber)}
+.fbs-neg{background:var(--ruby-pale);color:var(--ruby)}
+.fb-input{width:100%;padding:7px 9px;font-size:11px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font);resize:none;min-height:56px;line-height:1.55}
+.fb-input:focus{border-color:var(--sea3)}
+.fb-footer{display:flex;gap:6px;align-items:center;margin-top:5px}
+.fb-select{font-size:10px;padding:4px 7px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink);font-family:var(--font);outline:none;cursor:pointer}
+.fb-save{font-size:10px;padding:4px 12px;border-radius:var(--rxs);border:1px solid var(--sea3);background:transparent;color:var(--sea);cursor:pointer;font-family:var(--font)}
+.fb-save:hover{background:var(--sea-pale)}
+
+/* Interview section */
+.int-box{background:var(--violet-pale);border:1px solid var(--violet-soft);border-radius:var(--rsm);padding:9px 11px;margin-bottom:8px}
+.int-box-empty{background:var(--mist2);border:1px solid var(--wire);border-radius:var(--rsm);padding:9px 11px;margin-bottom:8px}
+.int-title{font-size:11px;font-weight:500;color:var(--violet);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.int-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.int-field{display:flex;flex-direction:column;gap:3px}
+.int-lbl{font-size:9px;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em}
+.int-input{font-size:11px;padding:5px 8px;border:1px solid var(--wire2);border-radius:var(--rxs);background:#fff;color:var(--ink);outline:none;font-family:var(--font)}
+.int-input:focus{border-color:var(--sea3)}
+.int-save{font-size:10px;padding:4px 12px;border-radius:var(--rxs);border:1px solid var(--violet);background:transparent;color:var(--violet);cursor:pointer;font-family:var(--font)}
+.int-save:hover{background:var(--violet-pale)}
+.int-val{font-size:11px;font-weight:500;color:var(--violet)}
+.int-sub{font-size:10px;color:var(--violet2)}
+
+/* CV upload in panel */
+.cv-upload-strip{display:flex;align-items:center;gap:8px;background:var(--mist2);border:1.5px dashed var(--wire2);border-radius:var(--rsm);padding:8px 10px;cursor:pointer;margin-bottom:8px;transition:all .15s}
+.cv-upload-strip:hover{border-color:var(--sea3);background:var(--sea-pale)}
+.cv-strip-txt{font-size:11px;font-weight:500;color:var(--ink)}
+.cv-strip-sub{font-size:10px;color:var(--ink4)}
+.cv-file-strip{display:flex;align-items:center;gap:8px;background:var(--jade-pale);border:1px solid var(--jade-soft);border-radius:var(--rsm);padding:8px 10px;margin-bottom:8px}
+.cv-file-name{font-size:11px;font-weight:500;color:var(--jade)}
+.cv-file-meta{font-size:10px;color:var(--jade2)}
+
+/* Processing overlay */
+.proc-overlay{display:none;position:fixed;inset:0;background:rgba(13,12,10,.5);z-index:200;align-items:center;justify-content:center}
+.proc-overlay.open{display:flex}
+.proc-card{background:#fff;border-radius:var(--r);border:1px solid var(--wire);padding:24px 28px;width:100%;max-width:440px;text-align:center}
+.proc-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px}
+.proc-sub{font-size:12px;color:var(--ink4);margin-bottom:12px}
+.proc-bar-bg{height:4px;background:var(--mist2);border-radius:2px;margin-bottom:14px;overflow:hidden}
+.proc-bar{height:4px;background:var(--sea3);border-radius:2px;transition:width .4s ease;width:0%}
+.proc-steps{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.ps{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:var(--rsm);font-size:11px;text-align:left;transition:all .3s}
+.ps-idle{background:var(--mist2);color:var(--ink4)}
+.ps-run{background:var(--sea-pale);color:var(--sea);border:1px solid var(--sea-soft)}
+.ps-done{background:var(--jade-pale);color:var(--jade);border:1px solid var(--jade-soft)}
+.ps-ico{font-size:15px;width:22px;text-align:center;flex-shrink:0}
+.ps-txt{flex:1}
+.ps-stat{font-size:9px;font-family:var(--mono);flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-ico{display:inline-block;animation:spin .6s linear infinite}
+
+/* Rejection modal */
+.rej-modal{background:#fff;border-radius:var(--r);border:1px solid var(--wire);padding:22px;width:100%;max-width:400px}
+.rej-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.rej-sub{font-size:12px;color:var(--ink4);margin-bottom:14px}
+.rej-opts{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.rej-opt{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--wire2);border-radius:var(--rsm);cursor:pointer;font-size:12px;transition:all .15s}
+.rej-opt:hover{background:var(--mist2)}
+.rej-opt.on{border-color:var(--ruby-soft);background:var(--ruby-pale);color:var(--ruby)}
+.rej-opt-ico{font-size:14px;width:20px;text-align:center}
+.rej-note-lbl{font-size:10px;color:var(--ink4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.rej-note{width:100%;padding:7px 9px;font-size:12px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font);resize:none;min-height:56px}
+.rej-note:focus{border-color:var(--ruby-soft)}
+.rej-actions{display:flex;gap:7px;margin-top:14px}
+.rej-confirm{flex:1;padding:8px;font-size:12px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--ruby2);color:#fff;cursor:pointer;font-family:var(--font)}
+.rej-cancel{flex:1;padding:8px;font-size:12px;border-radius:var(--rsm);border:1px solid var(--wire2);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font)}
+
+/* Add candidate modal */
+.modal-wrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+.modal-wrap.open{display:flex}
+.modal{background:#fff;border-radius:var(--r);border:1px solid var(--wire);padding:20px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.modal-title{font-size:14px;font-weight:500;color:var(--ink)}
+.modal-close{font-size:16px;cursor:pointer;color:var(--ink4);background:none;border:none}
+.field{margin-bottom:9px}
+.field-lbl{font-size:10px;font-weight:500;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.field input,.field select{width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font)}
+.field input:focus,.field select:focus{border-color:var(--sea3)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.upload-zone{border:1.5px dashed var(--wire2);border-radius:var(--rsm);padding:14px;text-align:center;cursor:pointer;background:var(--mist2);margin-bottom:12px;transition:all .15s}
+.upload-zone:hover{border-color:var(--sea3);background:var(--sea-pale)}
+.modal-btn{width:100%;padding:9px;font-size:12px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--sea);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:6px}
+.modal-btn-sec{background:transparent;color:var(--ink4);border:1px solid var(--wire2)}
+.sp-act-btn{width:100%;padding:7px;font-size:11px;border-radius:var(--rsm);border:1px solid var(--wire2);background:transparent;color:var(--ink);cursor:pointer;font-family:var(--font);font-weight:500;display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:5px;transition:all .15s}
+.sp-act-btn:hover{background:var(--mist2)}
+.sp-act-blue{background:var(--sea);color:#fff;border-color:var(--sea)}
+.sp-act-blue:hover{background:var(--sea2)}
+.sp-act-green{background:var(--jade-pale);color:var(--jade);border-color:var(--jade-soft)}
+.sp-act-red{color:var(--ruby);border-color:var(--ruby-soft)}
+.sp-act-red:hover{background:var(--ruby-pale)}
+.sp-actions{padding:10px 14px;border-top:1px solid var(--wire);flex-shrink:0}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .25s ease both}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--wire2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-logo-wrap">
+    <div><div class="logo">Sea<span>Search</span></div><div class="logo-sub"><div class="logo-dot"></div>All systems live</div></div>
+  </div>
+  <div class="nav-mid">
+    <div class="nav-link">Dashboard</div>
+    <div class="nav-link">Job listings</div>
+    <div class="nav-link">My roles</div>
+    <div class="nav-link">Candidates</div>
+    <div class="nav-link on">Pipeline</div>
+    <div class="nav-link">Earnings</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-btn">🔔<div class="npip"></div></div>
+    <div class="nav-btn">✉</div>
+    <div class="nav-av">AY</div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-s">
+    <div class="sb-lbl">Navigation</div>
+    <div class="sbi"><span class="sbi-i">▦</span><span class="sbi-l">Dashboard</span></div>
+    <div class="sbi"><span class="sbi-i">◫</span><span class="sbi-l">Job listings</span><span class="sbadge">48</span></div>
+    <div class="sbi on"><span class="sbi-i">◈</span><span class="sbi-l">Pipeline</span><span class="sbadge sbadge-a">2</span></div>
+    <div class="sbi"><span class="sbi-i">◉</span><span class="sbi-l">Candidates</span><span class="sbadge">14</span></div>
+    <div class="sbi"><span class="sbi-i">◑</span><span class="sbi-l">Earnings</span></div>
+  </div>
+  <div class="sb-div"></div>
+  <div class="role-switcher">
+    <div class="rs-label">Active roles</div>
+    <div class="rs-role on" onclick="switchRole(this,'dbs')">
+      <div class="rs-dot" style="background:#1A6DB5;margin-top:3px"></div>
+      <div><div class="rs-name">Chief HR Officer</div><div class="rs-co">DBS Bank</div><div class="rs-cnt">8 candidates · Offer stage</div></div>
+    </div>
+    <div class="rs-role" onclick="switchRole(this,'sea')">
+      <div class="rs-dot" style="background:#4CAF52;margin-top:3px"></div>
+      <div><div class="rs-name">VP Engineering</div><div class="rs-co">Sea Limited</div><div class="rs-cnt">4 candidates · Screened</div></div>
+    </div>
+    <div class="rs-role" onclick="switchRole(this,'pp')">
+      <div class="rs-dot" style="background:#E07C3A;margin-top:3px"></div>
+      <div><div class="rs-name">Chief Digital Officer</div><div class="rs-co">Parkway Pantai</div><div class="rs-cnt">2 candidates · Sourced</div></div>
+    </div>
+  </div>
+  <div class="sb-bot">
+    <div class="sb-prof">
+      <div class="sbp-av">AY</div>
+      <div><div class="sbp-n">Andika Yusof</div><div class="sbp-r">Senior Recruiter</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainArea">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-role">
+      <div class="tb-logo" id="tb-logo">DB</div>
+      <div>
+        <div class="tb-title" id="tb-title">Chief HR Officer — DBS Bank <span class="badge b-jade">✓ Picked</span><span class="badge b-gold">⭐ Exclusive</span></div>
+        <div class="tb-sub" id="tb-sub">Singapore · C-Suite · SGD 380K–500K · Reward: SGD 72–95K</div>
+      </div>
+    </div>
+    <div class="tb-stats">
+      <div class="tb-stat"><div class="tb-stat-num" id="stat-total">8</div><div class="tb-stat-lbl">Candidates</div></div>
+      <div class="tb-sep"></div>
+      <div class="tb-stat"><div class="tb-stat-num" style="color:#2E7D33">92%</div><div class="tb-stat-lbl">Top match</div></div>
+      <div class="tb-sep"></div>
+      <div class="tb-stat"><div class="tb-stat-num" style="color:#B85C1A" id="stat-days">18d</div><div class="tb-stat-lbl">Active</div></div>
+      <div class="tb-sep"></div>
+      <div class="tb-stat"><div class="tb-stat-num" style="color:#0B4F8A" id="stat-sub">2</div><div class="tb-stat-lbl">Submitted</div></div>
+    </div>
+    <div class="tb-actions">
+      <button class="tb-btn" onclick="openAddModal()">+ Add candidate</button>
+      <button class="tb-btn">⚙ Run AI matching</button>
+      <button class="tb-btn tb-btn-blue">📤 Submit to client</button>
+    </div>
+  </div>
+
+  <!-- STAGE TABS -->
+  <div class="stage-bar">
+    <div class="stage-tab on" onclick="filterStage(this,'all')"><div class="st-dot" style="background:#888780"></div>All<span class="st-cnt" id="tab-all">8</span></div>
+    <div class="stage-tab" onclick="filterStage(this,'sourced')"><div class="st-dot" style="background:#888780"></div>Sourced<span class="st-cnt" id="tab-sourced">3</span></div>
+    <div class="stage-tab" onclick="filterStage(this,'screened')"><div class="st-dot" style="background:#B85C1A"></div>Screened<span class="st-cnt" id="tab-screened">2</span></div>
+    <div class="stage-tab" onclick="filterStage(this,'interviewed')"><div class="st-dot" style="background:#1A6DB5"></div>Interviewed<span class="st-cnt" id="tab-interviewed">1</span></div>
+    <div class="stage-tab" onclick="filterStage(this,'offered')"><div class="st-dot" style="background:#2E7D33"></div>Offered<span class="st-cnt" id="tab-offered">1</span></div>
+    <div class="stage-tab" onclick="filterStage(this,'hired')"><div class="st-dot" style="background:#0B4F8A"></div>Hired<span class="st-cnt" id="tab-hired">1</span></div>
+    <div class="stage-tab" onclick="filterStage(this,'rejected')" style="color:var(--ruby)"><div class="st-dot" style="background:var(--ruby2)"></div>Rejected<span class="st-cnt" id="tab-rejected">0</span></div>
+    <div class="sb-right"><button class="view-btn">⊞ Table view</button></div>
+  </div>
+
+  <!-- KANBAN + SIDE PANEL -->
+  <div class="kanban-shell">
+    <div class="kanban-area" id="kanbanArea">
+
+      <!-- SOURCED -->
+      <div class="kcol" id="col-sourced" ondragover="allowDrop(event)" ondrop="dropCard(event,'sourced')">
+        <div class="kcol-head">
+          <div class="kch-left"><div class="kch-dot" style="background:#888780"></div><div class="kch-title">Sourced</div><div class="kch-cnt" id="cnt-sourced">3</div></div>
+          <button class="kch-add" onclick="openAddModal()" title="Add candidate">+</button>
+        </div>
+        <div class="kcol-body" id="body-sourced">
+          <!-- Ahmad Malik -->
+          <div class="kcard fade-in" draggable="true" data-id="ahmad" data-stage="sourced" ondragstart="dragStart(event)" onclick="openPanel('ahmad')">
+            <div class="kcard-accent" style="background:#888780"></div>
+            <div class="kcard-top">
+              <div class="kcard-av" style="background:#F1EFE8;color:#444441">AM</div>
+              <div class="kcard-meta"><div class="kcard-name">Ahmad Malik</div><div class="kcard-role">Head of HR · Maybank · Malaysia</div></div>
+              <div class="kcard-score"><div class="ks-num" style="color:#B85C1A">68%</div><div class="ks-lbl">match</div></div>
+            </div>
+            <div class="kcard-bar-bg"><div class="kcard-bar-fill" style="width:68%;background:#B85C1A"></div></div>
+            <div class="kcard-chips"><span class="kchip">13 yrs</span><span class="kchip">Banking HR</span><span class="kchip">Malaysia</span></div>
+            <div class="kcard-flags"><span class="kflag kflag-g">✓ Banking exp</span><span class="kflag kflag-r">✕ No board exposure</span></div>
+            <div class="kcard-footer"><div class="kcard-date">1 week ago</div><div class="kcard-actions"><div class="kact" onclick="event.stopPropagation();openPanel('ahmad')" title="View">👤</div><div class="kact" onclick="event.stopPropagation();triggerCv('ahmad')" title="Upload CV">📄</div><div class="kact" onclick="event.stopPropagation();openReject('ahmad')" title="Reject" style="color:var(--ruby)">✕</div></div></div>
+          </div>
+          <!-- Lisa Tan -->
+          <div class="kcard fade-in" draggable="true" data-id="lisa" data-stage="sourced" ondragstart="dragStart(event)" onclick="openPanel('lisa')">
+            <div class="kcard-accent" style="background:#888780"></div>
+            <div class="kcard-top">
+              <div class="kcard-av" style="background:#FAECE7;color:#993C1D">LT</div>
+              <div class="kcard-meta"><div class="kcard-name">Lisa Tan</div><div class="kcard-role">HR Director · HSBC SEA · Singapore</div></div>
+              <div class="kcard-score"><div class="ks-num" style="color:#B85C1A">74%</div><div class="ks-lbl">match</div></div>
+            </div>
+            <div class="kcard-bar-bg"><div class="kcard-bar-fill" style="width:74%;background:#B85C1A"></div></div>
+            <div class="kcard-chips"><span class="kchip">14 yrs</span><span class="kchip">Financial services</span></div>
+            <div class="kcard-flags"><span class="kflag kflag-g">✓ HSBC background</span><span class="kflag kflag-r">✕ Director only</span></div>
+            <div class="kcard-footer"><div class="kcard-date">5 days ago</div><div class="kcard-actions"><div class="kact" onclick="event.stopPropagation();openPanel('lisa')" title="View">👤</div><div class="kact" onclick="event.stopPropagation();triggerCv('lisa')" title="Upload CV">📄</div><div class="kact" onclick="event.stopPropagation();openReject('lisa')" title="Reject" style="color:var(--ruby)">✕</div></div></div>
+          </div>
+          <!-- Ravi Kumar -->
+          <div class="kcard fade-in" draggable="true" data-id="ravi" data-stage="sourced" ondragstart="dragStart(event)" onclick="openPanel('ravi')">
+            <div class="kcard-accent" style="background:#888780"></div>
+            <div class="kcard-top">
+              <div class="kcard-av" style="background:#FAEEDA;color:#633806">RK</div>
+              <div class="kcard-meta"><div class="kcard-name">Ravi Kumar</div><div class="kcard-role">VP HR · Citi Singapore</div></div>
+              <div class="kcard-score"><div class="ks-num" style="color:#2E7D33">81%</div><div class="ks-lbl">match</div></div>
+            </div>
+            <div class="kcard-bar-bg"><div class="kcard-bar-fill" style="width:81%;background:#2E7D33"></div></div>
+            <div class="kcard-chips"><span class="kchip">16 yrs</span><span class="kchip">Digital HR</span><span class="kchip kchip-cv">📄 CV on file</span></div>
+            <div class="kcard-flags"><span class="kflag kflag-g">✓ Strong banking pedigree</span><span class="kflag kflag-r">✕ VP not CHRO level</span></div>
+            <div class="kcard-footer"><div class="kcard-date">3 days ago</div><div class="kcard-actions"><div class="kact" onclick="event.stopPropagation();openPanel('ravi')" title="View">👤</div><div class="kact" onclick="event.stopPropagation();openReject('ravi')" title="Reject" style="color:var(--ruby)">✕</div></div></div>
+          </div>
+        </div>
+        <div class="kcol-drop" onclick="openAddModal()">+ Add candidate here</div>
+      </div>
+
+      <!-- SCREENED -->
+      <div class="kcol" id="col-screened" ondragover="allowDrop(event)" ondrop="dropCard(event,'screened')">
+        <div class="kcol-head">
+          <div class="kch-left"><div class="kch-dot" style="background:#B85C1A"></div><div class="kch-title">Screened</div><div class="kch-cnt" id="cnt-screened">2</div></div>
+          <button class="kch-add" onclick="openAddModal()" title="Add">+</button>
+        </div>
+        <div class="kcol-body" id="body-screened">
+          <!-- Patrick Chen -->
+          <div class="kcard fade-in" draggable="true" data-id="patrick" data-stage="screened" ondragstart="dragStart(event)" onclick="openPanel('patrick')">
+            <div class="kcard-accent" style="background:#B85C1A"></div>
+            <div class="kcard-top">
+              <div class="kcard-av" style="background:#E8F2FB;color:#0B4F8A">PC</div>
+              <div class="kcard-meta"><div class="kcard-name">Patrick Chen</div><div class="kcard-role">Global HR VP · UOB · Singapore</div></div>
+              <div class="kcard-score"><div class="ks-num" style="color:#2E7D33">79%</div><div class="ks-lbl">match</div></div>
+            </div>
+            <div class="kcard-bar-bg"><div class="kcard-bar-fill" style="width:79%;background:#2E7D33"></div></div>
+            <div class="kcard-chips"><span class="kchip">17 yrs</span><span class="kchip">Banking</span><span class="kchip kchip-cv">📄 CV on file</span></div>
+            <div class="kcard-note">Phone screen: good comp & benefits. Scope mostly SG-centric.</div>
+            <div class="kcard-flags"><span class="kflag kflag-g">✓ UOB background</span><span class="kflag kflag-r">✕ No CHRO title</span></div>
+            <div class="kcard-footer"><div class="kcard-date">4 days ago</div><div class="kcard-actions"><div class="kact" onclick="event.stopPropagation();openPanel('patrick')" title="View">👤</div><div class="kact" onclick="event.stopPropagation();openReject('patrick')" title="Reject" style="color:var(--ruby)">✕</div></div></div>
+          </div>
+          <!-- Jenny Lim -->
+          <div class="kcard fade-in" draggable="true" data-id="jenny" data-stage="screened" ondragstart="dragStart(event)" onclick="openPanel('jenny')">
+            <div class="kcard-accent" style="background:#B85C1A"></div>
+            <div class="kcard-top">
+              <div class="kcard-av" style="background:#EAF4EB;color:#1A4D1E">JL</div>
+              <div class="kcard-meta"><div class="kcard-name">Jenny Lim</div><div class="kcard-role">CHRO Asia · Standard Chartered · SG</div></div>
+              <div class="kcard-score"><div class="ks-num" style="color:#2E7D33">88%</div><div class="ks-lbl">match</div></div>
+            </div>
+            <div class="kcard-bar-bg"><div class="kcard-bar-fill" style="width:88%;background:#2E7D33"></div></div>
+            <div class="kcard-chips"><span class="kchip">20 yrs</span><span class="kchip">Direct banking</span><span class="kchip kchip-fb">💬 Feedback</span></div>
+            <div class="kcard-note">Strong phone screen — excellent regulatory answers. No non-compete flagged.</div>
+            <div class="kcard-flags"><span class="kflag kflag-g">✓ Direct banking CHRO</span><span class="kflag kflag-r">✕ Scope gap</span></div>
+            <div class="kcard-footer"><div class="kcard-date">2 days ago</div><div class="kcard-actions"><div class="kact" onclick="event.stopPropagation();openPanel('jenny')" title="View">👤</div><div class="kact" onclick="event.stopPropagation();openReject('jenny')" title="Reject" style="color:var(--ruby)">✕</div></div></div>
+          </div>
+        </div>
+        <div class="kcol-drop">Drop here or + add</div>
+      </div>
+
+      <!-- INTERVIEWED -->
+      <div class="kcol" id="col-interviewed" ondragover="allowDrop(event)" ondrop="dropCard(event,'interviewed')">
+        <div class="kcol-head">
+          <div class="kch-left"><div class="kch-dot" style="background:#1A6DB5"></div><div class="kch-title">Interviewed</div><div class="kch-cnt" id="cnt-interviewed">1</div></div>
+          <button class="kch-add" onclick="openAddModal()" title="Add">+</button>
+        </div>
+        <div class="kcol-body" id="body-interviewed">
+          <!-- Michelle Ng -->
+          <div class="kcard fade-in" draggable="true" data-id="michelle" data-stage="interviewed" ondragstart="dragStart(event)" onclick="openPanel('michelle')">
+            <div class="kcard-accent" style="background:#1A6DB5"></div>
+            <div class="kcard-top">
+              <div class="kcard-av" style="background:#EEE9FB;color:#2D1F6E">MN</div>
+              <div class="kcard-meta"><div class="kcard-name">Michelle Ng</div><div class="kcard-role">CHRO · Prudential Asia · Singapore</div></div>
+              <div class="kcard-score"><div class="ks-num" style="color:#2E7D33">91%</div><div class="ks-lbl">match</div></div>
+            </div>
+            <div class="kcard-bar-bg"><div class="kcard-bar-fill" style="width:91%;background:#2E7D33"></div></div>
+            <div class="kcard-chips"><span class="kchip">19 yrs</span><span class="kchip">CHRO</span><span class="kchip kchip-int">📅 Mar 24</span><span class="kchip kchip-fb">💬 Feedback</span><span class="kchip kchip-cv">📄 CV on file</span></div>
+            <div class="kcard-note">Client interview done. Very positive. Awaiting formal written feedback from DBS panel.</div>
+            <div class="kcard-flags"><span class="kflag kflag-g">✓ Board stakeholder exp</span><span class="kflag kflag-r">✕ Insurance vs banking</span></div>
+            <div class="kcard-footer"><div class="kcard-date">Interviewed yesterday</div><div class="kcard-actions"><div class="kact" onclick="event.stopPropagation();openPanel('michelle')" title="View">👤</div><div class="kact" onclick="event.stopPropagation();openReject('michelle')" title="Reject" style="color:var(--ruby)">✕</div></div></div>
+          </div>
+        </div>
+        <div class="kcol-drop">Drop here</div>
+      </div>
+
+      <!-- OFFERED -->
+      <div class="kcol" id="col-offered" ondragover="allowDrop(event)" ondrop="dropCard(event,'offered')">
+        <div class="kcol-head">
+          <div class="kch-left"><div class="kch-dot" style="background:#2E7D33"></div><div class="kch-title">Offered</div><div class="kch-cnt" id="cnt-offered">1</div></div>
+          <button class="kch-add" onclick="openAddModal()" title="Add">+</button>
+        </div>
+        <div class="kcol-body" id="body-offered">
+          <!-- Sarah Wong -->
+          <div class="kcard fade-in" draggable="true" data-id="sarah" data-stage="offered" ondragstart="dragStart(event)" onclick="openPanel('sarah')" style="border-color:#B8DFB9">
+            <div class="kcard-accent" style="background:#2E7D33"></div>
+            <div class="kcard-top">
+              <div class="kcard-av" style="background:#E8F2FB;color:#0B4F8A">SW</div>
+              <div class="kcard-meta"><div class="kcard-name">Sarah Wong <span class="badge b-jade" style="font-size:9px">🏆 #1</span></div><div class="kcard-role">CHRO · OCBC Bank · Singapore</div></div>
+              <div class="kcard-score"><div class="ks-num" style="color:#2E7D33">92%</div><div class="ks-lbl">match</div></div>
+            </div>
+            <div class="kcard-bar-bg"><div class="kcard-bar-fill" style="width:92%;background:#2E7D33"></div></div>
+            <div class="kcard-chips"><span class="kchip">22 yrs</span><span class="kchip">CHRO</span><span class="kchip kchip-cv">📄 CV on file</span><span class="kchip kchip-fb">💬 Feedback</span></div>
+            <div class="kcard-note" style="border-left-color:#2E7D33;background:#EAF4EB;color:#1A4D1E">Offer letter sent Mar 26. Verbal indication: very likely to accept. Decision by Mar 31.</div>
+            <div class="kcard-flags"><span class="kflag kflag-g">✓ 22 yrs HR leadership</span><span class="kflag kflag-g">✓ CHRO at Tier-1 bank</span></div>
+            <div class="kcard-footer"><div class="kcard-date">Offer sent 2 days ago</div><div class="kcard-actions"><div class="kact" onclick="event.stopPropagation();openPanel('sarah')" title="View">👤</div><div class="kact" style="background:#EAF4EB;border-color:#B8DFB9;color:#1A4D1E" title="Mark accepted">✓</div></div></div>
+          </div>
+        </div>
+        <div class="kcol-drop">Drop here</div>
+      </div>
+
+      <!-- HIRED -->
+      <div class="kcol" id="col-hired" ondragover="allowDrop(event)" ondrop="dropCard(event,'hired')">
+        <div class="kcol-head">
+          <div class="kch-left"><div class="kch-dot" style="background:#0B4F8A"></div><div class="kch-title">Hired</div><div class="kch-cnt" id="cnt-hired">1</div></div>
+        </div>
+        <div class="kcol-body" id="body-hired">
+          <div class="kcard fade-in" style="border-color:var(--sea-soft);opacity:.85" onclick="openPanel('priya')">
+            <div class="kcard-accent" style="background:#0B4F8A"></div>
+            <div class="kcard-top">
+              <div class="kcard-av" style="background:#E8F2FB;color:#0B4F8A">PS</div>
+              <div class="kcard-meta"><div class="kcard-name">Priya Sharma <span class="badge b-sea" style="font-size:9px">Placed</span></div><div class="kcard-role">CHRO · HSBC Singapore (prev)</div></div>
+              <div class="kcard-score"><div class="ks-num" style="color:#0B4F8A">87%</div><div class="ks-lbl">match</div></div>
+            </div>
+            <div class="kcard-bar-bg"><div class="kcard-bar-fill" style="width:87%;background:#0B4F8A"></div></div>
+            <div class="kcard-chips"><span class="kchip">18 yrs</span><span class="kchip">Banking CHRO</span></div>
+            <div class="kcard-note" style="border-left-color:#3589D4;background:#E8F2FB;color:#0B4F8A">✓ Placed as VP HR · Sea Limited · Started Feb 2026. Reward paid: SGD 42K.</div>
+            <div class="kcard-footer"><div class="kcard-date">Placed Feb 2026</div></div>
+          </div>
+        </div>
+        <div class="kcol-empty">
+          <div style="font-size:20px;opacity:.35">🏆</div>
+          <div>Drag offer-accepted candidates here</div>
+        </div>
+      </div>
+
+      <!-- REJECTED -->
+      <div class="kcol" id="col-rejected" ondragover="allowDrop(event)" ondrop="dropCard(event,'rejected')">
+        <div class="kcol-head">
+          <div class="kch-left"><div class="kch-dot" style="background:var(--ruby2)"></div><div class="kch-title" style="color:var(--ruby2)">Rejected</div><div class="kch-cnt" id="cnt-rejected">0</div></div>
+        </div>
+        <div class="kcol-body" id="body-rejected"></div>
+        <div class="kcol-empty" id="rej-empty">
+          <div style="font-size:20px;opacity:.35">✕</div>
+          <div>Rejected candidates appear here</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div class="side-panel" id="sidePanel">
+      <div class="sp-head">
+        <div class="sp-av" id="sp-av" style="background:#E8F2FB;color:#0B4F8A">SW</div>
+        <div><div class="sp-name" id="sp-name">Sarah Wong</div><div class="sp-role" id="sp-role">CHRO · OCBC Bank</div></div>
+        <button class="sp-close" onclick="closePanel()">✕</button>
+      </div>
+      <div class="sp-body" id="sp-body"></div>
+      <div class="sp-actions" id="sp-actions"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PROCESSING OVERLAY -->
+<div class="proc-overlay" id="procOverlay">
+  <div class="proc-card">
+    <div class="proc-title">Analysing CV with Claude AI</div>
+    <div class="proc-sub">Extracting profile data and scoring against role requirements</div>
+    <div class="proc-bar-bg"><div class="proc-bar" id="procBar"></div></div>
+    <div class="proc-steps">
+      <div class="ps ps-idle" id="ps1"><span class="ps-ico">📄</span><span class="ps-txt">Reading and parsing CV content</span><span class="ps-stat" id="ps1s">Waiting</span></div>
+      <div class="ps ps-idle" id="ps2"><span class="ps-ico">⚙</span><span class="ps-txt">Extracting skills, experience &amp; education</span><span class="ps-stat" id="ps2s">Waiting</span></div>
+      <div class="ps ps-idle" id="ps3"><span class="ps-ico">🧠</span><span class="ps-txt">AI matching against role requirements</span><span class="ps-stat" id="ps3s">Waiting</span></div>
+      <div class="ps ps-idle" id="ps4"><span class="ps-ico">📊</span><span class="ps-txt">Generating match score &amp; recruiter brief</span><span class="ps-stat" id="ps4s">Waiting</span></div>
+    </div>
+    <div style="font-size:10px;color:var(--ink4)">Powered by Claude AI · Usually takes 5–10 seconds</div>
+  </div>
+</div>
+
+<!-- REJECTION MODAL -->
+<div class="modal-wrap" id="rejModal">
+  <div class="rej-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="rej-title">Reject candidate</div>
+      <button onclick="closeReject()" style="font-size:15px;cursor:pointer;background:none;border:none;color:var(--ink4)">✕</button>
+    </div>
+    <div class="rej-sub">Select a rejection reason — this helps track why candidates were removed.</div>
+    <div class="rej-opts" id="rejOpts">
+      <div class="rej-opt" onclick="selectRej(this,'client')"><span class="rej-opt-ico">🏢</span><div><div style="font-size:12px;font-weight:500">Client rejected</div><div style="font-size:11px;color:var(--ink4)">Client reviewed and passed on this candidate</div></div></div>
+      <div class="rej-opt" onclick="selectRej(this,'withdrew')"><span class="rej-opt-ico">🚶</span><div><div style="font-size:12px;font-weight:500">Candidate withdrew</div><div style="font-size:11px;color:var(--ink4)">Candidate pulled out of the process</div></div></div>
+      <div class="rej-opt" onclick="selectRej(this,'unsuitable')"><span class="rej-opt-ico">⚠</span><div><div style="font-size:12px;font-weight:500">Not suitable for role</div><div style="font-size:11px;color:var(--ink4)">Doesn't meet the core requirements</div></div></div>
+      <div class="rej-opt" onclick="selectRej(this,'offer')"><span class="rej-opt-ico">💰</span><div><div style="font-size:12px;font-weight:500">Compensation mismatch</div><div style="font-size:11px;color:var(--ink4)">Salary expectations couldn't be aligned</div></div></div>
+    </div>
+    <div class="rej-note-lbl">Additional note (optional)</div>
+    <textarea class="rej-note" id="rejNote" placeholder="Add context for future reference…"></textarea>
+    <div class="rej-actions">
+      <button class="rej-confirm" onclick="confirmReject()">Confirm rejection</button>
+      <button class="rej-cancel" onclick="closeReject()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CANDIDATE MODAL -->
+<div class="modal-wrap" id="addModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Add candidate to pipeline</div>
+      <button class="modal-close" onclick="closeAddModal()">✕</button>
+    </div>
+    <div class="field-grid">
+      <div class="field"><div class="field-lbl">First name</div><input id="newFirst" type="text" placeholder="Sarah"></div>
+      <div class="field"><div class="field-lbl">Last name</div><input id="newLast" type="text" placeholder="Wong"></div>
+    </div>
+    <div class="field"><div class="field-lbl">Current role &amp; company</div><input id="newRole" type="text" placeholder="CHRO, OCBC Bank"></div>
+    <div class="field"><div class="field-lbl">Email</div><input id="newEmail" type="email" placeholder="sarah@email.com"></div>
+    <div class="field"><div class="field-lbl">LinkedIn URL</div><input id="newLinkedin" type="text" placeholder="linkedin.com/in/sarahwong"></div>
+    <div class="field"><div class="field-lbl">Initial stage</div>
+      <select id="newStage"><option value="sourced">Sourced</option><option value="screened">Screened</option><option value="interviewed">Interviewed</option></select>
+    </div>
+    <div class="upload-zone" id="modalUploadZone" onclick="triggerModalFileInput()">
+      <div style="font-size:22px;margin-bottom:5px">📄</div>
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px" id="modalUploadLabel">Upload CV (PDF or DOCX)</div>
+      <div style="font-size:11px;color:var(--ink4)">Claude will auto-parse profile &amp; score against role requirements</div>
+      <input type="file" id="modalFileInput" accept=".pdf,.doc,.docx" style="display:none" onchange="handleModalFile(this)">
+      <div id="modalFileName" style="font-size:11px;color:var(--jade);margin-top:6px;display:none"></div>
+    </div>
+    <div style="background:var(--violet-pale);border:1px solid var(--violet-soft);border-radius:var(--rsm);padding:9px 12px;margin-bottom:12px;font-size:11px;color:var(--violet2)">
+      ⚙ After adding: Claude reads the CV, extracts profile data, then scores against Chief HR Officer requirements automatically.
+    </div>
+    <button class="modal-btn" onclick="submitNewCandidate()">Add candidate &amp; run AI analysis</button>
+    <button class="modal-btn modal-btn-sec" onclick="closeAddModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+/* ── DATA ── */
+var candidates = {
+  sarah:{id:'sarah',initials:'SW',bg:'#E8F2FB',col:'#0B4F8A',name:'Sarah Wong',role:'CHRO',company:'OCBC Bank',location:'Singapore',email:'sarah.wong@email.com',phone:'+65 9123 4567',years:22,score:92,stage:'offered',hasCv:true,cvName:'Sarah_Wong_CV_2026.pdf',intDate:'Mar 21',intNotes:'DBS panel · Conference room B',feedback:{text:'Very impressed. Strong board presence. Exactly what we need.',sentiment:'positive',date:'Mar 25'},bd:{Experience:95,Industry:90,Scope:95,Leadership:92},greenFlags:['22 yrs HR leadership','CHRO at Tier-1 bank','18-market scope'],redFlags:['Possible OCBC non-compete'],note:'Offer sent Mar 26. Verbal indication positive. Decision by Mar 31.'},
+  michelle:{id:'michelle',initials:'MN',bg:'#EEE9FB',col:'#2D1F6E',name:'Michelle Ng',role:'CHRO',company:'Prudential Asia',location:'Singapore',email:'michelle.ng@email.com',phone:'+65 9234 5678',years:19,score:91,stage:'interviewed',hasCv:true,cvName:'Michelle_Ng_Resume.pdf',intDate:'Mar 24',intNotes:'DBS Group CEO + HR panel · 2 hrs',feedback:{text:'Good cultural fit. Slight concern about insurance background but impressed.',sentiment:'positive',date:'Mar 24'},bd:{Experience:90,Industry:85,Scope:92,Leadership:95},greenFlags:['Board-level stakeholder exp','Strong culture transformation'],redFlags:['Insurance vs banking background'],note:'Awaiting formal written feedback from DBS panel.'},
+  jenny:{id:'jenny',initials:'JL',bg:'#EAF4EB',col:'#1A4D1E',name:'Jenny Lim',role:'CHRO Asia',company:'Standard Chartered',location:'Singapore',email:'jenny.lim@email.com',phone:'+65 9345 6789',years:20,score:88,stage:'screened',hasCv:false,cvName:'',intDate:'',intNotes:'',feedback:{text:'Strong phone screen. Good regulatory knowledge.',sentiment:'positive',date:'Mar 23'},bd:{Experience:88,Industry:95,Scope:85,Leadership:88},greenFlags:['Direct banking CHRO','Multi-market Asia'],redFlags:['Scope gap vs DBS'],note:'No CV yet — follow up urgently.'},
+  ravi:{id:'ravi',initials:'RK',bg:'#FAEEDA',col:'#633806',name:'Ravi Kumar',role:'VP HR',company:'Citi Singapore',location:'Singapore',email:'ravi.kumar@email.com',phone:'+65 9456 7890',years:16,score:81,stage:'sourced',hasCv:true,cvName:'Ravi_Kumar_CV.pdf',intDate:'',intNotes:'',feedback:null,bd:{Experience:80,Industry:88,Scope:78,Leadership:82},greenFlags:['Strong banking pedigree','Digital HR exp'],redFlags:['VP not CHRO level'],note:'Sourced via LinkedIn. Not approached yet.'},
+  patrick:{id:'patrick',initials:'PC',bg:'#E8F2FB',col:'#0B4F8A',name:'Patrick Chen',role:'Global HR VP',company:'UOB',location:'Singapore',email:'patrick.chen@email.com',phone:'+65 9567 8901',years:17,score:79,stage:'screened',hasCv:true,cvName:'Patrick_Chen_CV.pdf',intDate:'',intNotes:'',feedback:null,bd:{Experience:78,Industry:90,Scope:75,Leadership:78},greenFlags:['UOB banking background','Comp & benefits depth'],redFlags:['SG-centric scope','No CHRO title'],note:'Backup candidate.'},
+  lisa:{id:'lisa',initials:'LT',bg:'#FAECE7',col:'#993C1D',name:'Lisa Tan',role:'HR Director',company:'HSBC SEA',location:'Singapore',email:'lisa.tan@email.com',phone:'+65 9678 9012',years:14,score:74,stage:'sourced',hasCv:false,cvName:'',intDate:'',intNotes:'',feedback:null,bd:{Experience:72,Industry:85,Scope:70,Leadership:74},greenFlags:['HSBC financial services'],redFlags:['Director not CHRO','No board exposure'],note:'Long shot. Keep for future mandates.'},
+  ahmad:{id:'ahmad',initials:'AM',bg:'#F1EFE8',col:'#444441',name:'Ahmad Malik',role:'Head of HR',company:'Maybank',location:'Malaysia',email:'ahmad.malik@email.com',phone:'+60 12 345 6789',years:13,score:68,stage:'sourced',hasCv:false,cvName:'',intDate:'',intNotes:'',feedback:null,bd:{Experience:65,Industry:75,Scope:60,Leadership:70},greenFlags:['Banking sector exp'],redFlags:['Malaysia-only scope','Gap too large for CHRO'],note:'Not suitable. Consider for MY Director mandates.'},
+  priya:{id:'priya',initials:'PS',bg:'#E8F2FB',col:'#0B4F8A',name:'Priya Sharma',role:'CHRO',company:'HSBC Singapore (prev)',location:'Singapore',email:'priya.sharma@email.com',phone:'+65 9789 0123',years:18,score:87,stage:'hired',hasCv:true,cvName:'Priya_Sharma_CV.pdf',intDate:'Jan 15',intNotes:'Sea Limited · 3-round process',feedback:{text:'Exceptional candidate. Settled immediately. Highly recommend Sea Search.',sentiment:'positive',date:'Mar 1'},bd:{Experience:85,Industry:90,Scope:82,Leadership:88},greenFlags:['Banking CHRO exp','Strong leadership'],redFlags:[],note:'Successfully placed at Sea Limited. Reward paid: SGD 42K.'}
+};
+
+var bdColors={Experience:'#3589D4',Industry:'#2E7D33',Scope:'#4B3AA8',Leadership:'#B85C1A'};
+var stageColors={sourced:'#888780',screened:'#B85C1A',interviewed:'#1A6DB5',offered:'#2E7D33',hired:'#0B4F8A',rejected:'#B52525'};
+var allStages=['sourced','screened','interviewed','offered','hired'];
+var dragging=null;
+var rejectTargetId=null;
+var selectedRejReason=null;
+var modalFileChosen=false;
+var activePanelId=null;
+
+/* ── DRAG AND DROP ── */
+function dragStart(e){
+  dragging=e.currentTarget;
+  dragging.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+}
+function allowDrop(e){e.preventDefault();}
+function dropCard(e,stage){
+  e.preventDefault();
+  if(!dragging) return;
+  dragging.classList.remove('dragging');
+  var oldStage=dragging.dataset.stage;
+  if(oldStage===stage) return;
+  dragging.dataset.stage=stage;
+  dragging.querySelector('.kcard-accent').style.background=stageColors[stage]||'#888780';
+  candidates[dragging.dataset.id].stage=stage;
+  document.getElementById('body-'+stage).insertBefore(dragging,document.getElementById('body-'+stage).firstChild);
+  updateCounts();
+  if(activePanelId===dragging.dataset.id) refreshPanelStageButtons(stage);
+  dragging=null;
+}
+document.addEventListener('dragend',function(){if(dragging){dragging.classList.remove('dragging');dragging=null;}});
+
+function updateCounts(){
+  var totals={sourced:0,screened:0,interviewed:0,offered:0,hired:0,rejected:0};
+  document.querySelectorAll('.kcard[data-stage]').forEach(c=>{
+    var s=c.dataset.stage;
+    if(totals[s]!==undefined) totals[s]++;
+  });
+  Object.keys(totals).forEach(s=>{
+    var el=document.getElementById('cnt-'+s);
+    if(el) el.textContent=totals[s];
+    var tab=document.getElementById('tab-'+s);
+    if(tab) tab.textContent=totals[s];
+  });
+  var total=Object.values(totals).reduce((a,b)=>a+b,0);
+  document.getElementById('stat-total').textContent=total;
+  // Show/hide rejected empty state
+  var rejEmpty=document.getElementById('rej-empty');
+  if(rejEmpty) rejEmpty.style.display=totals.rejected===0?'flex':'none';
+}
+
+/* ── STAGE FILTER ── */
+function filterStage(el,stage){
+  document.querySelectorAll('.stage-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.kcard[data-stage]').forEach(c=>{
+    c.style.display=(stage==='all'||c.dataset.stage===stage)?'':'none';
+  });
+}
+
+/* ── SIDE PANEL ── */
+function openPanel(id){
+  activePanelId=id;
+  var c=candidates[id];
+  if(!c) return;
+  document.getElementById('sp-av').textContent=c.initials;
+  document.getElementById('sp-av').style.background=c.bg;
+  document.getElementById('sp-av').style.color=c.col;
+  document.getElementById('sp-name').textContent=c.name;
+  document.getElementById('sp-role').textContent=c.role+' · '+c.company;
+
+  var scoreCol=c.score>=80?'#1A4D1E':c.score>=60?'#7A3B0A':'#7A1A1A';
+  var html='';
+
+  // Score + stage mover
+  html+='<div class="sp-sec"><div class="sp-sec-title">Overview</div>';
+  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">';
+  html+='<div style="width:48px;height:48px;border-radius:50%;border:2px solid '+(c.score>=80?'#B8DFB9':c.score>=60?'#F5C49A':'#F7C1C1')+';background:'+(c.score>=80?'#EAF4EB':c.score>=60?'#FDF0E8':'#FBE8E8')+';display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">';
+  html+='<div style="font-size:15px;font-weight:600;color:'+scoreCol+';font-family:var(--head);line-height:1">'+c.score+'%</div><div style="font-size:8px;color:var(--ink4)">match</div></div>';
+  html+='<div><div style="font-size:10px;color:var(--ink4);margin-bottom:5px">Move stage</div>';
+  html+='<div class="sp-stage-row" id="sp-stages">';
+  allStages.forEach(s=>{ html+='<button class="sp-stg'+(s===c.stage?' on':'')+'" onclick="moveStageTo(\''+id+'\',\''+s+'\',this)">'+s.charAt(0).toUpperCase()+s.slice(1)+'</button>'; });
+  html+='</div></div></div></div>';
+
+  // CV section
+  html+='<div class="sp-sec"><div class="sp-sec-title">CV &amp; AI match</div>';
+  if(c.hasCv){
+    html+='<div class="cv-file-strip"><span style="font-size:16px">📄</span><div><div class="cv-file-name">'+c.cvName+'</div><div class="cv-file-meta">AI parsed · Match scored</div></div><button onclick="event.stopPropagation();triggerCv(\''+id+'\')" style="margin-left:auto;font-size:10px;padding:3px 9px;border-radius:var(--rxs);border:1px solid var(--wire2);background:#fff;color:var(--ink4);cursor:pointer;font-family:var(--font)">Replace</button></div>';
+  } else {
+    html+='<div class="cv-upload-strip" onclick="triggerCv(\''+id+'\')"><span style="font-size:18px">📤</span><div><div class="cv-strip-txt">Upload CV to score this candidate</div><div class="cv-strip-sub">Claude will extract profile &amp; match against role</div></div></div>';
+  }
+  Object.entries(c.bd).forEach(([k,v])=>{
+    html+='<div class="sp-bd-row"><div class="sp-bd-lbl">'+k+'</div><div class="sp-bd-bg"><div class="sp-bd-fill" style="width:'+v+'%;background:'+(bdColors[k]||'#3589D4')+'"></div></div><div class="sp-bd-pct">'+v+'%</div></div>';
+  });
+  html+='<div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:3px">';
+  c.greenFlags.forEach(f=>{ html+='<span class="sp-flag sp-f-g">✓ '+f+'</span>'; });
+  c.redFlags.forEach(f=>{ html+='<span class="sp-flag sp-f-r">✕ '+f+'</span>'; });
+  html+='</div></div>';
+
+  // Interview scheduling
+  html+='<div class="sp-sec"><div class="sp-sec-title">Interview</div>';
+  if(c.intDate){
+    html+='<div class="int-box"><div class="int-title">📅 Interview scheduled</div><div class="int-val">'+c.intDate+'</div><div class="int-sub" style="margin-top:2px">'+c.intNotes+'</div></div>';
+  } else {
+    html+='<div class="int-box-empty">';
+    html+='<div style="font-size:10px;color:var(--ink4);margin-bottom:6px">No interview scheduled yet</div>';
+    html+='<div class="int-row">';
+    html+='<div class="int-field"><div class="int-lbl">Date</div><input class="int-input" type="date" id="intDate-'+id+'" placeholder="Date"></div>';
+    html+='<div class="int-field"><div class="int-lbl">Time</div><input class="int-input" type="time" id="intTime-'+id+'" placeholder="Time"></div>';
+    html+='</div>';
+    html+='<input class="int-input" type="text" id="intNotes-'+id+'" placeholder="Notes (e.g. DBS Board Room, 1hr)" style="width:100%;margin-bottom:6px">';
+    html+='<button class="int-save" onclick="saveInterview(\''+id+'\')">📅 Save interview date</button>';
+    html+='</div>';
+  }
+  html+='</div>';
+
+  // Client feedback
+  html+='<div class="sp-sec"><div class="sp-sec-title">Client feedback</div>';
+  if(c.feedback){
+    html+='<div class="fb-existing"><div class="fb-head"><div class="fb-who">DBS Bank — Hiring Panel</div><div class="fb-date">'+c.feedback.date+'</div></div><div class="fb-text">'+c.feedback.text+'</div><div class="fb-sent fbs-'+c.feedback.sentiment+'">✓ '+c.feedback.sentiment.charAt(0).toUpperCase()+c.feedback.sentiment.slice(1)+'</div></div>';
+  }
+  html+='<textarea class="fb-input" id="fbInput-'+id+'" placeholder="Add or update client feedback…">'+(c.feedback?'':'')+'</textarea>';
+  html+='<div class="fb-footer"><select class="fb-select" id="fbSent-'+id+'"><option value="positive">Positive</option><option value="neutral">Neutral</option><option value="negative">Negative</option></select><button class="fb-save" onclick="saveFeedback(\''+id+'\')">Save feedback</button></div>';
+  html+='</div>';
+
+  // Contact
+  html+='<div class="sp-sec"><div class="sp-sec-title">Contact</div>';
+  html+='<div class="sp-row"><span class="sp-lbl">Email</span><span class="sp-val" style="font-size:10px">'+c.email+'</span></div>';
+  html+='<div class="sp-row"><span class="sp-lbl">Phone</span><span class="sp-val">'+c.phone+'</span></div>';
+  html+='<div class="sp-row"><span class="sp-lbl">Experience</span><span class="sp-val">'+c.years+' years</span></div>';
+  html+='</div>';
+
+  document.getElementById('sp-body').innerHTML=html;
+
+  // Actions
+  var acts='<button class="sp-act-btn sp-act-blue">📤 Submit to DBS Bank</button>';
+  if(c.stage==='offered') acts+='<button class="sp-act-btn sp-act-green">✓ Mark offer accepted</button>';
+  acts+='<button class="sp-act-btn">✉ Draft outreach email</button>';
+  acts+='<button class="sp-act-btn">🧠 Generate interview questions</button>';
+  acts+='<button class="sp-act-btn sp-act-red" onclick="openReject(\''+id+'\')">✕ Reject candidate</button>';
+  document.getElementById('sp-actions').innerHTML=acts;
+
+  document.getElementById('sidePanel').classList.add('open');
+}
+
+function closePanel(){ document.getElementById('sidePanel').classList.remove('open'); activePanelId=null; }
+
+function moveStageTo(id,stage,btn){
+  candidates[id].stage=stage;
+  btn.closest('#sp-stages').querySelectorAll('.sp-stg').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  var card=document.querySelector('[data-id="'+id+'"]');
+  if(card){
+    card.dataset.stage=stage;
+    card.querySelector('.kcard-accent').style.background=stageColors[stage];
+    document.getElementById('body-'+stage).insertBefore(card,document.getElementById('body-'+stage).firstChild);
+    updateCounts();
+  }
+}
+
+function refreshPanelStageButtons(stage){
+  document.querySelectorAll('#sp-stages .sp-stg').forEach(b=>{
+    b.classList.toggle('on',b.textContent.toLowerCase()===stage);
+  });
+}
+
+/* ── INTERVIEW SAVE ── */
+function saveInterview(id){
+  var dateEl=document.getElementById('intDate-'+id);
+  var timeEl=document.getElementById('intTime-'+id);
+  var notesEl=document.getElementById('intNotes-'+id);
+  var dateVal=dateEl?dateEl.value:'';
+  var timeVal=timeEl?timeEl.value:'';
+  var notesVal=notesEl?notesEl.value:'';
+  if(!dateVal){ alert('Please select an interview date.'); return; }
+  var d=new Date(dateVal);
+  var formatted=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+(timeVal?' · '+timeVal:'');
+  candidates[id].intDate=formatted;
+  candidates[id].intNotes=notesVal||'Interview scheduled';
+  // Update chip on card
+  var card=document.querySelector('[data-id="'+id+'"]');
+  if(card){
+    var chipsWrap=card.querySelector('.kcard-chips');
+    if(chipsWrap){
+      var existing=chipsWrap.querySelector('.kchip-int');
+      if(existing) existing.remove();
+      var chip=document.createElement('span');
+      chip.className='kchip kchip-int';
+      chip.textContent='📅 '+formatted.split(' ').slice(0,2).join(' ');
+      chipsWrap.insertBefore(chip,chipsWrap.firstChild);
+    }
+  }
+  openPanel(id);
+}
+
+/* ── FEEDBACK SAVE ── */
+function saveFeedback(id){
+  var txt=document.getElementById('fbInput-'+id);
+  var sent=document.getElementById('fbSent-'+id);
+  if(!txt||!txt.value.trim()){ alert('Please enter feedback text.'); return; }
+  candidates[id].feedback={ text:txt.value.trim(), sentiment:sent.value, date:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) };
+  // Update chip on card
+  var card=document.querySelector('[data-id="'+id+'"]');
+  if(card){
+    var chips=card.querySelector('.kcard-chips');
+    if(chips && !chips.querySelector('.kchip-fb')){
+      var chip=document.createElement('span');
+      chip.className='kchip kchip-fb';
+      chip.textContent='💬 Feedback';
+      chips.appendChild(chip);
+    }
+  }
+  openPanel(id);
+}
+
+/* ── CV UPLOAD ── */
+function triggerCv(id){
+  var inp=document.createElement('input');
+  inp.type='file';inp.accept='.pdf,.doc,.docx';
+  inp.onchange=function(){ if(this.files[0]) runCvProcessing(id,this.files[0].name,Math.round(this.files[0].size/1024)+' KB'); };
+  inp.click();
+}
+
+function runCvProcessing(id,filename,filesize){
+  var overlay=document.getElementById('procOverlay');
+  var bar=document.getElementById('procBar');
+  overlay.style.display='flex';
+  bar.style.width='0%';
+  var pids=['ps1','ps2','ps3','ps4'];
+  pids.forEach(p=>{ document.getElementById(p).className='ps ps-idle'; document.getElementById(p+'s').textContent='Waiting'; });
+  var starts=[300,1100,2200,3400];
+  var ends=[1000,2100,3300,4400];
+  pids.forEach((p,i)=>{
+    setTimeout(()=>{ document.getElementById(p).className='ps ps-run'; document.getElementById(p+'s').textContent=i===2?'Claude AI…':'Processing…'; bar.style.width=((i+1)/4*80)+'%'; },starts[i]);
+    setTimeout(()=>{ document.getElementById(p).className='ps ps-done'; document.getElementById(p+'s').textContent='✓ Done'; bar.style.width=((i+1)/4*100)+'%'; },ends[i]);
+  });
+  setTimeout(()=>{
+    overlay.style.display='none';
+    candidates[id].hasCv=true;
+    candidates[id].cvName=filename;
+    var card=document.querySelector('[data-id="'+id+'"]');
+    if(card){
+      var chips=card.querySelector('.kcard-chips');
+      if(chips && !chips.querySelector('.kchip-cv')){
+        var chip=document.createElement('span'); chip.className='kchip kchip-cv'; chip.textContent='📄 CV on file'; chips.appendChild(chip);
+      }
+    }
+    if(activePanelId===id) openPanel(id);
+  },5000);
+}
+
+/* ── REJECTION ── */
+function openReject(id){
+  rejectTargetId=id;
+  selectedRejReason=null;
+  document.querySelectorAll('.rej-opt').forEach(o=>o.classList.remove('on'));
+  document.getElementById('rejNote').value='';
+  document.getElementById('rejModal').classList.add('open');
+}
+function selectRej(el,reason){
+  document.querySelectorAll('.rej-opt').forEach(o=>o.classList.remove('on'));
+  el.classList.add('on');
+  selectedRejReason=reason;
+}
+function closeReject(){ document.getElementById('rejModal').classList.remove('open'); rejectTargetId=null; }
+function confirmReject(){
+  if(!selectedRejReason){ alert('Please select a rejection reason.'); return; }
+  if(!rejectTargetId) return;
+  candidates[rejectTargetId].stage='rejected';
+  candidates[rejectTargetId].rejReason=selectedRejReason;
+  var card=document.querySelector('[data-id="'+rejectTargetId+'"]');
+  if(card){
+    card.dataset.stage='rejected';
+    card.classList.add('rejected');
+    card.querySelector('.kcard-accent').style.background=stageColors.rejected;
+    // Add rejection chip
+    var chips=card.querySelector('.kcard-chips');
+    if(chips){
+      var chip=document.createElement('span');
+      chip.className='kchip kchip-rej';
+      chip.textContent='✕ '+selectedRejReason.charAt(0).toUpperCase()+selectedRejReason.slice(1).replace('client','Client rejected').replace('withdrew','Withdrew').replace('unsuitable','Not suitable').replace('offer','Comp mismatch');
+      chips.insertBefore(chip,chips.firstChild);
+    }
+    document.getElementById('body-rejected').appendChild(card);
+    updateCounts();
+  }
+  if(activePanelId===rejectTargetId) closePanel();
+  closeReject();
+}
+
+/* ── ADD CANDIDATE MODAL ── */
+function openAddModal(){ document.getElementById('addModal').classList.add('open'); modalFileChosen=false; document.getElementById('modalUploadLabel').textContent='Upload CV (PDF or DOCX)'; document.getElementById('modalFileName').style.display='none'; document.getElementById('modalUploadZone').style.borderColor=''; }
+function closeAddModal(){ document.getElementById('addModal').classList.remove('open'); }
+document.getElementById('addModal').addEventListener('click',function(e){if(e.target===this)closeAddModal();});
+document.getElementById('rejModal').addEventListener('click',function(e){if(e.target===this)closeReject();});
+
+function triggerModalFileInput(){ document.getElementById('modalFileInput').click(); }
+function handleModalFile(inp){
+  if(!inp.files[0]) return;
+  modalFileChosen=true;
+  document.getElementById('modalFileName').textContent='📄 '+inp.files[0].name+' selected'; document.getElementById('modalFileName').style.display='block';
+  document.getElementById('modalUploadLabel').textContent='CV selected ✓';
+  document.getElementById('modalUploadZone').style.borderColor='#2E7D33';
+}
+
+function submitNewCandidate(){
+  var first=document.getElementById('newFirst').value.trim();
+  var last=document.getElementById('newLast').value.trim();
+  var role=document.getElementById('newRole').value.trim();
+  var email=document.getElementById('newEmail').value.trim();
+  var linkedin=document.getElementById('newLinkedin').value.trim();
+  var stage=document.getElementById('newStage').value;
+  if(!first){ alert('Please enter a first name.'); return; }
+  closeAddModal();
+  var newId='new_'+Date.now();
+  var initials=(first[0]+(last?last[0]:'')).toUpperCase();
+  var rolePart=role.split(',')[0]||'Unknown Role';
+  var compPart=role.includes(',')?role.split(',').slice(1).join(',').trim():'Unknown';
+  candidates[newId]={id:newId,initials:initials,bg:'#F2F0EC',col:'#454340',name:(first+' '+last).trim(),role:rolePart,company:compPart,location:'Singapore',email:email||'—',phone:'—',years:0,score:0,stage:stage,hasCv:false,cvName:'',intDate:'',intNotes:'',feedback:null,bd:{Experience:0,Industry:0,Scope:0,Leadership:0},greenFlags:[],redFlags:['CV not yet uploaded — score pending'],note:'Newly added. Upload CV to generate AI analysis.'};
+
+  // Build card HTML and inject into correct column
+  var card=document.createElement('div');
+  card.className='kcard fade-in';
+  card.draggable=true;
+  card.dataset.id=newId;
+  card.dataset.stage=stage;
+  card.ondragstart=function(e){dragStart(e);};
+  card.onclick=function(){openPanel(newId);};
+  card.innerHTML='<div class="kcard-accent" style="background:'+stageColors[stage]+'"></div>'
+    +'<div class="kcard-top">'
+    +'<div class="kcard-av" style="background:#F2F0EC;color:#454340">'+initials+'</div>'
+    +'<div class="kcard-meta"><div class="kcard-name">'+first+' '+last+'</div><div class="kcard-role">'+rolePart+' · '+compPart+'</div></div>'
+    +'<div class="kcard-score"><div class="ks-num" style="color:#C8C4BC">—</div><div class="ks-lbl">pending</div></div>'
+    +'</div>'
+    +'<div class="kcard-bar-bg"><div class="kcard-bar-fill" style="width:0%;background:#C8C4BC"></div></div>'
+    +'<div class="kcard-chips"><span class="kchip" style="background:#FCEBEB;color:#B52525;border-color:#F7C1C1">⚠ Upload CV to score</span></div>'
+    +'<div class="kcard-footer"><div class="kcard-date">Just added</div>'
+    +'<div class="kcard-actions">'
+    +'<div class="kact" onclick="event.stopPropagation();openPanel(\''+newId+'\')" title="View">👤</div>'
+    +'<div class="kact" onclick="event.stopPropagation();triggerCv(\''+newId+'\')" title="Upload CV">📄</div>'
+    +'<div class="kact" onclick="event.stopPropagation();openReject(\''+newId+'\')" title="Reject" style="color:var(--ruby)">✕</div>'
+    +'</div></div>';
+  document.getElementById('body-'+stage).insertBefore(card,document.getElementById('body-'+stage).firstChild);
+  updateCounts();
+
+  // Auto-trigger CV processing if file was chosen
+  if(modalFileChosen){
+    var file=document.getElementById('modalFileInput').files[0];
+    setTimeout(()=>runCvProcessing(newId, file?file.name:'CV.pdf', file?Math.round(file.size/1024)+' KB':'—'), 400);
+  }
+}
+
+/* ── ROLE SWITCHER ── */
+function switchRole(el,role){
+  document.querySelectorAll('.rs-role').forEach(r=>r.classList.remove('on'));
+  el.classList.add('on');
+  closePanel();
+}
+
+updateCounts();
+</script>
+</body>
+</html>

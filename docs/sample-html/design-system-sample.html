@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SeaSearch Design System — Sample</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ── TOKENS ──────────────────────────────────────────── */
+:root {
+  --ink:         #0D0C0A;
+  --ink2:        #2A2926;
+  --ink3:        #6B6860;
+  --mist:        #F9F8F5;
+  --mist2:       #F2F0EC;
+  --mist3:       #E8E5DF;
+  --mist4:       #D4D0C8;
+  --wire:        #E0DDD6;
+  --wire2:       #C8C4BC;
+  --sea:         #0B4F8A;
+  --sea2:        #1A6DB5;
+  --sea3:        #3589D4;
+  --sea-pale:    #E8F2FB;
+  --sea-soft:    #C5DFF5;
+  --jade:        #1A4D1E;
+  --jade2:       #2E7D33;
+  --jade3:       #4CAF52;
+  --jade-pale:   #EAF4EB;
+  --jade-soft:   #B8DFB9;
+  --amber:       #7A3B0A;
+  --amber2:      #B85C1A;
+  --amber3:      #E07C3A;
+  --amber-pale:  #FDF0E8;
+  --ruby:        #7A1A1A;
+  --ruby2:       #B52525;
+  --ruby-pale:   #FBE8E8;
+  --violet:      #2D1F6E;
+  --violet2:     #4B3AA8;
+  --violet-pale: #EEE9FB;
+  --gold:        #6B4F00;
+  --gold2:       #C49A00;
+  --gold-pale:   #FDF8E1;
+  --sidebar:     230px;
+  --topbar:      56px;
+  --r:           12px;
+  --rsm:         7px;
+  --rxs:         4px;
+  --font-head:   'Syne', sans-serif;
+  --font:        'DM Sans', sans-serif;
+  --mono:        'DM Mono', monospace;
+}
+
+/* ── BASE ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--mist2); color: var(--ink); font-size: 13px; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--mist4); border-radius: 2px; }
+
+/* ── LAYOUT SHELL ─────────────────────────────────────── */
+.dash-body  { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+.dash-shell { display: flex; flex: 1; overflow: hidden; }
+.dash-main  { flex: 1; overflow-y: auto; }
+
+/* ── TOPBAR ───────────────────────────────────────────── */
+.dash-topbar    { height: var(--topbar); background: var(--ink); display: flex; align-items: center;
+                  padding: 0 20px 0 0; flex-shrink: 0; border-bottom: 1px solid var(--ink2); }
+.dash-logo-wrap { width: var(--sidebar); flex-shrink: 0; display: flex; align-items: center;
+                  padding: 0 20px; border-right: 1px solid var(--ink2); height: 100%; }
+.dash-logo      { font-family: var(--font-head); font-size: 16px; font-weight: 700; color: #fff; }
+.dash-logo span { color: var(--sea3); }
+.dash-logo-sub  { font-size: 10px; color: var(--jade3); display: flex; align-items: center; gap: 4px; margin-top: 1px; }
+.dash-logo-dot  { width: 5px; height: 5px; border-radius: 50%; background: var(--jade3); }
+.dash-tb-mid    { flex: 1; display: flex; align-items: center; padding: 0 20px; gap: 12px; }
+.dash-greet     { font-size: 13px; color: var(--mist4); white-space: nowrap; }
+.dash-greet b   { color: #fff; font-weight: 500; }
+.dash-search    { flex: 1; max-width: 300px; background: var(--ink2); border: 1px solid var(--ink3);
+                  border-radius: var(--rsm); display: flex; align-items: center; gap: 8px;
+                  padding: 0 12px; height: 32px; }
+.dash-search input { background: transparent; border: none; outline: none; font-size: 12px;
+                     color: var(--mist4); font-family: var(--font); width: 100%; }
+.dash-search input::placeholder { color: var(--ink3); }
+.dash-tb-right  { display: flex; align-items: center; gap: 8px; }
+.dash-tb-btn    { width: 32px; height: 32px; border-radius: var(--rxs); border: 1px solid var(--ink2);
+                  background: transparent; display: flex; align-items: center; justify-content: center;
+                  cursor: pointer; font-size: 14px; color: var(--mist4); position: relative; }
+.dash-tb-btn:hover { background: var(--ink2); }
+.dash-tb-pip    { position: absolute; top: 5px; right: 5px; width: 5px; height: 5px;
+                  border-radius: 50%; background: #E24B4A; border: 1px solid var(--ink); }
+.dash-tb-av     { width: 32px; height: 32px; border-radius: 50%; background: var(--sea);
+                  color: var(--sea-pale); display: flex; align-items: center; justify-content: center;
+                  font-size: 11px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--sea2); }
+
+/* ── SIDEBAR ──────────────────────────────────────────── */
+.dash-sidebar { width: var(--sidebar); background: var(--ink); flex-shrink: 0; display: flex;
+                flex-direction: column; overflow-y: auto; border-right: 1px solid var(--ink2); }
+.sb-sec       { padding: 12px 12px 4px; }
+.sb-sec-lbl   { font-size: 9px; font-weight: 500; color: var(--ink3); text-transform: uppercase;
+                letter-spacing: 0.1em; padding: 0 8px; margin-bottom: 6px; }
+.sb-div       { height: 1px; background: var(--ink2); margin: 8px 12px; }
+.sbi          { display: flex; align-items: center; gap: 10px; padding: 7px 8px;
+                border-radius: var(--rxs); cursor: pointer; color: var(--mist4);
+                font-size: 12px; transition: all .15s; text-decoration: none; }
+.sbi:hover    { background: var(--ink2); color: #fff; }
+.sbi.on       { background: var(--sea); color: #fff; }
+.sbi-ico      { font-size: 13px; width: 20px; text-align: center; flex-shrink: 0; }
+.sbi-lbl      { flex: 1; }
+.sbadge       { font-size: 9px; font-weight: 500; background: var(--sea2); color: #fff;
+                border-radius: 10px; padding: 1px 6px; font-family: var(--mono); }
+.sbadge-a     { background: var(--amber2) !important; }
+.sb-rbox      { margin: 10px 12px; background: var(--ink2); border: 1px solid var(--ink3);
+                border-radius: var(--rsm); padding: 12px; }
+.srb-lbl      { font-size: 9px; color: var(--ink3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+.srb-num      { font-size: 20px; font-weight: 600; color: var(--jade3); font-family: var(--font-head); letter-spacing: -.02em; }
+.srb-sub      { font-size: 10px; color: var(--mist4); margin-top: 1px; }
+.srb-bg       { height: 3px; background: var(--ink3); border-radius: 2px; margin: 8px 0 4px; }
+.srb-fill     { height: 3px; background: var(--jade2); border-radius: 2px; width: 60%; }
+.sb-bot       { margin-top: auto; padding: 12px; }
+.sb-prof      { display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--ink2);
+                border-radius: var(--rsm); cursor: pointer; border: 1px solid var(--ink3); }
+.sb-prof:hover { background: #2E2D2A; }
+.sp-av        { width: 30px; height: 30px; border-radius: 50%; background: var(--sea);
+                color: var(--sea-pale); display: flex; align-items: center; justify-content: center;
+                font-size: 10px; font-weight: 500; flex-shrink: 0; }
+.sp-name      { font-size: 12px; font-weight: 500; color: #fff; }
+.sp-role      { font-size: 10px; color: var(--mist4); }
+.sp-arr       { font-size: 12px; color: var(--ink3); margin-left: auto; }
+
+/* ── PAGE CHROME ──────────────────────────────────────── */
+.page-content { padding: 24px; }
+.page-head    { display: flex; justify-content: space-between; align-items: flex-start;
+                margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+.page-title   { font-family: var(--font-head); font-size: 22px; font-weight: 700;
+                color: var(--ink); letter-spacing: -.02em; }
+.page-sub     { font-size: 13px; color: var(--ink3); margin-top: 3px; }
+
+/* ── STAT CARDS ───────────────────────────────────────── */
+.stat-grid  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.stat-card  { background: #fff; border: 1px solid var(--wire); border-radius: 10px;
+              padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;
+              position: relative; overflow: hidden; }
+.stat-bar   { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.stat-label { font-size: 11px; color: var(--ink3); font-weight: 500; text-transform: uppercase; letter-spacing: .4px; }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--ink); font-family: var(--font-head); line-height: 1.1; }
+.stat-sub   { font-size: 11px; color: var(--ink3); }
+
+/* ── DCARD ────────────────────────────────────────────── */
+.dcard      { background: var(--mist); border: 1px solid var(--wire); border-radius: var(--r); overflow: hidden; }
+.dcard-head { padding: 12px 16px; border-bottom: 1px solid var(--wire);
+              display: flex; justify-content: space-between; align-items: center; }
+.dcard-title { font-size: 12px; font-weight: 500; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.dcard-body  { padding: 14px 16px; }
+
+/* ── SBLOCK (Collapse) ────────────────────────────────── */
+.sblock       { background: #fff; border: 1px solid var(--wire); border-radius: var(--r); margin-bottom: 10px; }
+.sblock-head  { width: 100%; padding: 11px 16px; cursor: pointer; display: flex;
+                justify-content: space-between; align-items: center; background: none; border: none;
+                font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--ink); }
+.sblock-head:hover { background: var(--mist2); }
+.sblock-body  { padding: 12px 16px; border-top: 1px solid var(--wire); }
+
+/* ── BADGES ───────────────────────────────────────────── */
+.badge        { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+                border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: .3px; }
+.badge-sea    { background: var(--sea-pale);    color: var(--sea);    border: 1px solid var(--sea-soft); }
+.badge-jade   { background: var(--jade-pale);   color: var(--jade2);  border: 1px solid var(--jade-soft); }
+.badge-amber  { background: var(--amber-pale);  color: var(--amber2); border: 1px solid #F5C9A0; }
+.badge-gold   { background: var(--gold-pale);   color: var(--gold);   border: 1px solid #EDD87A; }
+.badge-ruby   { background: var(--ruby-pale);   color: var(--ruby);   border: 1px solid #EFB0B0; }
+.badge-violet { background: var(--violet-pale); color: var(--violet); border: 1px solid #C9BCE8; }
+.badge-mist   { background: var(--mist2);       color: var(--ink3);   border: 1px solid var(--wire); }
+
+/* ── BUTTONS ──────────────────────────────────────────── */
+.btn         { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px;
+               border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer;
+               transition: all .15s; border: none; font-family: var(--font); }
+.btn-primary { background: var(--sea2); color: #fff; }
+.btn-primary:hover { background: var(--sea); }
+.btn-ghost   { background: transparent; color: var(--ink2); border: 1px solid var(--wire); }
+.btn-ghost:hover { background: var(--mist2); }
+.btn-danger  { background: var(--ruby-pale); color: var(--ruby); border: 1px solid #EFB0B0; }
+.btn-danger:hover { background: #F5CECE; }
+.btn-sm      { padding: 4px 10px; font-size: 12px; }
+
+/* ── TABLE ────────────────────────────────────────────── */
+.table-wrap  { background: #fff; border: 1px solid var(--wire); border-radius: 10px; overflow: hidden; }
+.table-head  { padding: 14px 18px; border-bottom: 1px solid var(--wire);
+               display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+table        { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th     { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600;
+               color: var(--ink3); text-transform: uppercase; letter-spacing: .4px;
+               border-bottom: 1px solid var(--wire); background: var(--mist2); }
+tbody tr     { border-bottom: 1px solid var(--wire2); transition: background .1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--mist); }
+tbody td     { padding: 11px 16px; color: var(--ink2); vertical-align: middle; }
+
+/* ── FORMS ────────────────────────────────────────────── */
+.form-group  { margin-bottom: 16px; }
+.form-label  { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink2); margin-bottom: 5px; }
+.form-input  { width: 100%; padding: 8px 11px; border: 1.5px solid var(--wire); border-radius: 7px;
+               font-size: 13.5px; color: var(--ink); background: #fff; transition: border-color .15s;
+               font-family: var(--font); }
+.form-input:focus { outline: none; border-color: var(--sea3); }
+.form-error  { font-size: 12px; color: var(--ruby); margin-top: 4px; }
+.form-hint   { font-size: 12px; color: var(--ink3); margin-top: 4px; }
+
+/* ── FLASH ────────────────────────────────────────────── */
+.flash-success { background: var(--jade-pale); color: var(--jade2); border: 1px solid var(--jade-soft);
+                 padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 16px; }
+.flash-error   { background: var(--ruby-pale); color: var(--ruby); border: 1px solid #EFB0B0;
+                 padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 16px; }
+
+/* ── AVATAR ───────────────────────────────────────────── */
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--sea-pale); color: var(--sea2);
+          display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+
+/* ── ROLE ROW ─────────────────────────────────────────── */
+.rr      { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px;
+           border-bottom: 1px solid var(--wire); cursor: pointer; transition: background .15s;
+           position: relative; }
+.rr:hover { background: var(--mist2); }
+.rr-bar   { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.rr-logo  { width: 38px; height: 38px; border-radius: 9px; background: var(--mist3);
+            display: flex; align-items: center; justify-content: center; font-size: 11px;
+            font-weight: 700; color: var(--ink3); flex-shrink: 0; }
+.rr-name  { font-size: 13px; font-weight: 600; color: var(--ink); }
+.rr-meta  { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+
+/* ── DEMO SECTION WRAPPER ─────────────────────────────── */
+.demo-section { margin-bottom: 32px; }
+.demo-label   { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+                color: var(--ink3); margin-bottom: 12px; padding-bottom: 6px;
+                border-bottom: 1px solid var(--wire); }
+.demo-row     { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.grid-2       { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     APP SHELL (Sidebar + Topbar)
+     ══════════════════════════════════════════ -->
+<div class="dash-body">
+
+  <!-- Topbar -->
+  <div class="dash-topbar">
+    <div class="dash-logo-wrap">
+      <div>
+        <div class="dash-logo">Sea<span>Search</span></div>
+        <div class="dash-logo-sub"><span class="dash-logo-dot"></span> Platform Active</div>
+      </div>
+    </div>
+    <div class="dash-tb-mid">
+      <span class="dash-greet">Good morning, <b>Alex</b></span>
+      <div class="dash-search">
+        <span style="color:var(--ink3);font-size:12px">🔍</span>
+        <input placeholder="Search roles, companies..." />
+      </div>
+    </div>
+    <div class="dash-tb-right">
+      <button class="dash-tb-btn">
+        🔔
+        <span class="dash-tb-pip"></span>
+      </button>
+      <div class="dash-tb-av">AL</div>
+    </div>
+  </div>
+
+  <div class="dash-shell">
+
+    <!-- Sidebar -->
+    <div class="dash-sidebar">
+      <div class="sb-sec">
+        <div class="sb-sec-lbl">Main</div>
+        <a href="#" class="sbi on">
+          <span class="sbi-ico">◼</span>
+          <span class="sbi-lbl">Dashboard</span>
+        </a>
+        <a href="#" class="sbi">
+          <span class="sbi-ico">◻</span>
+          <span class="sbi-lbl">My Roles</span>
+          <span class="sbadge">3</span>
+        </a>
+        <a href="#" class="sbi">
+          <span class="sbi-ico">◻</span>
+          <span class="sbi-lbl">Applications</span>
+          <span class="sbadge sbadge-a">7</span>
+        </a>
+      </div>
+      <div class="sb-div"></div>
+      <div class="sb-sec">
+        <div class="sb-sec-lbl">Account</div>
+        <a href="#" class="sbi">
+          <span class="sbi-ico">◻</span>
+          <span class="sbi-lbl">Profile</span>
+        </a>
+        <a href="#" class="sbi">
+          <span class="sbi-ico">◻</span>
+          <span class="sbi-lbl">Settings</span>
+        </a>
+      </div>
+
+      <!-- Earnings box -->
+      <div class="sb-rbox" style="margin-top:12px">
+        <div class="srb-lbl">Potential Earnings</div>
+        <div class="srb-num">SGD 12,400</div>
+        <div class="srb-sub">From 3 active placements</div>
+        <div class="srb-bg"><div class="srb-fill"></div></div>
+        <div class="srb-foot"><span>60% confirmed</span><span>▲ +8%</span></div>
+      </div>
+
+      <div class="sb-bot">
+        <div class="sb-prof">
+          <div class="sp-av">AL</div>
+          <div>
+            <div class="sp-name">Alex Lim</div>
+            <div class="sp-role">Talent</div>
+          </div>
+          <span class="sp-arr">▸</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="dash-main">
+      <div class="page-content">
+
+        <!-- Page header -->
+        <div class="page-head">
+          <div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-sub">Overview of your activity and pipeline</div>
+          </div>
+          <button class="btn btn-primary">+ New Application</button>
+        </div>
+
+        <!-- ── STAT CARDS ──────────────────── -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-bar" style="background:var(--sea2)"></div>
+            <div class="stat-label">Active Roles</div>
+            <div class="stat-value">12</div>
+            <div class="stat-sub">▲ +3 this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-bar" style="background:var(--jade2)"></div>
+            <div class="stat-label">Interviews</div>
+            <div class="stat-value">4</div>
+            <div class="stat-sub">2 scheduled this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-bar" style="background:var(--amber2)"></div>
+            <div class="stat-label">Pending Review</div>
+            <div class="stat-value">7</div>
+            <div class="stat-sub">Awaiting response</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-bar" style="background:var(--violet2)"></div>
+            <div class="stat-label">Profile Score</div>
+            <div class="stat-value">82%</div>
+            <div class="stat-sub">Strong profile ✓</div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:24px">
+
+          <!-- ── DCARD with collapsible sections ── -->
+          <div>
+            <!-- Active Role Rows -->
+            <div class="dcard" style="margin-bottom:14px">
+              <div class="dcard-head">
+                <span class="dcard-title">▶ Active Roles</span>
+                <span class="badge badge-sea">3 roles</span>
+              </div>
+              <div class="rr" style="border-left:3px solid var(--sea2)">
+                <div class="rr-logo">TC</div>
+                <div style="flex:1">
+                  <div class="rr-name">Senior Product Manager</div>
+                  <div class="rr-meta">TechCorp · Singapore · SGD 12,000–15,000</div>
+                  <div style="margin-top:6px;display:flex;gap:6px">
+                    <span class="badge badge-sea">Interview</span>
+                    <span class="badge badge-mist">Full-time</span>
+                  </div>
+                </div>
+              </div>
+              <div class="rr">
+                <div class="rr-logo">FG</div>
+                <div style="flex:1">
+                  <div class="rr-name">VP of Finance</div>
+                  <div class="rr-meta">FinGroup · Kuala Lumpur · MYR 25,000</div>
+                  <div style="margin-top:6px;display:flex;gap:6px">
+                    <span class="badge badge-amber">Screening</span>
+                    <span class="badge badge-mist">Hybrid</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CollapseBlock component sample -->
+            <div class="sblock">
+              <button class="sblock-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.chev').textContent=this.querySelector('.chev').textContent==='▼'?'▲':'▼'">
+                <span>Profile Completeness</span>
+                <span class="chev" style="font-size:11px;opacity:0.6">▼</span>
+              </button>
+              <div class="sblock-body">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div style="display:flex;justify-content:space-between;font-size:12px">
+                    <span>Work Experience</span>
+                    <span style="color:var(--jade2)">✓ Complete</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px">
+                    <span>Resume Uploaded</span>
+                    <span style="color:var(--jade2)">✓ Complete</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px">
+                    <span>Skills</span>
+                    <span style="color:var(--amber2)">→ Add more skills</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:12px">
+                    <span>Open to Work</span>
+                    <span style="color:var(--ink3)">○ Not set</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── TABLE ──────────────────────── -->
+          <div class="table-wrap">
+            <div class="table-head">
+              <span style="font-size:13px;font-weight:600;color:var(--ink)">Recent Applications</span>
+              <button class="btn btn-ghost btn-sm">View All</button>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Role</th>
+                  <th>Stage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>TechCorp</td>
+                  <td>Sr. PM</td>
+                  <td><span class="badge badge-sea">Interview</span></td>
+                </tr>
+                <tr>
+                  <td>FinGroup</td>
+                  <td>VP Finance</td>
+                  <td><span class="badge badge-amber">Screening</span></td>
+                </tr>
+                <tr>
+                  <td>HealthCo</td>
+                  <td>COO</td>
+                  <td><span class="badge badge-violet">Offer</span></td>
+                </tr>
+                <tr>
+                  <td>RetailX</td>
+                  <td>Head of Ops</td>
+                  <td><span class="badge badge-jade">Hired</span></td>
+                </tr>
+                <tr>
+                  <td>BankCo</td>
+                  <td>Dir. Strategy</td>
+                  <td><span class="badge badge-ruby">Rejected</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── FORM SAMPLE ─────────────────── -->
+        <div class="dcard" style="margin-bottom:24px;max-width:560px">
+          <div class="dcard-head">
+            <span class="dcard-title">Edit Profile</span>
+          </div>
+          <div class="dcard-body">
+            <div class="flash-success">Profile updated successfully.</div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input class="form-input" type="text" value="Alex Lim" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current Title</label>
+                <input class="form-input" type="text" value="Product Manager" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" value="alex@example.com" />
+              <div class="form-hint">Used for application notifications</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Expected Salary</label>
+              <input class="form-input" type="text" placeholder="e.g. SGD 12,000" />
+              <div class="form-error">This field is required</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <button class="btn btn-primary">Save Changes</button>
+              <button class="btn btn-ghost">Cancel</button>
+              <button class="btn btn-danger" style="margin-left:auto">Delete Account</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── BADGES REFERENCE ────────────── -->
+        <div class="demo-section">
+          <div class="demo-label">Badge Variants</div>
+          <div class="demo-row">
+            <span class="badge badge-sea">Published</span>
+            <span class="badge badge-jade">Hired</span>
+            <span class="badge badge-amber">Screening</span>
+            <span class="badge badge-ruby">Rejected</span>
+            <span class="badge badge-violet">Offer</span>
+            <span class="badge badge-gold">Exclusive</span>
+            <span class="badge badge-mist">Draft</span>
+          </div>
+        </div>
+
+        <!-- ── BUTTONS REFERENCE ───────────── -->
+        <div class="demo-section">
+          <div class="demo-label">Button Variants</div>
+          <div class="demo-row">
+            <button class="btn btn-primary">Primary</button>
+            <button class="btn btn-ghost">Ghost</button>
+            <button class="btn btn-danger">Danger</button>
+            <button class="btn btn-primary btn-sm">Primary SM</button>
+            <button class="btn btn-ghost btn-sm">Ghost SM</button>
+          </div>
+        </div>
+
+        <!-- ── COLOR PALETTE REFERENCE ────── -->
+        <div class="demo-section">
+          <div class="demo-label">Color Palette</div>
+          <div class="demo-row" style="flex-wrap:wrap">
+            <!-- Ink -->
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#0D0C0A"></div>ink
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#2A2926"></div>ink2
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#6B6860"></div>ink3
+            </div>
+            <!-- Mist -->
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#F9F8F5;border:1px solid var(--wire)"></div>mist
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#F2F0EC;border:1px solid var(--wire)"></div>mist2
+            </div>
+            <!-- Sea -->
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#0B4F8A"></div>sea
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#1A6DB5"></div>sea2
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#3589D4"></div>sea3
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#E8F2FB;border:1px solid var(--wire)"></div>sea-pale
+            </div>
+            <!-- Jade -->
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#2E7D33"></div>jade2
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#EAF4EB;border:1px solid var(--wire)"></div>jade-pale
+            </div>
+            <!-- Amber -->
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#B85C1A"></div>amber2
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#FDF0E8;border:1px solid var(--wire)"></div>amb-pale
+            </div>
+            <!-- Ruby -->
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#B52525"></div>ruby2
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#FBE8E8;border:1px solid var(--wire)"></div>ruby-pale
+            </div>
+            <!-- Violet -->
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#4B3AA8"></div>violet2
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#EEE9FB;border:1px solid var(--wire)"></div>vio-pale
+            </div>
+            <!-- Gold -->
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#C49A00"></div>gold2
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;font-size:9px;font-family:var(--mono);color:var(--ink3);text-align:center">
+              <div style="width:44px;height:32px;border-radius:6px;background:#FDF8E1;border:1px solid var(--wire)"></div>gold-pale
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TYPOGRAPHY REFERENCE ────────── -->
+        <div class="demo-section">
+          <div class="demo-label">Typography Scale</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-family:var(--font-head);font-size:36px;font-weight:700;line-height:1;color:var(--ink)">Display / 36px Syne 700</div>
+            <div style="font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--ink)">Page Title / 22px Syne 700</div>
+            <div style="font-family:var(--font-head);font-size:18px;font-weight:600;color:var(--ink)">Card Heading / 18px Syne 600</div>
+            <div style="font-size:15px;font-weight:600;color:var(--ink)">Subheading / 15px DM Sans 600</div>
+            <div style="font-size:13px;font-weight:400;color:var(--ink)">Body / 13px DM Sans 400 — The quick brown fox jumps over the lazy dog</div>
+            <div style="font-size:12px;font-weight:500;color:var(--ink2)">Small / 12px DM Sans 500 — Secondary body text</div>
+            <div style="font-size:11px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px">Label / 11px DM Sans 500 Uppercase</div>
+            <div style="font-size:10px;font-weight:400;color:var(--ink3)">Caption / 10px DM Sans 400 — Meta information</div>
+            <div style="font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ink3);letter-spacing:.05em">Mono / 11px DM Mono 500 — SGD 12,400 · #A00234</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

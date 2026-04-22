@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sea Search — Client Portal · DBS Bank</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0F0E0C;--ink2:#1E1D1B;--ink3:#3A3835;--ink4:#6A6760;--ink5:#9A9895;
+  --paper:#FAFAF8;--paper2:#F4F3F0;--paper3:#ECEAE6;--paper4:#E2DFD9;
+  --line:#D8D5CF;--line2:#C8C5BE;
+  --dbs:#CC0000;--dbs2:#A50000;--dbs-pale:#FFF0F0;
+  --sea:#0B4F8A;--sea2:#1A6DB5;--sea-pale:#E8F2FB;
+  --jade:#1A4D1E;--jade2:#2E7D33;--jade-pale:#EAF4EB;--jade-soft:#B8DFB9;
+  --amber:#7A3B0A;--amber2:#B85C1A;--amber-pale:#FDF0E8;--amber-soft:#F5C49A;
+  --ruby:#7A1A1A;--ruby2:#B52525;--ruby-pale:#FBE8E8;--ruby-soft:#F7C1C1;
+  --violet:#2D1F6E;--violet2:#4B3AA8;--violet-pale:#EEE9FB;--violet-soft:#C4B8F0;
+  --font:'DM Sans',sans-serif;
+  --serif:'Instrument Serif',serif;
+  --mono:'DM Mono',monospace;
+  --r:10px;--rsm:6px;--rxs:4px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--paper2);color:var(--ink);display:flex;flex-direction:column}
+
+/* ── NAV ── */
+.nav{height:56px;background:var(--ink);border-bottom:1px solid var(--ink2);display:flex;align-items:center;padding:0 28px;gap:16px;flex-shrink:0;z-index:40}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-seasearch{font-size:13px;font-weight:500;color:#fff;letter-spacing:.01em;opacity:.7}
+.nav-divider{width:1px;height:20px;background:var(--ink3)}
+.nav-client{display:flex;align-items:center;gap:8px}
+.nav-client-logo{width:32px;height:32px;border-radius:6px;background:var(--dbs);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;color:#fff;letter-spacing:.03em}
+.nav-client-name{font-size:13px;font-weight:500;color:#fff}
+.nav-client-role{font-size:11px;color:var(--ink5);margin-top:1px}
+.nav-links{display:flex;gap:2px;margin-left:28px}
+.nav-link{font-size:12px;padding:5px 10px;border-radius:var(--rsm);color:var(--ink5);cursor:pointer;transition:all .15s}
+.nav-link:hover{background:var(--ink2);color:#fff}
+.nav-link.on{background:rgba(255,255,255,.1);color:#fff}
+.nav-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-notif{width:30px;height:30px;border-radius:50%;border:1px solid var(--ink3);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--ink5);position:relative}
+.nav-notif:hover{background:var(--ink2)}
+.npip{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--dbs);border:1.5px solid var(--ink)}
+.nav-av{width:30px;height:30px;border-radius:50%;background:var(--dbs);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;cursor:pointer}
+
+/* ── SHELL ── */
+.shell{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;background:var(--paper);border-right:1px solid var(--line);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto}
+.sb-role-card{margin:14px 12px;background:var(--dbs-pale);border:1px solid #FFCCCC;border-radius:var(--r);padding:12px}
+.sbrc-label{font-size:9px;color:var(--dbs2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.sbrc-name{font-size:12px;font-weight:500;color:var(--ink)}
+.sbrc-co{font-size:11px;color:var(--ink4)}
+.sbrc-stat{display:flex;gap:8px;margin-top:8px}
+.sbrc-s{text-align:center;flex:1}
+.sbrc-s-num{font-size:16px;font-weight:500;color:var(--ink);font-family:var(--mono)}
+.sbrc-s-lbl{font-size:9px;color:var(--ink5)}
+.sb-s{padding:6px 10px 2px}
+.sb-lbl{font-size:9px;font-weight:500;color:var(--ink5);text-transform:uppercase;letter-spacing:.08em;padding:0 6px;margin-bottom:4px}
+.sbi{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--rsm);cursor:pointer;color:var(--ink4);font-size:12px;transition:all .15s}
+.sbi:hover{background:var(--paper2);color:var(--ink)}
+.sbi.on{background:var(--paper3);color:var(--ink);font-weight:500}
+.sbi-i{font-size:13px;width:18px;text-align:center;flex-shrink:0}
+.sbi-l{flex:1}
+.sbadge{font-size:9px;font-weight:500;background:var(--dbs-pale);color:var(--dbs2);border-radius:8px;padding:1px 5px;font-family:var(--mono)}
+.sb-div{height:1px;background:var(--line);margin:6px 10px}
+.sb-bot{margin-top:auto;padding:12px}
+.sb-user{display:flex;align-items:center;gap:8px;padding:8px;background:var(--paper2);border-radius:var(--rsm);cursor:pointer;border:1px solid var(--line)}
+.sbu-av{width:28px;height:28px;border-radius:50%;background:var(--dbs);color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.sbu-name{font-size:11px;font-weight:500;color:var(--ink)}
+.sbu-role{font-size:10px;color:var(--ink4)}
+
+/* ── MAIN ── */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── SCREEN SWITCHER ── */
+.screen{display:none;flex:1;overflow-y:auto;flex-direction:column}
+.screen.on{display:flex}
+
+/* ── DASHBOARD SCREEN ── */
+.dash-body{padding:24px 28px;max-width:1100px;width:100%}
+.dash-welcome{margin-bottom:22px}
+.dw-greeting{font-family:var(--serif);font-size:26px;color:var(--ink);margin-bottom:3px}
+.dw-sub{font-size:13px;color:var(--ink4)}
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.dstat{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden}
+.dstat-accent{position:absolute;top:0;left:0;right:0;height:3px}
+.dstat-num{font-size:26px;font-weight:500;color:var(--ink);font-family:var(--mono);line-height:1;margin-bottom:3px}
+.dstat-lbl{font-size:11px;color:var(--ink4)}
+.dstat-trend{font-size:10px;font-weight:500;margin-top:6px}
+.dt-up{color:var(--jade2)}
+.dt-warn{color:var(--amber2)}
+
+/* ROLES TABLE */
+.roles-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:18px}
+.rc-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.rc-title{font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:7px}
+.rc-btn{font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--line2);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font)}
+.rc-btn:hover{background:var(--paper2)}
+.rtable{width:100%;border-collapse:collapse}
+.rtable th{font-size:10px;font-weight:500;color:var(--ink5);text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.05em;background:var(--paper2)}
+.rtable td{font-size:12px;color:var(--ink);padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+.rtable tr:last-child td{border-bottom:none}
+.rtable tr:hover td{background:var(--paper2);cursor:pointer}
+.role-name{font-size:13px;font-weight:500;color:var(--ink)}
+.role-sub{font-size:11px;color:var(--ink4);margin-top:1px}
+.pill{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px}
+.p-pending{background:var(--amber-pale);color:var(--amber)}
+.p-active{background:var(--jade-pale);color:var(--jade)}
+.p-new{background:var(--sea-pale);color:var(--sea)}
+.p-hired{background:var(--jade-pale);color:var(--jade)}
+.progress-bar{height:4px;background:var(--paper3);border-radius:2px;width:80px}
+.progress-fill{height:4px;border-radius:2px}
+
+/* ACTIVITY FEED */
+.activity-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.aitem{display:flex;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.aitem:last-child{border-bottom:none}
+.aitem:hover{background:var(--paper2);cursor:pointer}
+.a-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.a-txt{font-size:12px;font-weight:500;color:var(--ink);line-height:1.35}
+.a-sub{font-size:11px;color:var(--ink4)}
+.a-time{font-size:10px;color:var(--ink5);margin-top:1px;font-family:var(--mono)}
+.a-right{margin-left:auto;flex-shrink:0}
+.a-badge{font-size:9px;font-weight:500;padding:2px 7px;border-radius:10px}
+
+/* ── SUBMISSIONS SCREEN ── */
+.sub-body{padding:20px 28px;max-width:1100px;width:100%}
+.sub-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.sub-title{font-family:var(--serif);font-size:22px;color:var(--ink)}
+.sub-sub{font-size:12px;color:var(--ink4);margin-top:3px}
+.filter-row{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap}
+.ftab{font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--line2);background:var(--paper);color:var(--ink4);cursor:pointer;transition:all .15s}
+.ftab:hover{background:var(--paper3)}
+.ftab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sort-sel{font-size:11px;padding:5px 9px;border:1px solid var(--line2);border-radius:var(--rsm);background:var(--paper);color:var(--ink);cursor:pointer;font-family:var(--font);outline:none;margin-left:auto}
+
+/* CANDIDATE BRIEF CARDS */
+.brief-list{display:flex;flex-direction:column;gap:12px}
+.brief-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:border-color .15s,transform .15s}
+.brief-card:hover{border-color:var(--line2);transform:translateY(-1px)}
+.brief-card.urgent{border-color:#FAC775}
+.bc-top{padding:16px 18px;display:flex;gap:14px;align-items:flex-start}
+.bc-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.bc-info{flex:1;min-width:0}
+.bc-name{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bc-sub{font-size:12px;color:var(--ink4);margin-bottom:7px}
+.bc-chips{display:flex;gap:5px;flex-wrap:wrap}
+.bchip{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--paper2);color:var(--ink4);border:1px solid var(--line)}
+.bc-right{flex-shrink:0;text-align:right;min-width:120px}
+.bc-score-ring{width:60px;height:60px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2.5px solid;margin-left:auto;margin-bottom:8px}
+.bsr-num{font-size:17px;font-weight:500;font-family:var(--mono);line-height:1}
+.bsr-lbl{font-size:9px;color:var(--ink5);text-transform:uppercase;letter-spacing:.04em}
+.bc-submitted{font-size:10px;color:var(--ink5);font-family:var(--mono)}
+
+/* BRIEF BODY */
+.bc-body{padding:0 18px 14px}
+.bc-summary{font-size:12px;color:var(--ink4);line-height:1.7;margin-bottom:10px;background:var(--paper2);border-left:2px solid var(--violet-soft);padding:9px 11px;border-radius:0 var(--rsm) var(--rsm) 0}
+.bc-bd{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.bc-bd-row{display:flex;align-items:center;gap:9px}
+.bc-bd-lbl{font-size:10px;color:var(--ink4);width:110px;flex-shrink:0}
+.bc-bd-bg{flex:1;height:4px;background:var(--paper3);border-radius:2px}
+.bc-bd-fill{height:4px;border-radius:2px}
+.bc-bd-pct{font-size:10px;color:var(--ink5);width:26px;text-align:right;font-family:var(--mono)}
+.bc-flags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.bcf-g{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--jade-pale);color:var(--jade)}
+.bcf-r{font-size:10px;padding:2px 7px;border-radius:4px;background:var(--ruby-pale);color:var(--ruby)}
+
+/* RECRUITER NOTE */
+.bc-rec-note{background:var(--paper2);border:1px solid var(--line);border-radius:var(--rsm);padding:10px 12px;margin-bottom:12px}
+.bcn-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.bcn-av{width:22px;height:22px;border-radius:50%;background:var(--sea-pale);color:var(--sea);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.bcn-name{font-size:11px;font-weight:500;color:var(--ink)}
+.bcn-txt{font-size:12px;color:var(--ink4);line-height:1.65;font-style:italic}
+
+/* ACTION BUTTONS */
+.bc-actions{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:var(--paper2);flex-wrap:wrap}
+.ba-approve{flex:1;padding:9px 12px;font-size:12px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--jade2);color:#fff;cursor:pointer;font-family:var(--font);min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.ba-approve:hover{background:var(--jade)}
+.ba-info{flex:1;padding:9px 12px;font-size:12px;font-weight:500;border-radius:var(--rsm);border:1.5px solid var(--amber-soft);background:transparent;color:var(--amber);cursor:pointer;font-family:var(--font);min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.ba-info:hover{background:var(--amber-pale)}
+.ba-reject{flex:1;padding:9px 12px;font-size:12px;font-weight:500;border-radius:var(--rsm);border:1.5px solid var(--ruby-soft);background:transparent;color:var(--ruby);cursor:pointer;font-family:var(--font);min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.ba-reject:hover{background:var(--ruby-pale)}
+.ba-done{flex:1;padding:9px 12px;font-size:12px;font-weight:500;border-radius:var(--rsm);border:1px solid var(--line);background:var(--paper3);color:var(--ink4);cursor:default;min-width:120px;display:flex;align-items:center;justify-content:center;gap:6px}
+.bc-status-bar{padding:10px 18px;display:flex;align-items:center;gap:8px;font-size:12px}
+.bs-approved{background:var(--jade-pale);color:var(--jade)}
+.bs-rejected{background:var(--ruby-pale);color:var(--ruby)}
+.bs-info{background:var(--amber-pale);color:var(--amber)}
+
+/* ── RESPONSE MODALS ── */
+.modal-wrap{display:none;position:fixed;inset:0;background:rgba(15,14,12,.45);z-index:200;align-items:center;justify-content:center}
+.modal-wrap.open{display:flex}
+
+/* APPROVE MODAL */
+.approve-modal{background:var(--paper);border-radius:var(--r);border:1px solid var(--line);padding:24px;width:100%;max-width:460px}
+.am-icon{width:52px;height:52px;border-radius:50%;background:var(--jade-pale);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 0 12px}
+.am-title{font-family:var(--serif);font-size:20px;color:var(--ink);margin-bottom:4px}
+.am-sub{font-size:12px;color:var(--ink4);margin-bottom:16px;line-height:1.6}
+.am-field{margin-bottom:10px}
+.am-lbl{font-size:10px;font-weight:500;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.am-input{width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--line2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font)}
+.am-input:focus{border-color:var(--jade2)}
+.am-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.am-btn{width:100%;padding:10px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--jade2);color:#fff;cursor:pointer;font-family:var(--font);margin-top:4px}
+.am-btn:hover{background:var(--jade)}
+.am-cancel{width:100%;padding:8px;font-size:12px;border-radius:var(--rsm);border:1px solid var(--line);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font);margin-top:6px}
+
+/* REQUEST INFO MODAL */
+.info-modal{background:var(--paper);border-radius:var(--r);border:1px solid var(--line);padding:24px;width:100%;max-width:440px}
+.im-icon{width:52px;height:52px;border-radius:50%;background:var(--amber-pale);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 0 12px}
+.im-title{font-family:var(--serif);font-size:20px;color:var(--ink);margin-bottom:4px}
+.im-sub{font-size:12px;color:var(--ink4);margin-bottom:14px;line-height:1.6}
+.im-options{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.im-opt{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line2);border-radius:var(--rsm);cursor:pointer;font-size:12px;transition:all .15s}
+.im-opt:hover{background:var(--paper2)}
+.im-opt.on{border-color:var(--amber-soft);background:var(--amber-pale);color:var(--amber)}
+.im-textarea{width:100%;padding:9px 10px;font-size:12px;border:1px solid var(--line2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font);resize:none;min-height:80px;line-height:1.6;margin-bottom:12px}
+.im-textarea:focus{border-color:var(--amber2)}
+.im-btn{width:100%;padding:10px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--amber2);color:#fff;cursor:pointer;font-family:var(--font)}
+.im-btn:hover{background:var(--amber)}
+.im-cancel{width:100%;padding:8px;font-size:12px;border-radius:var(--rsm);border:1px solid var(--line);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font);margin-top:6px}
+
+/* REJECT MODAL */
+.rej-modal{background:var(--paper);border-radius:var(--r);border:1px solid var(--line);padding:24px;width:100%;max-width:440px}
+.rm-icon{width:52px;height:52px;border-radius:50%;background:var(--ruby-pale);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 0 12px}
+.rm-title{font-family:var(--serif);font-size:20px;color:var(--ink);margin-bottom:4px}
+.rm-sub{font-size:12px;color:var(--ink4);margin-bottom:14px;line-height:1.6}
+.rm-opts{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.rm-opt{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border:1px solid var(--line2);border-radius:var(--rsm);cursor:pointer;font-size:12px;transition:all .15s}
+.rm-opt:hover{background:var(--paper2)}
+.rm-opt.on{border-color:var(--ruby-soft);background:var(--ruby-pale);color:var(--ruby2)}
+.rm-opt-ico{font-size:14px;flex-shrink:0}
+.rm-opt-label{font-size:12px;font-weight:500}
+.rm-opt-sub{font-size:11px;opacity:.7;margin-top:1px}
+.rm-textarea{width:100%;padding:9px 10px;font-size:12px;border:1px solid var(--line2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font);resize:none;min-height:70px;margin-bottom:12px}
+.rm-textarea:focus{border-color:var(--ruby2)}
+.rm-btn{width:100%;padding:10px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--ruby2);color:#fff;cursor:pointer;font-family:var(--font)}
+.rm-btn:hover{background:var(--ruby)}
+.rm-cancel{width:100%;padding:8px;font-size:12px;border-radius:var(--rsm);border:1px solid var(--line);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font);margin-top:6px}
+
+/* SUCCESS MODAL */
+.success-modal{background:var(--paper);border-radius:var(--r);border:1px solid var(--line);padding:28px;width:100%;max-width:400px;text-align:center}
+.sm-icon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px}
+.sm-title{font-family:var(--serif);font-size:22px;color:var(--ink);margin-bottom:5px}
+.sm-sub{font-size:12px;color:var(--ink4);line-height:1.65;margin-bottom:18px}
+.sm-btn{padding:10px 28px;font-size:12px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--ink);color:#fff;cursor:pointer;font-family:var(--font)}
+
+/* FEEDBACK SCREEN */
+.fb-body{padding:22px 28px;max-width:700px;width:100%}
+.fb-header{margin-bottom:20px}
+.fb-title{font-family:var(--serif);font-size:22px;color:var(--ink);margin-bottom:3px}
+.fb-sub{font-size:12px;color:var(--ink4)}
+.fb-cand-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}
+.fb-form-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.ffc-head{padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px;font-weight:500;color:var(--ink);background:var(--paper2)}
+.ffc-body{padding:14px 16px}
+.fb-rating{display:flex;gap:8px;margin-bottom:12px}
+.fb-star{width:36px;height:36px;border-radius:var(--rsm);border:1px solid var(--line2);background:var(--paper2);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:all .15s}
+.fb-star:hover,.fb-star.on{background:var(--amber-pale);border-color:var(--amber-soft)}
+.fb-textarea{width:100%;padding:9px 10px;font-size:12px;border:1px solid var(--line2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font);resize:none;min-height:80px;line-height:1.6}
+.fb-textarea:focus{border-color:var(--sea2)}
+.fb-radio-group{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.fb-radio{display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--line2);border-radius:var(--rsm);cursor:pointer;font-size:12px;transition:all .15s}
+.fb-radio:hover{background:var(--paper2)}
+.fb-radio.on{border-color:var(--sea-pale);background:var(--sea-pale);color:var(--sea)}
+.fb-submit-btn{width:100%;padding:11px;font-size:13px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--sea);color:#fff;cursor:pointer;font-family:var(--font)}
+.fb-submit-btn:hover{background:var(--sea2)}
+.fb-field-label{font-size:10px;font-weight:500;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+
+/* COMPARE TABLE */
+.compare-body{padding:20px 28px;width:100%}
+.ctable-wrap{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto}
+.ctable{width:100%;border-collapse:collapse;min-width:700px}
+.ctable th{font-size:10px;font-weight:500;color:var(--ink5);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.05em;background:var(--paper2);white-space:nowrap}
+.ctable td{font-size:12px;color:var(--ink);padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+.ctable tr:last-child td{border-bottom:none}
+.ctable tr:hover td{background:var(--paper2)}
+.score-pill{font-size:11px;font-weight:500;padding:3px 9px;border-radius:10px;font-family:var(--mono)}
+.sp-high{background:var(--jade-pale);color:var(--jade)}
+.sp-mid{background:var(--amber-pale);color:var(--amber)}
+.ctable-action{font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--line2);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font)}
+.ctable-action:hover{background:var(--paper3)}
+
+/* COMMS THREAD */
+.comms-body{padding:20px 28px;max-width:700px;width:100%}
+.thread{display:flex;flex-direction:column;gap:0;margin-bottom:14px}
+.msg{display:flex;gap:10px;padding:10px 0}
+.msg-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;margin-top:2px}
+.msg-content{flex:1}
+.msg-head{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
+.msg-name{font-size:12px;font-weight:500;color:var(--ink)}
+.msg-time{font-size:10px;color:var(--ink5);font-family:var(--mono)}
+.msg-body{font-size:12px;color:var(--ink4);line-height:1.65;background:var(--paper2);border-radius:0 var(--rsm) var(--rsm) var(--rsm);padding:9px 11px;border:1px solid var(--line)}
+.msg.mine .msg-body{background:var(--sea-pale);border-color:var(--sea-soft)}
+.reply-box{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-top:8px}
+.reply-textarea{width:100%;padding:9px 10px;font-size:12px;border:1px solid var(--line2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font);resize:none;min-height:70px;line-height:1.6;margin-bottom:8px}
+.reply-send{padding:7px 18px;font-size:12px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--sea);color:#fff;cursor:pointer;font-family:var(--font)}
+
+/* NOTIFICATIONS */
+.notif-body{padding:20px 28px;max-width:680px;width:100%}
+.notif-item{display:flex;gap:11px;padding:12px 14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:all .15s}
+.notif-item:hover{border-color:var(--line2)}
+.notif-item.unread{border-left:3px solid var(--dbs)}
+.ni-ico{width:34px;height:34px;border-radius:var(--rsm);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.ni-txt{font-size:12px;font-weight:500;color:var(--ink);line-height:1.35}
+.ni-sub{font-size:11px;color:var(--ink4);margin-top:1px}
+.ni-time{font-size:10px;color:var(--ink5);margin-top:2px;font-family:var(--mono)}
+.ni-right{margin-left:auto;flex-shrink:0}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.fade{animation:fadeIn .2s ease both}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-brand">
+    <div class="nav-seasearch">Sea Search</div>
+    <div class="nav-divider"></div>
+    <div class="nav-client">
+      <div class="nav-client-logo">DBS</div>
+      <div>
+        <div class="nav-client-name">DBS Bank</div>
+        <div class="nav-client-role">Client Portal</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <div class="nav-link on" onclick="showScreen('dashboard',this)">Dashboard</div>
+    <div class="nav-link" onclick="showScreen('submissions',this)">Submissions</div>
+    <div class="nav-link" onclick="showScreen('compare',this)">Compare</div>
+    <div class="nav-link" onclick="showScreen('comms',this)">Messages</div>
+    <div class="nav-link" onclick="showScreen('notifications',this)">Notifications <span style="font-size:9px;background:var(--dbs);color:#fff;border-radius:8px;padding:1px 5px;margin-left:2px;font-family:var(--mono)">3</span></div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-notif">🔔<div class="npip"></div></div>
+    <div class="nav-av">LT</div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-role-card">
+    <div class="sbrc-label">Active mandate</div>
+    <div class="sbrc-name">Chief HR Officer</div>
+    <div class="sbrc-co">DBS Bank · Singapore · C-Suite</div>
+    <div class="sbrc-stat">
+      <div class="sbrc-s"><div class="sbrc-s-num">4</div><div class="sbrc-s-lbl">Submitted</div></div>
+      <div class="sbrc-s"><div class="sbrc-s-num" style="color:#B52525">2</div><div class="sbrc-s-lbl">Pending</div></div>
+      <div class="sbrc-s"><div class="sbrc-s-num" style="color:#2E7D33">1</div><div class="sbrc-s-lbl">Approved</div></div>
+    </div>
+  </div>
+
+  <div class="sb-s">
+    <div class="sb-lbl">Menu</div>
+    <div class="sbi on" onclick="showScreen('dashboard',this);setSbOn(this)"><span class="sbi-i">▦</span><span class="sbi-l">Dashboard</span></div>
+    <div class="sbi" onclick="showScreen('submissions',this);setSbOn(this)"><span class="sbi-i">📬</span><span class="sbi-l">Submissions</span><span class="sbadge">2</span></div>
+    <div class="sbi" onclick="showScreen('compare',this);setSbOn(this)"><span class="sbi-i">⊞</span><span class="sbi-l">Compare candidates</span></div>
+    <div class="sbi" onclick="showScreen('comms',this);setSbOn(this)"><span class="sbi-i">💬</span><span class="sbi-l">Messages</span><span class="sbadge">1</span></div>
+    <div class="sbi" onclick="showScreen('notifications',this);setSbOn(this)"><span class="sbi-i">🔔</span><span class="sbi-l">Notifications</span><span class="sbadge">3</span></div>
+  </div>
+  <div class="sb-div"></div>
+  <div class="sb-s">
+    <div class="sb-lbl">Other roles</div>
+    <div class="sbi"><span class="sbi-i">◎</span><span class="sbi-l">Chief Digital Officer</span></div>
+    <div class="sbi"><span class="sbi-i">◎</span><span class="sbi-l">Head of Risk</span></div>
+  </div>
+  <div class="sb-bot">
+    <div class="sb-user">
+      <div class="sbu-av">LT</div>
+      <div><div class="sbu-name">Linda Tan</div><div class="sbu-role">Group HR · DBS Bank</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN SCREENS -->
+<div class="main">
+
+<!-- ① DASHBOARD -->
+<div class="screen on" id="screen-dashboard">
+  <div class="dash-body fade">
+    <div class="dash-welcome">
+      <div class="dw-greeting">Good morning, Linda.</div>
+      <div class="dw-sub">You have 2 new candidate submissions awaiting your review for Chief HR Officer.</div>
+    </div>
+    <div class="dash-stats">
+      <div class="dstat"><div class="dstat-accent" style="background:var(--dbs)"></div><div class="dstat-num">4</div><div class="dstat-lbl">Total submissions</div><div class="dstat-trend dt-warn">2 pending review</div></div>
+      <div class="dstat"><div class="dstat-accent" style="background:var(--jade2)"></div><div class="dstat-num">1</div><div class="dstat-lbl">Approved for interview</div><div class="dstat-trend dt-up">Interview scheduled</div></div>
+      <div class="dstat"><div class="dstat-accent" style="background:var(--sea2)"></div><div class="dstat-num">3</div><div class="dstat-lbl">Active mandates</div><div class="dstat-trend dt-up">Sea Search engaged</div></div>
+      <div class="dstat"><div class="dstat-accent" style="background:var(--amber2)"></div><div class="dstat-num">18d</div><div class="dstat-lbl">Avg. time to shortlist</div><div class="dstat-trend dt-up">↑ Faster than market</div></div>
+    </div>
+
+    <div class="roles-card">
+      <div class="rc-head">
+        <div class="rc-title">📋 Active mandates with Sea Search</div>
+        <button class="rc-btn" onclick="showScreen('submissions',document.querySelector('.nav-link:nth-child(2)'));setSbOn(document.querySelector('.sbi:nth-child(2)'))">View all submissions →</button>
+      </div>
+      <table class="rtable">
+        <thead><tr><th>Role</th><th>Recruiter</th><th>Submissions</th><th>Pipeline</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr onclick="showScreen('submissions',null)">
+            <td><div class="role-name">Chief HR Officer</div><div class="role-sub">Singapore · C-Suite · SGD 380–500K</div></td>
+            <td><div style="display:flex;align-items:center;gap:7px"><div style="width:24px;height:24px;border-radius:50%;background:var(--sea-pale);color:var(--sea);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500">AY</div><div><div style="font-size:12px;font-weight:500">Andika Yusof</div><div style="font-size:10px;color:var(--ink4)">Sea Search</div></div></div></td>
+            <td><span style="font-size:13px;font-weight:500">4</span> <span style="font-size:11px;color:var(--ink4)">candidates</span></td>
+            <td><div class="progress-bar"><div class="progress-fill" style="width:75%;background:var(--jade2)"></div></div><div style="font-size:10px;color:var(--ink4);margin-top:3px">75% to hire</div></td>
+            <td><span class="pill p-pending">2 pending review</span></td>
+            <td><button class="ctable-action" onclick="event.stopPropagation();showScreen('submissions',null)">Review →</button></td>
+          </tr>
+          <tr>
+            <td><div class="role-name">Chief Digital Officer</div><div class="role-sub">Singapore · C-Suite · SGD 300–420K</div></td>
+            <td><div style="display:flex;align-items:center;gap:7px"><div style="width:24px;height:24px;border-radius:50%;background:var(--jade-pale);color:var(--jade);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500">PL</div><div><div style="font-size:12px;font-weight:500">Priya Lee</div><div style="font-size:10px;color:var(--ink4)">Sea Search</div></div></div></td>
+            <td><span style="font-size:13px;font-weight:500">2</span> <span style="font-size:11px;color:var(--ink4)">candidates</span></td>
+            <td><div class="progress-bar"><div class="progress-fill" style="width:30%;background:var(--amber2)"></div></div><div style="font-size:10px;color:var(--ink4);margin-top:3px">30% to hire</div></td>
+            <td><span class="pill p-active">In progress</span></td>
+            <td><button class="ctable-action">Review →</button></td>
+          </tr>
+          <tr>
+            <td><div class="role-name">Head of Risk &amp; Compliance</div><div class="role-sub">Singapore · VP Director · SGD 180–230K</div></td>
+            <td><div style="display:flex;align-items:center;gap:7px"><div style="width:24px;height:24px;border-radius:50%;background:var(--amber-pale);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500">MK</div><div><div style="font-size:12px;font-weight:500">Marcus Koh</div><div style="font-size:10px;color:var(--ink4)">Sea Search</div></div></div></td>
+            <td><span style="font-size:13px;font-weight:500">1</span> <span style="font-size:11px;color:var(--ink4)">candidate</span></td>
+            <td><div class="progress-bar"><div class="progress-fill" style="width:15%;background:var(--ink5)"></div></div><div style="font-size:10px;color:var(--ink4);margin-top:3px">Early stage</div></td>
+            <td><span class="pill p-new">New submission</span></td>
+            <td><button class="ctable-action">Review →</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="activity-card">
+      <div class="rc-head"><div class="rc-title">🕐 Recent activity</div></div>
+      <div class="aitem" onclick="showScreen('submissions',null)"><div class="a-dot" style="background:var(--dbs)"></div><div style="flex:1"><div class="a-txt">New candidate submitted — Sarah Wong</div><div class="a-sub">Chief HR Officer · 92% AI match · From Andika Yusof</div><div class="a-time">2 hours ago</div></div><div class="a-right"><span class="a-badge" style="background:var(--amber-pale);color:var(--amber)">Pending review</span></div></div>
+      <div class="aitem" onclick="showScreen('submissions',null)"><div class="a-dot" style="background:var(--dbs)"></div><div style="flex:1"><div class="a-txt">New candidate submitted — Michelle Ng</div><div class="a-sub">Chief HR Officer · 91% AI match · From Andika Yusof</div><div class="a-time">Yesterday</div></div><div class="a-right"><span class="a-badge" style="background:var(--amber-pale);color:var(--amber)">Pending review</span></div></div>
+      <div class="aitem"><div class="a-dot" style="background:var(--jade2)"></div><div style="flex:1"><div class="a-txt">You approved Jenny Lim for interview</div><div class="a-sub">Chief HR Officer · Interview date pending</div><div class="a-time">2 days ago</div></div><div class="a-right"><span class="a-badge" style="background:var(--jade-pale);color:var(--jade)">Approved</span></div></div>
+      <div class="aitem"><div class="a-dot" style="background:var(--ruby2)"></div><div style="flex:1"><div class="a-txt">You rejected Patrick Chen</div><div class="a-sub">Chief HR Officer · Reason: Not enough experience</div><div class="a-time">3 days ago</div></div><div class="a-right"><span class="a-badge" style="background:var(--ruby-pale);color:var(--ruby)">Rejected</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ② SUBMISSIONS -->
+<div class="screen" id="screen-submissions">
+  <div class="sub-body fade">
+    <div class="sub-header">
+      <div>
+        <div class="sub-title">Candidate submissions</div>
+        <div class="sub-sub">Chief HR Officer · DBS Bank · 4 candidates submitted by Sea Search</div>
+      </div>
+      <button class="rc-btn" onclick="showScreen('compare',null)">⊞ Compare all →</button>
+    </div>
+    <div class="filter-row">
+      <div class="ftab on" onclick="filterBriefs(this,'all')">All (4)</div>
+      <div class="ftab" onclick="filterBriefs(this,'pending')">Pending review (2)</div>
+      <div class="ftab" onclick="filterBriefs(this,'approved')">Approved (1)</div>
+      <div class="ftab" onclick="filterBriefs(this,'rejected')">Rejected (1)</div>
+      <select class="sort-sel"><option>Sort: Highest AI match</option><option>Sort: Most recent</option><option>Sort: Name A–Z</option></select>
+    </div>
+    <div class="brief-list" id="briefList">
+
+      <!-- BRIEF 1: Sarah Wong — PENDING -->
+      <div class="brief-card urgent fade" data-status="pending" id="brief-sarah">
+        <div class="bc-top">
+          <div class="bc-av" style="background:#E8F2FB;color:#0B4F8A">SW</div>
+          <div class="bc-info">
+            <div class="bc-name">Sarah Wong <span class="pill" style="background:var(--amber-pale);color:var(--amber);font-size:9px">⏳ Awaiting your review</span></div>
+            <div class="bc-sub">CHRO · OCBC Bank · Singapore · 22 years experience</div>
+            <div class="bc-chips">
+              <span class="bchip">💼 Full-time available</span>
+              <span class="bchip">📍 Singapore</span>
+              <span class="bchip">💰 SGD 480–520K expected</span>
+              <span class="bchip">📅 3 months notice</span>
+            </div>
+          </div>
+          <div class="bc-right">
+            <div class="bc-score-ring" style="border-color:#B8DFB9;background:#EAF4EB">
+              <div class="bsr-num" style="color:#1A4D1E">92%</div>
+              <div class="bsr-lbl">AI match</div>
+            </div>
+            <div class="bc-submitted">Submitted 2h ago</div>
+          </div>
+        </div>
+        <div class="bc-body">
+          <div class="bc-summary">Sarah is an exceptional candidate for the CHRO role. Her 22-year track record in banking HR — culminating as CHRO at OCBC Bank — maps almost perfectly to DBS's requirements. She has led HR transformation for 30,000 employees across 15 markets, chaired a Board People Committee, and driven a full Workday HRIS implementation.</div>
+          <div style="font-size:10px;font-weight:500;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">AI match breakdown</div>
+          <div class="bc-bd">
+            <div class="bc-bd-row"><div class="bc-bd-lbl">Experience</div><div class="bc-bd-bg"><div class="bc-bd-fill" style="width:95%;background:#3589D4"></div></div><div class="bc-bd-pct">95%</div></div>
+            <div class="bc-bd-row"><div class="bc-bd-lbl">Industry fit</div><div class="bc-bd-bg"><div class="bc-bd-fill" style="width:90%;background:#2E7D33"></div></div><div class="bc-bd-pct">90%</div></div>
+            <div class="bc-bd-row"><div class="bc-bd-lbl">Leadership scope</div><div class="bc-bd-bg"><div class="bc-bd-fill" style="width:95%;background:#4B3AA8"></div></div><div class="bc-bd-pct">95%</div></div>
+            <div class="bc-bd-row"><div class="bc-bd-lbl">Digital HR</div><div class="bc-bd-bg"><div class="bc-bd-fill" style="width:85%;background:#B85C1A"></div></div><div class="bc-bd-pct">85%</div></div>
+          </div>
+          <div class="bc-flags">
+            <span class="bcf-g">✓ 22 yrs HR leadership</span>
+            <span class="bcf-g">✓ CHRO at peer institution</span>
+            <span class="bcf-g">✓ 18-market regional scope</span>
+            <span class="bcf-g">✓ Board-level exposure</span>
+            <span class="bcf-g">✓ Workday & SAP experience</span>
+            <span class="bcf-r">⚠ Possible OCBC non-compete — confirm at offer stage</span>
+          </div>
+          <div class="bc-rec-note">
+            <div class="bcn-head"><div class="bcn-av">AY</div><div class="bcn-name">Andika Yusof · Sea Search recruiter</div></div>
+            <div class="bcn-txt">"Sarah is my strongest recommendation for this role. I met her at HR Leaders Summit 2025 and she is actively exploring opportunities. Her OCBC background is a near-perfect mirror of what DBS needs. She is ready to engage and I'd suggest moving quickly before she receives competing offers."</div>
+          </div>
+        </div>
+        <div class="bc-actions">
+          <button class="ba-approve" onclick="openApprove('sarah','Sarah Wong')">✓ Approve for interview</button>
+          <button class="ba-info" onclick="openInfo('sarah','Sarah Wong')">? Request more info</button>
+          <button class="ba-reject" onclick="openReject('sarah','Sarah Wong')">✕ Reject candidate</button>
+        </div>
+      </div>
+
+      <!-- BRIEF 2: Michelle Ng — PENDING -->
+      <div class="brief-card fade" data-status="pending" id="brief-michelle">
+        <div class="bc-top">
+          <div class="bc-av" style="background:#EEE9FB;color:#2D1F6E">MN</div>
+          <div class="bc-info">
+            <div class="bc-name">Michelle Ng <span class="pill" style="background:var(--amber-pale);color:var(--amber);font-size:9px">⏳ Awaiting your review</span></div>
+            <div class="bc-sub">CHRO · Prudential Asia · Singapore · 19 years experience</div>
+            <div class="bc-chips">
+              <span class="bchip">💼 Full-time available</span>
+              <span class="bchip">📍 Singapore</span>
+              <span class="bchip">💰 SGD 440–480K expected</span>
+              <span class="bchip">📅 2 months notice</span>
+            </div>
+          </div>
+          <div class="bc-right">
+            <div class="bc-score-ring" style="border-color:#B8DFB9;background:#EAF4EB">
+              <div class="bsr-num" style="color:#1A4D1E">91%</div>
+              <div class="bsr-lbl">AI match</div>
+            </div>
+            <div class="bc-submitted">Submitted yesterday</div>
+          </div>
+        </div>
+        <div class="bc-body">
+          <div class="bc-summary">Michelle brings exceptional leadership credentials and a proven track record of culture transformation across 12 Asian markets at Prudential. Her board-level stakeholder management and people transformation experience are among the strongest in this shortlist. The only nuance is her insurance vs. banking background — though her financial services experience is substantial.</div>
+          <div style="font-size:10px;font-weight:500;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">AI match breakdown</div>
+          <div class="bc-bd">
+            <div class="bc-bd-row"><div class="bc-bd-lbl">Experience</div><div class="bc-bd-bg"><div class="bc-bd-fill" style="width:90%;background:#3589D4"></div></div><div class="bc-bd-pct">90%</div></div>
+            <div class="bc-bd-row"><div class="bc-bd-lbl">Industry fit</div><div class="bc-bd-bg"><div class="bc-bd-fill" style="width:85%;background:#2E7D33"></div></div><div class="bc-bd-pct">85%</div></div>
+            <div class="bc-bd-row"><div class="bc-bd-lbl">Leadership scope</div><div class="bc-bd-bg"><div class="bc-bd-fill" style="width:92%;background:#4B3AA8"></div></div><div class="bc-bd-pct">92%</div></div>
+            <div class="bc-bd-row"><div class="bc-bd-lbl">Digital HR</div><div class="bc-bd-bg"><div class="bc-bd-fill" style="width:88%;background:#B85C1A"></div></div><div class="bc-bd-pct">88%</div></div>
+          </div>
+          <div class="bc-flags">
+            <span class="bcf-g">✓ Board-level stakeholder exp</span>
+            <span class="bcf-g">✓ 12-market Asia scope</span>
+            <span class="bcf-g">✓ Culture transformation track record</span>
+            <span class="bcf-r">⚠ Insurance background — not pure banking</span>
+          </div>
+          <div class="bc-rec-note">
+            <div class="bcn-head"><div class="bcn-av">AY</div><div class="bcn-name">Andika Yusof · Sea Search recruiter</div></div>
+            <div class="bcn-txt">"Michelle is a very strong candidate. Her culture transformation work at Prudential is exactly the type of people leadership DBS needs. I believe the insurance vs. banking nuance is bridgeable given her financial services regulatory exposure. Worth a conversation."</div>
+          </div>
+        </div>
+        <div class="bc-actions">
+          <button class="ba-approve" onclick="openApprove('michelle','Michelle Ng')">✓ Approve for interview</button>
+          <button class="ba-info" onclick="openInfo('michelle','Michelle Ng')">? Request more info</button>
+          <button class="ba-reject" onclick="openReject('michelle','Michelle Ng')">✕ Reject candidate</button>
+        </div>
+      </div>
+
+      <!-- BRIEF 3: Jenny Lim — APPROVED -->
+      <div class="brief-card fade" data-status="approved" id="brief-jenny">
+        <div class="bs-approved bc-status-bar">✓ Approved for interview · Interview scheduled: 28 Mar 2026 · DBS Group HR Panel</div>
+        <div class="bc-top">
+          <div class="bc-av" style="background:#EAF4EB;color:#1A4D1E">JL</div>
+          <div class="bc-info">
+            <div class="bc-name">Jenny Lim <span class="pill" style="background:var(--jade-pale);color:var(--jade);font-size:9px">✓ Approved — Interview scheduled</span></div>
+            <div class="bc-sub">CHRO Asia · Standard Chartered · Singapore · 20 years experience</div>
+            <div class="bc-chips"><span class="bchip">💼 Full-time</span><span class="bchip">📍 Singapore</span><span class="bchip">📅 Interview: 28 Mar</span></div>
+          </div>
+          <div class="bc-right">
+            <div class="bc-score-ring" style="border-color:#B8DFB9;background:#EAF4EB">
+              <div class="bsr-num" style="color:#1A4D1E">88%</div>
+              <div class="bsr-lbl">AI match</div>
+            </div>
+            <div class="bc-submitted">Submitted 3 days ago</div>
+          </div>
+        </div>
+        <div class="bc-body">
+          <div class="bc-flags"><span class="bcf-g">✓ Direct banking CHRO</span><span class="bcf-g">✓ Multi-market Asia</span><span class="bcf-r">⚠ Scope gap vs DBS scale</span></div>
+        </div>
+        <div class="bc-actions">
+          <button class="ba-done">✓ Approved</button>
+          <button class="rc-btn" onclick="showScreen('feedback',null)">Submit interview feedback →</button>
+        </div>
+      </div>
+
+      <!-- BRIEF 4: Patrick Chen — REJECTED -->
+      <div class="brief-card fade" data-status="rejected" id="brief-patrick" style="opacity:.7">
+        <div class="bs-rejected bc-status-bar">✕ Rejected · Reason: Insufficient regional experience for this scope · 3 days ago</div>
+        <div class="bc-top">
+          <div class="bc-av" style="background:#E8F2FB;color:#0B4F8A">PC</div>
+          <div class="bc-info">
+            <div class="bc-name">Patrick Chen <span class="pill" style="background:var(--ruby-pale);color:var(--ruby);font-size:9px">✕ Rejected</span></div>
+            <div class="bc-sub">Global HR VP · UOB · Singapore · 17 years experience</div>
+            <div class="bc-chips"><span class="bchip">💼 Full-time</span><span class="bchip">📍 Singapore</span></div>
+          </div>
+          <div class="bc-right">
+            <div class="bc-score-ring" style="border-color:#F5C49A;background:#FDF0E8">
+              <div class="bsr-num" style="color:#7A3B0A">79%</div>
+              <div class="bsr-lbl">AI match</div>
+            </div>
+            <div class="bc-submitted">Submitted 4 days ago</div>
+          </div>
+        </div>
+        <div class="bc-actions">
+          <button class="ba-done" style="background:var(--ruby-pale);color:var(--ruby);border-color:var(--ruby-soft)">✕ Rejected</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ③ COMPARE -->
+<div class="screen" id="screen-compare">
+  <div class="compare-body fade">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div><div style="font-family:var(--serif);font-size:22px;color:var(--ink)">Compare candidates</div><div style="font-size:12px;color:var(--ink4);margin-top:3px">Chief HR Officer · Side-by-side comparison of all submissions</div></div>
+    </div>
+    <div class="ctable-wrap">
+      <table class="ctable">
+        <thead>
+          <tr>
+            <th>Candidate</th><th>Current role</th><th>Experience</th><th>AI match</th><th>Experience</th><th>Industry</th><th>Scope</th><th>Leadership</th><th>Exp. salary</th><th>Status</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:#E8F2FB;color:#0B4F8A;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500">SW</div><div><div style="font-size:12px;font-weight:500">Sarah Wong</div><div style="font-size:10px;color:var(--ink4)">OCBC Bank</div></div></div></td>
+            <td>CHRO</td><td>22 yrs</td>
+            <td><span class="score-pill sp-high">92%</span></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:95%;height:4px;background:#3589D4;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:90%;height:4px;background:#2E7D33;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:95%;height:4px;background:#4B3AA8;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:92%;height:4px;background:#B85C1A;border-radius:2px"></div></div></td>
+            <td>SGD 480–520K</td>
+            <td><span class="pill p-pending">Pending</span></td>
+            <td><button class="ctable-action" onclick="showScreen('submissions',null)">Review →</button></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:#EEE9FB;color:#2D1F6E;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500">MN</div><div><div style="font-size:12px;font-weight:500">Michelle Ng</div><div style="font-size:10px;color:var(--ink4)">Prudential Asia</div></div></div></td>
+            <td>CHRO</td><td>19 yrs</td>
+            <td><span class="score-pill sp-high">91%</span></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:90%;height:4px;background:#3589D4;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:85%;height:4px;background:#2E7D33;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:92%;height:4px;background:#4B3AA8;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:95%;height:4px;background:#B85C1A;border-radius:2px"></div></div></td>
+            <td>SGD 440–480K</td>
+            <td><span class="pill p-pending">Pending</span></td>
+            <td><button class="ctable-action" onclick="showScreen('submissions',null)">Review →</button></td>
+          </tr>
+          <tr style="background:#F4F3F0">
+            <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:#EAF4EB;color:#1A4D1E;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500">JL</div><div><div style="font-size:12px;font-weight:500">Jenny Lim</div><div style="font-size:10px;color:var(--ink4)">Std. Chartered</div></div></div></td>
+            <td>CHRO Asia</td><td>20 yrs</td>
+            <td><span class="score-pill sp-high">88%</span></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:88%;height:4px;background:#3589D4;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:95%;height:4px;background:#2E7D33;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:85%;height:4px;background:#4B3AA8;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:88%;height:4px;background:#B85C1A;border-radius:2px"></div></div></td>
+            <td>SGD 400–450K</td>
+            <td><span class="pill p-active">Approved ✓</span></td>
+            <td><button class="ctable-action" onclick="showScreen('feedback',null)">Feedback →</button></td>
+          </tr>
+          <tr style="opacity:.6">
+            <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:#E8F2FB;color:#0B4F8A;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500">PC</div><div><div style="font-size:12px;font-weight:500">Patrick Chen</div><div style="font-size:10px;color:var(--ink4)">UOB</div></div></div></td>
+            <td>HR VP</td><td>17 yrs</td>
+            <td><span class="score-pill sp-mid">79%</span></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:78%;height:4px;background:#3589D4;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:90%;height:4px;background:#2E7D33;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:75%;height:4px;background:#4B3AA8;border-radius:2px"></div></div></td>
+            <td><div style="width:60px;height:4px;background:var(--paper3);border-radius:2px"><div style="width:78%;height:4px;background:#B85C1A;border-radius:2px"></div></div></td>
+            <td>SGD 320–380K</td>
+            <td><span class="pill" style="background:var(--ruby-pale);color:var(--ruby)">Rejected</span></td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ④ INTERVIEW FEEDBACK -->
+<div class="screen" id="screen-feedback">
+  <div class="fb-body fade">
+    <div class="fb-header">
+      <div class="fb-title">Interview feedback</div>
+      <div class="fb-sub">Submit your panel's assessment of Jenny Lim · Chief HR Officer · Interview: 28 Mar 2026</div>
+    </div>
+    <div class="fb-cand-card">
+      <div class="bc-av" style="width:44px;height:44px;background:#EAF4EB;color:#1A4D1E;flex-shrink:0">JL</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:2px">Jenny Lim</div>
+        <div style="font-size:12px;color:var(--ink4);margin-bottom:6px">CHRO Asia · Standard Chartered · Singapore · 20 yrs exp</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <span class="bchip">📅 Interviewed: 28 Mar 2026</span>
+          <span class="bchip">🏢 DBS Group HR Panel · 2 hours</span>
+          <span class="bchip">AI match: 88%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fb-form-card">
+      <div class="ffc-head">Overall assessment</div>
+      <div class="ffc-body">
+        <div class="fb-field-label">Overall rating</div>
+        <div class="fb-rating" id="starRating">
+          <div class="fb-star" onclick="rateStar(1)">★</div>
+          <div class="fb-star" onclick="rateStar(2)">★</div>
+          <div class="fb-star" onclick="rateStar(3)">★</div>
+          <div class="fb-star on" onclick="rateStar(4)">★</div>
+          <div class="fb-star" onclick="rateStar(5)">★</div>
+        </div>
+        <div class="fb-field-label">Overall impression</div>
+        <div class="fb-radio-group">
+          <div class="fb-radio on" onclick="selectRadio(this,'strong_yes')">Strong yes — highly recommend for offer</div>
+          <div class="fb-radio" onclick="selectRadio(this,'yes')">Yes — recommend with minor reservations</div>
+          <div class="fb-radio" onclick="selectRadio(this,'maybe')">Uncertain — further assessment needed</div>
+          <div class="fb-radio" onclick="selectRadio(this,'no')">No — not the right fit</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fb-form-card">
+      <div class="ffc-head">Detailed feedback</div>
+      <div class="ffc-body">
+        <div class="fb-field-label">Strengths observed in interview</div>
+        <textarea class="fb-textarea" style="margin-bottom:12px" placeholder="What impressed you most about this candidate?">Exceptional executive presence and communication. Very clear strategic vision for people transformation. Her experience managing HR across 12 Asian markets demonstrates real regional capability. The board-level examples she shared were compelling.</textarea>
+        <div class="fb-field-label">Areas of concern</div>
+        <textarea class="fb-textarea" style="margin-bottom:12px" placeholder="Any gaps or concerns from the interview?">Insurance industry background is a consideration but she articulated the parallels to banking well. Would benefit from a deeper conversation with our Group CFO on the financial services regulatory nuances.</textarea>
+        <div class="fb-field-label">Recommendation</div>
+        <textarea class="fb-textarea" placeholder="Your recommendation for next steps…">Recommend proceeding to offer stage. Suggest one additional conversation with Group CFO and our Head of Compliance before extending formal offer to address the regulatory background gap. She is a strong candidate and we should move quickly.</textarea>
+      </div>
+    </div>
+
+    <button class="fb-submit-btn" onclick="submitFeedback()">Submit feedback to Sea Search</button>
+  </div>
+</div>
+
+<!-- ⑤ COMMUNICATIONS -->
+<div class="screen" id="screen-comms">
+  <div class="comms-body fade">
+    <div style="font-family:var(--serif);font-size:22px;color:var(--ink);margin-bottom:3px">Messages</div>
+    <div style="font-size:12px;color:var(--ink4);margin-bottom:16px">Chief HR Officer mandate · Conversation with Andika Yusof · Sea Search</div>
+    <div style="background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:12px">
+      <div style="padding:11px 14px;border-bottom:1px solid var(--line);background:var(--paper2);display:flex;align-items:center;gap:9px">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--sea-pale);color:var(--sea);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500">AY</div>
+        <div><div style="font-size:12px;font-weight:500">Andika Yusof · Sea Search</div><div style="font-size:10px;color:var(--ink4)">Recruiter — Chief HR Officer</div></div>
+        <div style="margin-left:auto;font-size:10px;color:var(--ink5);font-family:var(--mono)">Active now</div>
+      </div>
+      <div style="padding:14px;display:flex;flex-direction:column;gap:10px;max-height:340px;overflow-y:auto">
+        <div class="msg"><div class="msg-av" style="background:var(--sea-pale);color:var(--sea)">AY</div><div class="msg-content"><div class="msg-head"><span class="msg-name">Andika Yusof</span><span class="msg-time">Mar 24, 9:12 AM</span></div><div class="msg-body">Good morning Linda — I've just submitted Sarah Wong and Michelle Ng for the CHRO role. Both are strong candidates, Sarah in particular. Let me know if you'd like any additional background on either before reviewing the briefs.</div></div></div>
+        <div class="msg mine"><div class="msg-av" style="background:var(--dbs-pale);color:var(--dbs2)">LT</div><div class="msg-content"><div class="msg-head"><span class="msg-name">Linda Tan (You)</span><span class="msg-time">Mar 24, 11:30 AM</span></div><div class="msg-body">Thanks Andika. I've reviewed Jenny Lim's brief and approved her for interview — can you confirm availability for next week? Also, could you clarify for Michelle Ng: does she have any direct experience with MAS regulatory requirements in banking?</div></div></div>
+        <div class="msg"><div class="msg-av" style="background:var(--sea-pale);color:var(--sea)">AY</div><div class="msg-content"><div class="msg-head"><span class="msg-name">Andika Yusof</span><span class="msg-time">Mar 24, 2:15 PM</span></div><div class="msg-body">Great news on Jenny! I'll confirm interview slots with her today. On Michelle — she worked closely with MAS during her time at Prudential where they hold a banking license in Singapore. She has directly dealt with MAS on HR compliance matters. I'll add this to her brief now.</div></div></div>
+        <div class="msg mine"><div class="msg-av" style="background:var(--dbs-pale);color:var(--dbs2)">LT</div><div class="msg-content"><div class="msg-head"><span class="msg-name">Linda Tan (You)</span><span class="msg-time">Mar 24, 3:00 PM</span></div><div class="msg-body">Perfect, that's helpful. Let's proceed with both Sarah and Michelle. Jenny's interview is confirmed for 28 March at 2pm. I'll submit feedback the same evening.</div></div></div>
+        <div class="msg"><div class="msg-av" style="background:var(--sea-pale);color:var(--sea)">AY</div><div class="msg-content"><div class="msg-head"><span class="msg-name">Andika Yusof</span><span class="msg-time">Today, 8:45 AM</span></div><div class="msg-body">Morning Linda — just checking in ahead of Jenny's interview today. I've sent her the DBS background materials. She's very well prepared. Also a reminder that Sarah and Michelle's briefs are still awaiting your review whenever you're ready. Happy to jump on a quick call if helpful.</div></div></div>
+      </div>
+    </div>
+    <div class="reply-box">
+      <div style="font-size:11px;font-weight:500;color:var(--ink4);margin-bottom:7px">Reply to Andika Yusof</div>
+      <textarea class="reply-textarea" placeholder="Type your message…"></textarea>
+      <div style="display:flex;gap:7px;align-items:center">
+        <button class="reply-send">Send message</button>
+        <span style="font-size:11px;color:var(--ink5)">Messages are shared with your Sea Search recruiter</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ⑥ NOTIFICATIONS -->
+<div class="screen" id="screen-notifications">
+  <div class="notif-body fade">
+    <div style="font-family:var(--serif);font-size:22px;color:var(--ink);margin-bottom:3px">Notifications</div>
+    <div style="font-size:12px;color:var(--ink4);margin-bottom:16px">3 unread</div>
+    <div class="notif-item unread" onclick="showScreen('submissions',null)"><div class="ni-ico" style="background:var(--dbs-pale)">📬</div><div style="flex:1"><div class="ni-txt">New candidate submission — Sarah Wong</div><div class="ni-sub">Chief HR Officer · 92% AI match · Submitted by Andika Yusof, Sea Search</div><div class="ni-time">2 hours ago</div></div><div class="ni-right"><span style="font-size:9px;background:var(--amber-pale);color:var(--amber);border-radius:8px;padding:2px 6px;font-weight:500">Review now</span></div></div>
+    <div class="notif-item unread" onclick="showScreen('submissions',null)"><div class="ni-ico" style="background:var(--dbs-pale)">📬</div><div style="flex:1"><div class="ni-txt">New candidate submission — Michelle Ng</div><div class="ni-sub">Chief HR Officer · 91% AI match · Submitted by Andika Yusof, Sea Search</div><div class="ni-time">Yesterday, 3:20 PM</div></div><div class="ni-right"><span style="font-size:9px;background:var(--amber-pale);color:var(--amber);border-radius:8px;padding:2px 6px;font-weight:500">Review now</span></div></div>
+    <div class="notif-item unread" onclick="showScreen('comms',null)"><div class="ni-ico" style="background:var(--sea-pale)">💬</div><div style="flex:1"><div class="ni-txt">Message from Andika Yusof</div><div class="ni-sub">Checking in ahead of Jenny Lim's interview today · Sea Search</div><div class="ni-time">Today, 8:45 AM</div></div></div>
+    <div class="notif-item"><div class="ni-ico" style="background:var(--jade-pale)">✓</div><div style="flex:1"><div class="ni-txt">Interview confirmed — Jenny Lim</div><div class="ni-sub">Chief HR Officer · 28 Mar 2026 · DBS Group HR Panel</div><div class="ni-time">2 days ago</div></div></div>
+    <div class="notif-item"><div class="ni-ico" style="background:var(--ruby-pale)">✕</div><div style="flex:1"><div class="ni-txt">Rejection recorded — Patrick Chen</div><div class="ni-sub">Chief HR Officer · Reason logged · Recruiter notified</div><div class="ni-time">3 days ago</div></div></div>
+    <div class="notif-item"><div class="ni-ico" style="background:var(--paper3)">📋</div><div style="flex:1"><div class="ni-txt">New mandate activated — Head of Risk &amp; Compliance</div><div class="ni-sub">Sea Search assigned · Recruiter: Marcus Koh</div><div class="ni-time">4 days ago</div></div></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- APPROVE MODAL -->
+<div class="modal-wrap" id="approveModal">
+  <div class="approve-modal">
+    <div class="am-icon">✓</div>
+    <div class="am-title">Approve for interview</div>
+    <div class="am-sub" id="am-sub">You are approving <strong id="am-cand-name"></strong> for a first-round interview. Sea Search will coordinate scheduling between you and the candidate.</div>
+    <div class="am-grid">
+      <div class="am-field"><div class="am-lbl">Preferred interview date</div><input class="am-input" type="date" id="amDate"></div>
+      <div class="am-field"><div class="am-lbl">Time</div><input class="am-input" type="time" id="amTime" value="14:00"></div>
+    </div>
+    <div class="am-field"><div class="am-lbl">Interview format</div>
+      <select class="am-input" id="amFormat"><option>In-person — DBS HQ, Marina Bay</option><option>Video call — Microsoft Teams</option><option>Panel interview — Group HR + CEO</option></select>
+    </div>
+    <div class="am-field"><div class="am-lbl">Notes for recruiter (optional)</div><input class="am-input" type="text" placeholder="e.g. Please confirm candidate has reviewed the job brief" id="amNotes"></div>
+    <button class="am-btn" onclick="confirmApprove()">✓ Confirm approval &amp; notify recruiter</button>
+    <button class="am-cancel" onclick="closeModal('approveModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- REQUEST INFO MODAL -->
+<div class="modal-wrap" id="infoModal">
+  <div class="info-modal">
+    <div class="im-icon">?</div>
+    <div class="im-title">Request more information</div>
+    <div class="im-sub">Select what you need to know. Sea Search will follow up with the candidate and update the brief.</div>
+    <div class="im-options">
+      <div class="im-opt" onclick="toggleImOpt(this)"><span style="font-size:14px">🏦</span> Does the candidate have direct MAS regulatory experience?</div>
+      <div class="im-opt" onclick="toggleImOpt(this)"><span style="font-size:14px">📊</span> What was the size of the HR team they managed?</div>
+      <div class="im-opt" onclick="toggleImOpt(this)"><span style="font-size:14px">💰</span> Are there any non-compete restrictions?</div>
+      <div class="im-opt" onclick="toggleImOpt(this)"><span style="font-size:14px">🌏</span> Can they confirm right to work in Singapore?</div>
+    </div>
+    <div style="font-size:10px;font-weight:500;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Or type your own question</div>
+    <textarea class="im-textarea" id="infoText" placeholder="Type your specific question here…"></textarea>
+    <button class="im-btn" onclick="confirmInfo()">Send request to Sea Search</button>
+    <button class="im-cancel" onclick="closeModal('infoModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal-wrap" id="rejectModal">
+  <div class="rej-modal">
+    <div class="rm-icon">✕</div>
+    <div class="rm-title">Reject candidate</div>
+    <div class="rm-sub">Please select a reason. This helps Sea Search refine the search and source better-fit candidates.</div>
+    <div class="rm-opts">
+      <div class="rm-opt" onclick="selectRmOpt(this)"><span class="rm-opt-ico">📉</span><div><div class="rm-opt-label">Insufficient experience</div><div class="rm-opt-sub">Does not meet seniority or years of experience required</div></div></div>
+      <div class="rm-opt" onclick="selectRmOpt(this)"><span class="rm-opt-ico">🌐</span><div><div class="rm-opt-label">Insufficient regional scope</div><div class="rm-opt-sub">Not enough multi-market Asia exposure for this role</div></div></div>
+      <div class="rm-opt" onclick="selectRmOpt(this)"><span class="rm-opt-ico">🤝</span><div><div class="rm-opt-label">Cultural fit concern</div><div class="rm-opt-sub">Does not align with DBS's culture and leadership style</div></div></div>
+      <div class="rm-opt" onclick="selectRmOpt(this)"><span class="rm-opt-ico">💰</span><div><div class="rm-opt-label">Compensation mismatch</div><div class="rm-opt-sub">Salary expectations exceed our budget for this role</div></div></div>
+      <div class="rm-opt" onclick="selectRmOpt(this)"><span class="rm-opt-ico">🔍</span><div><div class="rm-opt-label">Found another candidate</div><div class="rm-opt-sub">We are progressing with a different candidate</div></div></div>
+    </div>
+    <div style="font-size:10px;font-weight:500;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Additional note for recruiter (optional)</div>
+    <textarea class="rm-textarea" id="rejectNote" placeholder="Any specific feedback to help Sea Search refine the search…"></textarea>
+    <button class="rm-btn" onclick="confirmReject()">Confirm rejection &amp; notify recruiter</button>
+    <button class="rm-cancel" onclick="closeModal('rejectModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-wrap" id="successModal">
+  <div class="success-modal">
+    <div class="sm-icon" id="sm-icon"></div>
+    <div class="sm-title" id="sm-title"></div>
+    <div class="sm-sub" id="sm-sub"></div>
+    <button class="sm-btn" onclick="closeModal('successModal')">Done</button>
+  </div>
+</div>
+
+<script>
+var approveTarget='';
+var rejectTarget='';
+var infoTarget='';
+var selectedRmOpt=null;
+
+/* ── SCREEN SWITCHING ── */
+function showScreen(name,navEl){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  var el=document.getElementById('screen-'+name);
+  if(el) el.classList.add('on');
+  if(navEl){
+    document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('on'));
+    navEl.classList.add('on');
+  }
+}
+function setSbOn(el){
+  document.querySelectorAll('.sbi').forEach(i=>i.classList.remove('on'));
+  el.classList.add('on');
+}
+
+/* ── FILTER BRIEFS ── */
+function filterBriefs(el,status){
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.brief-card').forEach(c=>{
+    c.style.display=(status==='all'||c.dataset.status===status)?'':'none';
+  });
+}
+
+/* ── APPROVE ── */
+function openApprove(id,name){
+  approveTarget=id;
+  document.getElementById('am-cand-name').textContent=name;
+  document.getElementById('approveModal').classList.add('open');
+}
+function confirmApprove(){
+  closeModal('approveModal');
+  var card=document.getElementById('brief-'+approveTarget);
+  if(card){
+    card.dataset.status='approved';
+    var actionBar=card.querySelector('.bc-actions');
+    actionBar.innerHTML='<button class="ba-done">✓ Approved</button><button class="rc-btn" onclick="showScreen(\'feedback\',null)">Submit interview feedback →</button>';
+    var existingStatus=card.querySelector('.bc-status-bar');
+    if(!existingStatus){
+      var statusBar=document.createElement('div');
+      statusBar.className='bc-status-bar bs-approved';
+      statusBar.textContent='✓ Approved for interview · Sea Search notified · Interview scheduling in progress';
+      card.insertBefore(statusBar,card.querySelector('.bc-top'));
+    }
+    var badge=card.querySelector('.pill');
+    if(badge){badge.className='pill';badge.style.cssText='background:var(--jade-pale);color:var(--jade);font-size:9px';badge.textContent='✓ Approved';}
+  }
+  showSuccess('✓','Interview approved!','Sea Search has been notified and will coordinate the interview schedule with the candidate. You\'ll receive a confirmation once the date is confirmed.','#EAF4EB','#1A4D1E');
+}
+
+/* ── REQUEST INFO ── */
+function openInfo(id,name){
+  infoTarget=id;
+  document.getElementById('infoModal').classList.add('open');
+}
+function toggleImOpt(el){ el.classList.toggle('on'); }
+function confirmInfo(){
+  closeModal('infoModal');
+  showSuccess('?','Request sent to Sea Search','The recruiter has been notified of your questions and will follow up with the candidate. An updated brief will be submitted within 24–48 hours.','#FDF0E8','#7A3B0A');
+}
+
+/* ── REJECT ── */
+function openReject(id,name){
+  rejectTarget=id;
+  selectedRmOpt=null;
+  document.querySelectorAll('.rm-opt').forEach(o=>o.classList.remove('on'));
+  document.getElementById('rejectNote').value='';
+  document.getElementById('rejectModal').classList.add('open');
+}
+function selectRmOpt(el){
+  document.querySelectorAll('.rm-opt').forEach(o=>o.classList.remove('on'));
+  el.classList.add('on');
+  selectedRmOpt=el.querySelector('.rm-opt-label').textContent;
+}
+function confirmReject(){
+  if(!selectedRmOpt){ alert('Please select a rejection reason.'); return; }
+  closeModal('rejectModal');
+  var card=document.getElementById('brief-'+rejectTarget);
+  if(card){
+    card.dataset.status='rejected';
+    card.style.opacity='.7';
+    var actionBar=card.querySelector('.bc-actions');
+    actionBar.innerHTML='<button class="ba-done" style="background:var(--ruby-pale);color:var(--ruby);border-color:var(--ruby-soft)">✕ Rejected</button>';
+    var existingStatus=card.querySelector('.bc-status-bar');
+    if(!existingStatus){
+      var statusBar=document.createElement('div');
+      statusBar.className='bc-status-bar bs-rejected';
+      statusBar.textContent='✕ Rejected · Reason: '+selectedRmOpt+' · Recruiter has been notified';
+      card.insertBefore(statusBar,card.querySelector('.bc-top'));
+    }
+    var badge=card.querySelector('.pill');
+    if(badge){badge.className='pill';badge.style.cssText='background:var(--ruby-pale);color:var(--ruby);font-size:9px';badge.textContent='✕ Rejected';}
+  }
+  showSuccess('✕','Rejection recorded','Sea Search has been notified with your reason: "'+selectedRmOpt+'". The recruiter will source alternative candidates based on your feedback.','#FBE8E8','#7A1A1A');
+}
+
+/* ── FEEDBACK SUBMIT ── */
+function submitFeedback(){
+  showSuccess('📝','Feedback submitted!','Your interview assessment for Jenny Lim has been sent to Sea Search. The recruiter will review and get back to you within 24 hours on next steps.','#E8F2FB','#0B4F8A');
+}
+
+/* ── STAR RATING ── */
+function rateStar(n){
+  document.querySelectorAll('.fb-star').forEach((s,i)=>{ s.classList.toggle('on',i<n); });
+}
+
+/* ── RADIO ── */
+function selectRadio(el,val){
+  document.querySelectorAll('.fb-radio').forEach(r=>r.classList.remove('on'));
+  el.classList.add('on');
+}
+
+/* ── SUCCESS MODAL ── */
+function showSuccess(ico,title,sub,bg,col){
+  document.getElementById('sm-icon').textContent=ico;
+  document.getElementById('sm-icon').style.background=bg;
+  document.getElementById('sm-icon').style.color=col;
+  document.getElementById('sm-title').textContent=title;
+  document.getElementById('sm-sub').textContent=sub;
+  document.getElementById('successModal').classList.add('open');
+}
+
+/* ── MODALS ── */
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+['approveModal','infoModal','rejectModal','successModal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)closeModal(id);});
+});
+</script>
+</body>
+</html>

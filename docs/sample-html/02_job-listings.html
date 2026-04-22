@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sea Search — Job Listings</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0D0C0A;--ink2:#2A2926;--ink3:#6B6860;--mist:#F9F8F5;--mist2:#F2F0EC;--wire:#E0DDD6;--wire2:#C8C4BC;--sea:#0B4F8A;--sea2:#1A6DB5;--sea3:#3589D4;--sea-pale:#E8F2FB;--sea-soft:#C5DFF5;--jade:#1A4D1E;--jade2:#2E7D33;--jade-pale:#EAF4EB;--jade-soft:#B8DFB9;--amber:#7A3B0A;--amber2:#B85C1A;--amber-pale:#FDF0E8;--ruby:#7A1A1A;--ruby-pale:#FBE8E8;--violet:#2D1F6E;--violet-pale:#EEE9FB;--gold:#6B4F00;--gold-pale:#FDF8E1;--font:'DM Sans',sans-serif;--font-head:'Syne',sans-serif;--mono:'DM Mono',monospace;--r:10px;--rsm:6px;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--mist2);color:var(--ink);min-height:100vh}
+.nav{height:52px;background:var(--ink);display:flex;align-items:center;padding:0 24px;gap:12px;position:sticky;top:0;z-index:50;border-bottom:1px solid var(--ink2)}
+.nav-logo{font-family:var(--font-head);font-size:15px;font-weight:700;color:#fff}
+.nav-logo span{color:#3589D4}
+.nav-sep{width:1px;height:18px;background:var(--ink2)}
+.nav-link{font-size:12px;padding:5px 10px;border-radius:6px;color:#D4D0C8;cursor:pointer}
+.nav-link:hover,.nav-link.on{background:var(--sea);color:#fff}
+.nav-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-av{width:30px;height:30px;border-radius:50%;background:var(--sea);color:#E8F2FB;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500}
+.page{max-width:1100px;margin:0 auto;padding:24px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.page-title{font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.page-sub{font-size:13px;color:var(--ink3);margin-top:3px}
+/* TOP FILTER TABS */
+.top-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.ttab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 14px;border:1px solid var(--wire);border-radius:var(--r);cursor:pointer;background:#fff;transition:all .15s;min-width:76px}
+.ttab:hover{border-color:var(--wire2)}
+.ttab.on{border-color:var(--sea3);background:var(--sea-pale)}
+.ttab-ico{font-size:15px}
+.ttab-lbl{font-size:10px;color:var(--ink3);white-space:nowrap}
+.ttab.on .ttab-lbl{color:var(--sea)}
+/* SEARCH ROW */
+.search-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.si{display:flex;align-items:center;gap:8px;flex:1;min-width:160px;border:1px solid var(--wire2);border-radius:var(--rsm);padding:0 12px;background:#fff;height:36px}
+.si input{border:none;background:transparent;font-size:13px;color:var(--ink);font-family:var(--font);width:100%;outline:none}
+.si input::placeholder{color:var(--wire2)}
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.fsel{padding:6px 10px;font-size:12px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink);cursor:pointer;outline:none;font-family:var(--font)}
+.sort-sel{font-size:12px;border:1px solid var(--wire2);border-radius:var(--rsm);padding:6px 10px;background:#fff;color:var(--ink);cursor:pointer;outline:none;font-family:var(--font);margin-left:auto}
+.results-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.results-count{font-size:12px;color:var(--ink3)}
+/* JOB CARDS */
+.job-list{display:flex;flex-direction:column;gap:10px}
+.jcard{background:#fff;border:1px solid var(--wire);border-radius:var(--r);padding:16px 18px;transition:border-color .15s;cursor:pointer;position:relative;overflow:hidden}
+.jcard:hover{border-color:var(--wire2)}
+.jcard.featured{border-color:var(--sea3);border-width:1.5px}
+.jcard-bar{position:absolute;top:0;left:0;right:0;height:3px}
+.jcard-main{display:flex;gap:12px}
+.jcard-logo{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;border:1px solid var(--wire)}
+.jcard-body{flex:1;min-width:0}
+.jcard-right{min-width:190px;text-align:right;border-left:1px solid var(--wire);padding-left:16px;flex-shrink:0}
+.jcard-co{font-size:11px;color:var(--ink3);margin-bottom:2px}
+.jcard-title{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:6px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.adot{width:7px;height:7px;border-radius:50%;background:#4CAF52;flex-shrink:0}
+.meta-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+.mchip{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--mist2);color:var(--ink3);border:1px solid var(--wire)}
+.jcard-desc{font-size:12px;color:var(--ink3);line-height:1.65;margin-bottom:8px}
+.tag-row{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--mist2);color:var(--ink3);border:1px solid var(--wire)}
+.rew-lbl{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1px}
+.rew-range{font-size:13px;color:var(--ink);margin-bottom:1px}
+.rew-pct{font-size:10px;color:var(--ink3);margin-bottom:8px}
+.hdiv{height:1px;background:var(--wire);margin:6px 0}
+.bonus-row{display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);padding:1px 0}
+.total-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);margin-top:6px;margin-bottom:2px}
+.total-num{font-size:17px;font-weight:600;color:var(--ink);font-family:var(--font-head)}
+.pick-btn{margin-top:10px;width:100%;padding:6px;font-size:11px;font-weight:500;border:1px solid var(--sea3);border-radius:var(--rsm);background:transparent;color:var(--sea);cursor:pointer;font-family:var(--font)}
+.pick-btn:hover{background:var(--sea-pale)}
+.badge{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px}
+.b-sea{background:var(--sea-pale);color:var(--sea)}
+.b-jade{background:var(--jade-pale);color:var(--jade)}
+.b-amber{background:var(--amber-pale);color:var(--amber)}
+.b-violet{background:var(--violet-pale);color:var(--violet)}
+.b-gold{background:var(--gold-pale);color:var(--gold)}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-logo">Sea<span>Search</span></div>
+  <div class="nav-sep"></div>
+  <div class="nav-link">Dashboard</div>
+  <div class="nav-link on">Job listings</div>
+  <div class="nav-link">My roles</div>
+  <div class="nav-link">Candidates</div>
+  <div class="nav-link">Earnings</div>
+  <div class="nav-right"><div class="nav-av">AY</div></div>
+</nav>
+
+<div class="page">
+  <div class="page-head">
+    <div>
+      <div class="page-title">Job listings</div>
+      <div class="page-sub">48 open mandates across Southeast Asia · 5 exclusive</div>
+    </div>
+  </div>
+
+  <div class="top-tabs">
+    <div class="ttab on"><div class="ttab-ico">⊞</div><div class="ttab-lbl">All Jobs</div></div>
+    <div class="ttab"><div class="ttab-ico">🏢</div><div class="ttab-lbl">Your Clients</div></div>
+    <div class="ttab"><div class="ttab-ico">⭐</div><div class="ttab-lbl">Exclusive</div></div>
+    <div class="ttab"><div class="ttab-ico">🏠</div><div class="ttab-lbl">Remote</div></div>
+    <div class="ttab"><div class="ttab-ico">👥</div><div class="ttab-lbl">Multi-hire</div></div>
+    <div class="ttab"><div class="ttab-ico">💰</div><div class="ttab-lbl">High Reward</div></div>
+    <div class="ttab"><div class="ttab-ico">⚡</div><div class="ttab-lbl">New</div></div>
+    <div class="ttab"><div class="ttab-ico">📉</div><div class="ttab-lbl">Low Pipeline</div></div>
+  </div>
+
+  <div class="search-row">
+    <div class="si"><span style="font-size:13px;color:var(--wire2)">⌕</span><input type="text" placeholder="Search job title, company, keyword…"></div>
+    <div class="si"><span style="font-size:13px;color:var(--wire2)">🏢</span><input type="text" placeholder="Search by company…"></div>
+    <button style="padding:0 16px;font-size:12px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink3);cursor:pointer;font-family:var(--font)">⚙ More filters</button>
+  </div>
+
+  <div class="filter-row">
+    <select class="fsel"><option>All industries</option><option>Technology</option><option>Finance</option><option>Healthcare</option><option>FMCG</option><option>Consulting</option></select>
+    <select class="fsel"><option>All locations</option><option>Singapore</option><option>Malaysia</option><option>Indonesia</option><option>Remote</option></select>
+    <select class="fsel"><option>All types</option><option>Full-time</option><option>Contract</option><option>Interim</option></select>
+    <select class="fsel"><option>All seniority</option><option>C-Suite</option><option>VP / Director</option><option>Manager</option></select>
+    <select class="fsel"><option>Any openings</option><option>1 opening</option><option>2+ openings</option></select>
+    <select class="sort-sel"><option>Featured first</option><option>Newest first</option><option>Highest reward</option><option>Highest salary</option></select>
+  </div>
+
+  <div class="results-bar">
+    <div class="results-count">10 roles found</div>
+  </div>
+
+  <div class="job-list">
+
+    <!-- Card 1: DBS -->
+    <div class="jcard featured">
+      <div class="jcard-bar" style="background:#1A6DB5"></div>
+      <div class="jcard-main">
+        <div class="jcard-logo" style="background:#E8F2FB;color:#0B4F8A;border-color:#C5DFF5">DB</div>
+        <div class="jcard-body">
+          <div class="jcard-co">DBS Bank</div>
+          <div class="jcard-title"><div class="adot"></div>Chief HR Officer <span class="badge b-sea">Featured</span><span class="badge b-gold">⭐ Exclusive</span><span class="badge b-jade">New</span></div>
+          <div class="meta-chips"><span class="mchip">💼 Full-time</span><span class="mchip">📍 Singapore</span><span class="mchip">💰 SGD 380K – 500K</span><span class="mchip">👥 1 opening</span><span class="badge b-amber" style="font-size:10px">C-Suite</span><span class="badge b-sea" style="font-size:10px">Finance</span></div>
+          <div class="jcard-desc">Transform the people agenda for 40,000 employees across 18 markets. Lead culture transformation, digital HR systems overhaul, and succession planning at board level.</div>
+          <div class="tag-row"><span class="tag">CHRO</span><span class="tag">Banking</span><span class="tag">Transformation</span><span class="tag">Board level</span><span class="tag">Posted 2d ago</span></div>
+        </div>
+        <div class="jcard-right">
+          <div class="rew-lbl">Base hire reward</div>
+          <div class="rew-range">SGD 72K – 95K</div>
+          <div class="rew-pct">19% of first year salary</div>
+          <div class="hdiv"></div>
+          <div class="bonus-row"><span>Bonuses</span><span>Enabled</span></div>
+          <div class="bonus-row"><span>Roles</span><span>1×</span></div>
+          <div class="hdiv"></div>
+          <div class="total-lbl">Total base reward</div>
+          <div class="total-num">SGD 72–95K+</div>
+          <button class="pick-btn">Pick this role →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Grab -->
+    <div class="jcard featured">
+      <div class="jcard-bar" style="background:#4CAF52"></div>
+      <div class="jcard-main">
+        <div class="jcard-logo" style="background:#EAF4EB;color:#1A4D1E;border-color:#B8DFB9">GH</div>
+        <div class="jcard-body">
+          <div class="jcard-co">Grab Holdings</div>
+          <div class="jcard-title"><div class="adot"></div>VP of Finance <span class="badge b-sea">Featured</span></div>
+          <div class="meta-chips"><span class="mchip">💼 Full-time</span><span class="mchip">📍 Singapore</span><span class="mchip">💰 SGD 200K – 280K</span><span class="mchip">👥 1 opening</span><span class="badge b-violet" style="font-size:10px">VP / Director</span><span class="badge b-sea" style="font-size:10px">Finance</span></div>
+          <div class="jcard-desc">Own FP&A and investor relations for SEA's largest super-app. Partner directly with the CFO on strategic financial planning and quarterly earnings reporting.</div>
+          <div class="tag-row"><span class="tag">VP Finance</span><span class="tag">Public Co</span><span class="tag">CFO Track</span><span class="tag">IPO Exp</span><span class="tag">Posted 3d ago</span></div>
+        </div>
+        <div class="jcard-right">
+          <div class="rew-lbl">Base hire reward</div>
+          <div class="rew-range">SGD 33K – 46K</div>
+          <div class="rew-pct">16.5% of first year salary</div>
+          <div class="hdiv"></div>
+          <div class="bonus-row"><span>Bonuses</span><span>Enabled</span></div>
+          <div class="bonus-row"><span>Roles</span><span>1×</span></div>
+          <div class="hdiv"></div>
+          <div class="total-lbl">Total base reward</div>
+          <div class="total-num">SGD 33–46K+</div>
+          <button class="pick-btn">Pick this role →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Sea Limited -->
+    <div class="jcard featured">
+      <div class="jcard-bar" style="background:#4B3AA8"></div>
+      <div class="jcard-main">
+        <div class="jcard-logo" style="background:#EEE9FB;color:#2D1F6E;border-color:#C4B8F0">SL</div>
+        <div class="jcard-body">
+          <div class="jcard-co">Sea Limited</div>
+          <div class="jcard-title"><div class="adot"></div>VP Engineering <span class="badge b-sea">Featured</span><span class="badge b-jade">New</span></div>
+          <div class="meta-chips"><span class="mchip">💼 Full-time</span><span class="mchip">📍 Singapore</span><span class="mchip">💰 SGD 220K – 300K</span><span class="mchip">👥 3 openings</span><span class="badge b-violet" style="font-size:10px">VP / Director</span><span class="badge b-sea" style="font-size:10px">Technology</span></div>
+          <div class="jcard-desc">Drive engineering excellence for Shopee's core platform, serving 200M+ users. Lead 300+ engineers and define the technical roadmap for the next 3 years.</div>
+          <div class="tag-row"><span class="tag">Engineering</span><span class="tag">E-commerce</span><span class="tag">Platform</span><span class="tag">Scale</span><span class="tag">Posted 3d ago</span></div>
+        </div>
+        <div class="jcard-right">
+          <div class="rew-lbl">Base hire reward</div>
+          <div class="rew-range">SGD 35K – 48K</div>
+          <div class="rew-pct">16% of first year salary</div>
+          <div class="hdiv"></div>
+          <div class="bonus-row"><span>Bonuses</span><span>Enabled</span></div>
+          <div class="bonus-row"><span>Roles</span><span>3×</span></div>
+          <div class="hdiv"></div>
+          <div class="total-lbl">Total base reward</div>
+          <div class="total-num">SGD 105–144K+</div>
+          <button class="pick-btn">Pick this role →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Unilever -->
+    <div class="jcard">
+      <div class="jcard-main">
+        <div class="jcard-logo" style="background:#FDF0E8;color:#7A3B0A;border-color:#F5C49A">UN</div>
+        <div class="jcard-body">
+          <div class="jcard-co">Unilever SEA</div>
+          <div class="jcard-title"><div class="adot"></div>Head of Commercial</div>
+          <div class="meta-chips"><span class="mchip">💼 Full-time</span><span class="mchip">📍 Malaysia</span><span class="mchip">💰 MYR 480K – 600K</span><span class="mchip">👥 2 openings</span><span class="badge b-violet" style="font-size:10px">VP / Director</span><span class="badge b-sea" style="font-size:10px">FMCG</span></div>
+          <div class="jcard-desc">Drive commercial strategy across 6 SEA markets with $2B+ revenue portfolio. Own distributor relationships, trade marketing, and go-to-market execution.</div>
+          <div class="tag-row"><span class="tag">FMCG</span><span class="tag">Regional</span><span class="tag">P&L Owner</span><span class="tag">Posted 5d ago</span></div>
+        </div>
+        <div class="jcard-right">
+          <div class="rew-lbl">Base hire reward</div>
+          <div class="rew-range">MYR 72K – 90K</div>
+          <div class="rew-pct">15% of first year salary</div>
+          <div class="hdiv"></div>
+          <div class="bonus-row"><span>Bonuses</span><span>Enabled</span></div>
+          <div class="bonus-row"><span>Roles</span><span>2×</span></div>
+          <div class="hdiv"></div>
+          <div class="total-lbl">Total base reward</div>
+          <div class="total-num">MYR 144–180K+</div>
+          <button class="pick-btn">Pick this role →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5: IHH -->
+    <div class="jcard">
+      <div class="jcard-main">
+        <div class="jcard-logo" style="background:#FBE8E8;color:#7A1A1A;border-color:#F7C1C1">IH</div>
+        <div class="jcard-body">
+          <div class="jcard-co">IHH Healthcare</div>
+          <div class="jcard-title"><div class="adot"></div>Chief Medical Officer <span class="badge b-gold">⭐ Exclusive</span></div>
+          <div class="meta-chips"><span class="mchip">💼 Full-time</span><span class="mchip">📍 Singapore</span><span class="mchip">💰 SGD 400K – 550K</span><span class="mchip">👥 1 opening</span><span class="badge b-amber" style="font-size:10px">C-Suite</span><span class="badge b-sea" style="font-size:10px">Healthcare</span></div>
+          <div class="jcard-desc">Set clinical standards and governance across 80+ hospitals in 10 countries. Drive patient safety initiatives and quality accreditation programs globally.</div>
+          <div class="tag-row"><span class="tag">CMO</span><span class="tag">Healthcare</span><span class="tag">Hospital Group</span><span class="tag">Posted 1w ago</span></div>
+        </div>
+        <div class="jcard-right">
+          <div class="rew-lbl">Base hire reward</div>
+          <div class="rew-range">SGD 80K – 110K</div>
+          <div class="rew-pct">20% of first year salary</div>
+          <div class="hdiv"></div>
+          <div class="bonus-row"><span>Bonuses</span><span>None</span></div>
+          <div class="bonus-row"><span>Roles</span><span>1×</span></div>
+          <div class="hdiv"></div>
+          <div class="total-lbl">Total base reward</div>
+          <div class="total-num">SGD 80–110K+</div>
+          <button class="pick-btn">Pick this role →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 6: McKinsey -->
+    <div class="jcard">
+      <div class="jcard-main">
+        <div class="jcard-logo" style="background:#EEE9FB;color:#2D1F6E;border-color:#C4B8F0">MC</div>
+        <div class="jcard-body">
+          <div class="jcard-co">McKinsey & Company</div>
+          <div class="jcard-title"><div class="adot"></div>Director of Strategy</div>
+          <div class="meta-chips"><span class="mchip">💼 Full-time</span><span class="mchip">📍 Singapore</span><span class="mchip">💰 SGD 250K – 320K</span><span class="mchip">👥 1 opening</span><span class="badge b-violet" style="font-size:10px">VP / Director</span><span class="badge b-sea" style="font-size:10px">Consulting</span></div>
+          <div class="jcard-desc">Lead client engagements across financial services and public sector. Build high-performing teams while managing complex multi-workstream projects.</div>
+          <div class="tag-row"><span class="tag">MBB</span><span class="tag">Strategy</span><span class="tag">Consulting</span><span class="tag">Posted 1w ago</span></div>
+        </div>
+        <div class="jcard-right">
+          <div class="rew-lbl">Base hire reward</div>
+          <div class="rew-range">SGD 42K – 54K</div>
+          <div class="rew-pct">17% of first year salary</div>
+          <div class="hdiv"></div>
+          <div class="bonus-row"><span>Bonuses</span><span>Enabled</span></div>
+          <div class="bonus-row"><span>Roles</span><span>1×</span></div>
+          <div class="hdiv"></div>
+          <div class="total-lbl">Total base reward</div>
+          <div class="total-num">SGD 42–54K+</div>
+          <button class="pick-btn">Pick this role →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 7: Parkway -->
+    <div class="jcard">
+      <div class="jcard-main">
+        <div class="jcard-logo" style="background:#FDF0E8;color:#7A3B0A;border-color:#F5C49A">PP</div>
+        <div class="jcard-body">
+          <div class="jcard-co">Parkway Pantai</div>
+          <div class="jcard-title"><div class="adot"></div>Chief Digital Officer <span class="badge b-gold">⭐ Exclusive</span></div>
+          <div class="meta-chips"><span class="mchip">💼 Full-time</span><span class="mchip">📍 Singapore</span><span class="mchip">💰 SGD 300K – 420K</span><span class="mchip">👥 1 opening</span><span class="badge b-amber" style="font-size:10px">C-Suite</span><span class="badge b-sea" style="font-size:10px">Healthcare</span></div>
+          <div class="jcard-desc">Own the digital transformation agenda for Asia's leading private hospital group. Build the region's most advanced patient digital experience and clinical AI platform.</div>
+          <div class="tag-row"><span class="tag">Digital Health</span><span class="tag">AI</span><span class="tag">Transformation</span><span class="tag">Posted 5d ago</span></div>
+        </div>
+        <div class="jcard-right">
+          <div class="rew-lbl">Base hire reward</div>
+          <div class="rew-range">SGD 54K – 80K</div>
+          <div class="rew-pct">18% of first year salary</div>
+          <div class="hdiv"></div>
+          <div class="bonus-row"><span>Bonuses</span><span>Enabled</span></div>
+          <div class="bonus-row"><span>Roles</span><span>1×</span></div>
+          <div class="hdiv"></div>
+          <div class="total-lbl">Total base reward</div>
+          <div class="total-num">SGD 54–80K+</div>
+          <button class="pick-btn">Pick this role →</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sea Search — Pick Confirmation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F8F7F4;--surface:#fff;--surface2:#F2F1EE;--border:#E5E3DE;--border2:#D0CEC9;
+  --text:#1A1917;--text2:#6B6860;--text3:#A09E99;
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-mid:#B5D4F4;
+  --green:#27500A;--green-bg:#EAF3DE;--green-mid:#C0DD97;
+  --amber:#633806;--amber-bg:#FAEEDA;--amber-mid:#FAC775;
+  --purple:#3C3489;--purple-bg:#EEEDFE;--purple-mid:#AFA9EC;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.nav{height:52px;background:#0D0C0A;display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0}
+.logo{font-size:15px;font-weight:500;color:#fff}
+.logo span{color:#3589D4}
+.nav-crumb{font-size:12px;color:#888;display:flex;align-items:center;gap:6px}
+.nav-crumb span{color:#ccc}
+.nav-right{margin-left:auto}
+.nav-av{width:30px;height:30px;border-radius:50%;background:#185FA5;color:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500}
+
+/* DEMO BAR */
+.demo-bar{background:var(--purple-bg);border-bottom:1px solid var(--purple-mid);padding:6px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.demo-label{font-size:11px;color:var(--purple);font-weight:500}
+.dbtn{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--purple-mid);background:transparent;color:var(--purple);cursor:pointer;font-family:var(--font)}
+.dbtn:hover{background:var(--purple-mid)}
+.dbtn.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+
+/* SCREENS */
+.screen{display:none}
+.screen.on{display:block}
+
+/* BACKDROP */
+.backdrop{min-height:calc(100vh - 94px);display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)}
+
+/* PICK MODAL */
+.pick-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:520px;overflow:hidden}
+.pm-top{padding:28px 28px 20px;text-align:center;border-bottom:1px solid var(--border)}
+.pm-icon-wrap{width:64px;height:64px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;border:2px solid var(--green-mid);font-size:26px;color:var(--green)}
+.pm-title{font-size:18px;font-weight:500;margin-bottom:4px}
+.pm-sub{font-size:13px;color:var(--text2);line-height:1.55}
+.pm-role-card{margin:16px 24px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.prc-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.prc-logo{width:40px;height:40px;border-radius:8px;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;border:1px solid var(--border)}
+.prc-title{font-size:14px;font-weight:500;color:var(--text)}
+.prc-co{font-size:12px;color:var(--text2)}
+.prc-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.prc-meta-item{text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 6px}
+.pmi-val{font-size:13px;font-weight:500;color:var(--text)}
+.pmi-lbl{font-size:10px;color:var(--text3);margin-top:1px}
+.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px}
+.b-green{background:var(--green-bg);color:var(--green)}
+.b-blue{background:var(--blue-bg);color:var(--blue)}
+
+/* CHECKLIST */
+.pm-checklist{padding:16px 24px;border-bottom:1px solid var(--border)}
+.pmcl-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:10px}
+.pmcl-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;font-size:12px;color:var(--text2);line-height:1.5}
+.pmcl-check{width:16px;height:16px;border-radius:50%;background:var(--green-bg);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;margin-top:1px;font-weight:500}
+
+/* UPGRADE */
+.pm-upgrade{padding:12px 24px;background:linear-gradient(135deg,var(--blue-bg),var(--purple-bg));border-top:1px solid var(--blue-mid);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pu-text{font-size:12px;color:var(--blue);font-weight:500}
+.pu-sub{font-size:11px;color:var(--text2)}
+
+/* ACTIONS */
+.pm-actions{padding:16px 24px;display:flex;flex-direction:column;gap:8px}
+.btn{font-size:12px;padding:8px 14px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.btn:hover{background:var(--surface2)}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:500}
+.btn-blue:hover{background:#0C447C}
+.btn-row{display:flex;gap:8px}
+
+/* ADD CANDIDATE MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--surface);border-radius:10px;border:1px solid var(--border);padding:24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.modal-title{font-size:14px;font-weight:500;color:var(--text)}
+.modal-close{font-size:16px;cursor:pointer;background:none;border:none;color:var(--text3);line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-sub{font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:16px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.field{margin-bottom:9px}
+.field-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:500}
+.field input{width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--border2);border-radius:6px;background:#fff;color:var(--text);outline:none;font-family:var(--font)}
+.field input:focus{border-color:#378ADD}
+.upload-zone{background:var(--surface2);border:1.5px dashed var(--border2);border-radius:8px;padding:18px;text-align:center;cursor:pointer;margin-bottom:12px;transition:all .15s}
+.upload-zone:hover{border-color:#378ADD;background:var(--blue-bg)}
+.upload-zone input{display:none}
+.uz-icon{font-size:26px;margin-bottom:6px}
+.uz-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.uz-sub{font-size:11px;color:var(--text2)}
+.uz-file{font-size:11px;color:var(--green);font-weight:500;margin-top:7px;display:none}
+.ai-note{background:var(--purple-bg);border:1px solid var(--purple-mid);border-radius:6px;padding:10px 12px;font-size:11px;color:var(--purple);line-height:1.55;margin-bottom:14px}
+
+/* SUCCESS STATE */
+.success-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:480px;padding:32px;text-align:center}
+.sc-icon{width:64px;height:64px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 14px;border:2px solid var(--green-mid)}
+.sc-title{font-size:18px;font-weight:500;color:var(--text);margin-bottom:5px}
+.sc-sub{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px}
+.sc-steps{background:var(--surface2);border-radius:10px;padding:14px 16px;text-align:left;margin-bottom:20px}
+.sc-step{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);padding:4px 0}
+.sc-step-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="logo">Sea<span>Search</span></div>
+  <div style="width:1px;height:18px;background:#333"></div>
+  <div class="nav-crumb"><a href="#" style="color:#888;text-decoration:none">Job listings</a> <span>›</span> <span>Pick confirmation</span></div>
+  <div class="nav-right"><div class="nav-av">AY</div></div>
+</nav>
+
+<div class="demo-bar">
+  <div class="demo-label">View step:</div>
+  <button class="dbtn on" onclick="show('pick',this)">① Role picked</button>
+  <button class="dbtn" onclick="show('adding',this)">② Add candidate</button>
+  <button class="dbtn" onclick="show('success',this)">③ Candidate added</button>
+</div>
+
+<!-- SCREEN 1: PICK CONFIRMATION -->
+<div class="screen on" id="s-pick">
+  <div class="backdrop">
+    <div class="pick-modal">
+      <div class="pm-top">
+        <div class="pm-icon-wrap">✓</div>
+        <div class="pm-title">Role picked successfully!</div>
+        <div class="pm-sub">This mandate is now in your active pipeline. Start sourcing candidates immediately to stay ahead.</div>
+      </div>
+      <div class="pm-role-card">
+        <div class="prc-row">
+          <div class="prc-logo">DB</div>
+          <div style="flex:1">
+            <div class="prc-title">Chief HR Officer</div>
+            <div class="prc-co">DBS Bank · Singapore</div>
+          </div>
+          <span class="badge b-green">✓ Active</span>
+          <span class="badge b-blue" style="margin-left:4px">Exclusive available</span>
+        </div>
+        <div class="prc-meta">
+          <div class="prc-meta-item"><div class="pmi-val">SGD 72–95K</div><div class="pmi-lbl">Your reward</div></div>
+          <div class="prc-meta-item"><div class="pmi-val">19%</div><div class="pmi-lbl">Placement fee</div></div>
+          <div class="prc-meta-item"><div class="pmi-val">3 weeks</div><div class="pmi-lbl">Shortlist deadline</div></div>
+        </div>
+      </div>
+      <div class="pm-checklist">
+        <div class="pmcl-title">Your workspace is ready. Here's what to do next:</div>
+        <div class="pmcl-item"><div class="pmcl-check">1</div><span>Review the full job description, green/red flags and ideal candidates</span></div>
+        <div class="pmcl-item"><div class="pmcl-check">2</div><span>Source candidates from your network matching the CHRO banking profile</span></div>
+        <div class="pmcl-item"><div class="pmcl-check">3</div><span>Upload CVs — AI will score and rank each candidate against the role</span></div>
+        <div class="pmcl-item"><div class="pmcl-check">4</div><span>Submit your top candidate to the client within 3 weeks</span></div>
+      </div>
+      <div class="pm-upgrade">
+        <div>
+          <div class="pu-text">⭐ Lock this role exclusively to you</div>
+          <div class="pu-sub">Block other recruiters from working this mandate for 30 days</div>
+        </div>
+        <button class="btn btn-blue" style="font-size:11px;white-space:nowrap;padding:6px 12px">SGD 500 — Get exclusive</button>
+      </div>
+      <div class="pm-actions">
+        <!-- ✅ THE FIXED GAP: Add candidate button now prominently placed first -->
+        <button class="btn btn-blue" style="width:100%;padding:10px;font-size:13px" onclick="openAddModal()">
+          📄 Add first candidate &amp; upload CV
+        </button>
+        <div class="btn-row">
+          <button class="btn" style="flex:1">Go to dashboard</button>
+          <button class="btn" style="flex:1">View role details</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 2: ADDING CANDIDATE (modal shown over pick screen) -->
+<div class="screen" id="s-adding">
+  <div class="backdrop">
+    <div class="pick-modal" style="opacity:.35;pointer-events:none;position:relative">
+      <div class="pm-top">
+        <div class="pm-icon-wrap">✓</div>
+        <div class="pm-title">Role picked successfully!</div>
+        <div class="pm-sub">This mandate is now in your active pipeline.</div>
+      </div>
+      <div class="pm-actions" style="padding:16px 24px">
+        <button class="btn btn-blue" style="width:100%;padding:10px;font-size:13px">📄 Add first candidate &amp; upload CV</button>
+        <div class="btn-row"><button class="btn" style="flex:1">Go to dashboard</button><button class="btn" style="flex:1">View role details</button></div>
+      </div>
+    </div>
+    <!-- MODAL overlaid -->
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:24px">
+      <div class="modal-box">
+        <div class="modal-head">
+          <div>
+            <div class="modal-title">Add your first candidate</div>
+          </div>
+          <button class="modal-close" onclick="show('pick',document.querySelector('.dbtn'))">✕</button>
+        </div>
+        <div class="modal-sub">Adding a candidate to <strong style="font-weight:500">Chief HR Officer — DBS Bank</strong>. Upload their CV and Claude will auto-parse their profile and score them against the role.</div>
+        <div class="field-grid">
+          <div class="field"><div class="field-lbl">First name</div><input type="text" placeholder="Sarah" value="Sarah"></div>
+          <div class="field"><div class="field-lbl">Last name</div><input type="text" placeholder="Wong" value="Wong"></div>
+        </div>
+        <div class="field"><div class="field-lbl">Current role &amp; company</div><input type="text" placeholder="CHRO, OCBC Bank" value="CHRO, OCBC Bank"></div>
+        <div class="field"><div class="field-lbl">Email</div><input type="email" placeholder="sarah@email.com" value="sarah.wong@email.com"></div>
+        <div class="upload-zone" onclick="document.getElementById('demoFileInput').click()">
+          <input type="file" id="demoFileInput" accept=".pdf,.doc,.docx" style="display:none">
+          <div class="uz-icon">📄</div>
+          <div class="uz-title">Upload CV (PDF or DOCX)</div>
+          <div class="uz-sub">Claude will auto-parse skills, experience &amp; education — then score against the role</div>
+          <div class="uz-file" id="demoFileName">📄 Sarah_Wong_CV_2026.pdf selected</div>
+        </div>
+        <div class="ai-note">⚙ <strong style="font-weight:500">What happens after you click Add:</strong> Claude reads the CV, extracts their full profile, then scores them against the Chief HR Officer requirements — giving you a match score, breakdown, and recruiter brief automatically.</div>
+        <button class="btn btn-blue" style="width:100%;padding:10px;font-size:13px;margin-bottom:6px" onclick="show('success',document.querySelector('.dbtn:nth-child(3)'))">Add candidate &amp; run AI analysis</button>
+        <button class="btn" style="width:100%;padding:8px;font-size:12px" onclick="show('pick',document.querySelector('.dbtn'))">Skip for now — add candidates later</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: SUCCESS — candidate added, AI processing done -->
+<div class="screen" id="s-success">
+  <div class="backdrop">
+    <div class="success-card">
+      <div class="sc-icon">🧠</div>
+      <div class="sc-title">Sarah Wong added &amp; scored!</div>
+      <div class="sc-sub">Claude has parsed the CV and generated a match score against the Chief HR Officer requirements. Your pipeline is live.</div>
+      <div class="sc-steps">
+        <div class="sc-step"><div class="sc-step-dot" style="background:#2E7D33"></div>CV uploaded and parsed — profile extracted</div>
+        <div class="sc-step"><div class="sc-step-dot" style="background:#2E7D33"></div>AI match score generated: <strong style="font-weight:500">92%</strong></div>
+        <div class="sc-step"><div class="sc-step-dot" style="background:#2E7D33"></div>Green/red flags identified</div>
+        <div class="sc-step"><div class="sc-step-dot" style="background:#2E7D33"></div>Candidate added to Sourced stage in your pipeline</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-blue" style="width:100%;padding:10px;font-size:13px">View Sarah Wong's profile &amp; score →</button>
+        <button class="btn" style="width:100%;padding:9px;font-size:12px" onclick="openAddModal()">📄 Add another candidate</button>
+        <button class="btn" style="width:100%;padding:9px;font-size:12px">Go to pipeline dashboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CANDIDATE MODAL (used from screen 1) -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Add your first candidate</div>
+      </div>
+      <button class="modal-close" onclick="closeAddModal()">✕</button>
+    </div>
+    <div class="modal-sub">Adding a candidate to <strong style="font-weight:500">Chief HR Officer — DBS Bank</strong>. Upload their CV and Claude will auto-parse their profile and score them against the role.</div>
+    <div class="field-grid">
+      <div class="field"><div class="field-lbl">First name</div><input id="fn" type="text" placeholder="Sarah"></div>
+      <div class="field"><div class="field-lbl">Last name</div><input id="ln" type="text" placeholder="Wong"></div>
+    </div>
+    <div class="field"><div class="field-lbl">Current role &amp; company</div><input type="text" placeholder="CHRO, OCBC Bank"></div>
+    <div class="field"><div class="field-lbl">Email</div><input type="email" placeholder="sarah@email.com"></div>
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+      <input type="file" id="fileInput" accept=".pdf,.doc,.docx" style="display:none" onchange="handleFile(this)">
+      <div class="uz-icon">📄</div>
+      <div class="uz-title" id="uzLabel">Upload CV (PDF or DOCX)</div>
+      <div class="uz-sub">Claude will auto-parse skills, experience &amp; education — then score against the role</div>
+      <div class="uz-file" id="uzFile"></div>
+    </div>
+    <div class="ai-note">⚙ <strong style="font-weight:500">What happens after you click Add:</strong> Claude reads the CV, extracts their full profile, then scores them against the Chief HR Officer requirements — giving you a match score, breakdown, and recruiter brief automatically.</div>
+    <button class="btn btn-blue" style="width:100%;padding:10px;font-size:13px;margin-bottom:6px" onclick="closeAddModal();show('success',document.querySelector('.dbtn:nth-child(3)'))">Add candidate &amp; run AI analysis</button>
+    <button class="btn" style="width:100%;padding:8px;font-size:12px" onclick="closeAddModal()">Skip for now — add candidates later</button>
+  </div>
+</div>
+
+<script>
+function show(name,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+name).classList.add('on');
+  document.querySelectorAll('.dbtn').forEach(b=>b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+}
+function openAddModal(){
+  document.getElementById('addModal').classList.add('open');
+  document.getElementById('uzFile').style.display='none';
+  document.getElementById('uzLabel').textContent='Upload CV (PDF or DOCX)';
+  document.getElementById('uploadZone').style.borderColor='';
+}
+function closeAddModal(){ document.getElementById('addModal').classList.remove('open'); }
+document.getElementById('addModal').addEventListener('click',function(e){if(e.target===this)closeAddModal();});
+function handleFile(inp){
+  if(!inp.files[0]) return;
+  var f=document.getElementById('uzFile');
+  f.textContent='📄 '+inp.files[0].name+' selected';
+  f.style.display='block';
+  document.getElementById('uzLabel').textContent='CV selected ✓';
+  document.getElementById('uploadZone').style.borderColor='#2E7D33';
+}
+// Pre-show file in demo screen 2
+document.getElementById('demoFileName').style.display='block';
+</script>
+</body>
+</html>

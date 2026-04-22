@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sea Search — Recruiter Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0D0C0A; --ink2:#2A2926; --ink3:#454340;
+  --mist:#F9F8F5; --mist2:#F2F0EC; --mist3:#E8E5DF; --mist4:#D4D0C8;
+  --wire:#E0DDD6; --wire2:#C8C4BC;
+  --sea:#0B4F8A; --sea2:#1A6DB5; --sea3:#3589D4; --sea-pale:#E8F2FB;
+  --jade:#1A4D1E; --jade2:#2E7D33; --jade3:#4CAF52; --jade-pale:#EAF4EB;
+  --amber:#7A3B0A; --amber2:#B85C1A; --amber3:#E07C3A; --amber-pale:#FDF0E8;
+  --ruby:#7A1A1A; --ruby2:#B52525; --ruby-pale:#FBE8E8;
+  --violet:#2D1F6E; --violet2:#4B3AA8; --violet-pale:#EEE9FB;
+  --gold:#6B4F00; --gold2:#C49A00; --gold-pale:#FDF8E1;
+  --font-head:'Syne',sans-serif; --font:'DM Sans',sans-serif; --mono:'DM Mono',monospace;
+  --r:12px; --rsm:7px; --rxs:4px; --sidebar:230px; --topbar:56px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--mist2);color:var(--ink);display:flex;flex-direction:column}
+
+/* TOPBAR */
+.topbar{height:var(--topbar);background:var(--ink);display:flex;align-items:center;padding:0 20px 0 0;flex-shrink:0;border-bottom:1px solid var(--ink2)}
+.tb-logo-wrap{width:var(--sidebar);flex-shrink:0;display:flex;align-items:center;padding:0 20px;border-right:1px solid var(--ink2);height:100%}
+.logo{font-family:var(--font-head);font-size:16px;font-weight:700;color:#fff}
+.logo span{color:#3589D4}
+.logo-sub{font-size:10px;color:#4CAF52;display:flex;align-items:center;gap:4px;margin-top:1px}
+.logo-dot{width:5px;height:5px;border-radius:50%;background:#4CAF52}
+.tb-mid{flex:1;display:flex;align-items:center;padding:0 20px;gap:12px}
+.tb-greet{font-size:13px;color:var(--mist4)}
+.tb-greet b{color:#fff;font-weight:500}
+.tb-search{flex:1;max-width:300px;background:var(--ink2);border:1px solid var(--ink3);border-radius:var(--rsm);display:flex;align-items:center;gap:8px;padding:0 12px;height:32px}
+.tb-search input{background:transparent;border:none;outline:none;font-size:12px;color:var(--mist4);font-family:var(--font);width:100%}
+.tb-search input::placeholder{color:var(--ink3)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{width:32px;height:32px;border-radius:var(--rxs);border:1px solid var(--ink2);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--mist4);position:relative}
+.tb-btn:hover{background:var(--ink2)}
+.pip{position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:#E24B4A;border:1px solid var(--ink)}
+.tb-av{width:32px;height:32px;border-radius:50%;background:var(--sea);color:#E8F2FB;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;cursor:pointer;border:1.5px solid var(--sea2)}
+
+/* SHELL */
+.shell{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--ink);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;border-right:1px solid var(--ink2)}
+.sb-sec{padding:12px 12px 4px}
+.sb-sec-lbl{font-size:9px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:0.1em;padding:0 8px;margin-bottom:6px}
+.sbi{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:var(--rxs);cursor:pointer;color:var(--mist4);font-size:12px;transition:all .15s}
+.sbi:hover{background:var(--ink2);color:#fff}
+.sbi.on{background:var(--sea);color:#fff}
+.sbi-ico{font-size:13px;width:20px;text-align:center;flex-shrink:0}
+.sbi-lbl{flex:1}
+.sbadge{font-size:9px;font-weight:500;background:var(--sea2);color:#fff;border-radius:10px;padding:1px 6px;font-family:var(--mono)}
+.sbadge-a{background:var(--amber2)!important}
+.sbadge-r{background:var(--ruby2)!important}
+.sb-div{height:1px;background:var(--ink2);margin:8px 12px}
+.sb-rbox{margin:10px 12px;background:var(--ink2);border:1px solid var(--ink3);border-radius:var(--rsm);padding:12px}
+.srb-lbl{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.srb-num{font-size:20px;font-weight:600;color:#4CAF52;font-family:var(--font-head);letter-spacing:-.02em}
+.srb-sub{font-size:10px;color:var(--mist4);margin-top:1px}
+.srb-bg{height:3px;background:var(--ink3);border-radius:2px;margin:8px 0 4px}
+.srb-fill{height:3px;background:var(--jade2);border-radius:2px;width:57%}
+.srb-foot{font-size:10px;color:var(--ink3);display:flex;justify-content:space-between}
+.sb-bot{margin-top:auto;padding:12px}
+.sb-prof{display:flex;align-items:center;gap:8px;padding:8px;background:var(--ink2);border-radius:var(--rsm);cursor:pointer;border:1px solid var(--ink3)}
+.sb-prof:hover{background:#2E2D2A}
+.sp-av{width:30px;height:30px;border-radius:50%;background:var(--sea);color:#E8F2FB;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.sp-name{font-size:12px;font-weight:500;color:#fff}
+.sp-role{font-size:10px;color:var(--mist4)}
+.sp-arr{font-size:12px;color:var(--ink3);margin-left:auto}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+
+/* HERO */
+.hero{background:var(--ink);padding:20px 28px;display:flex;gap:0;border-bottom:1px solid var(--ink2);flex-shrink:0}
+.h-earn{flex:1;padding-right:28px;border-right:1px solid var(--ink2)}
+.h-earn-top{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.h-earn-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--mist4)}
+.h-earn-period{font-size:10px;color:var(--ink3);background:var(--ink2);padding:1px 6px;border-radius:3px;font-family:var(--mono)}
+.h-earn-num{font-size:36px;font-weight:700;color:#fff;letter-spacing:-.03em;font-family:var(--font-head);line-height:1}
+.h-change{display:flex;align-items:center;gap:8px;margin-top:4px}
+.h-up{font-size:12px;color:#4CAF52;font-weight:500}
+.h-base{font-size:11px;color:var(--mist4)}
+.h-metrics{display:flex;padding-left:28px;flex:1.4}
+.h-met{flex:1;padding:0 18px;border-right:1px solid var(--ink2);display:flex;flex-direction:column;justify-content:center}
+.h-met:last-child{border-right:none;padding-right:0}
+.h-met-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);margin-bottom:5px}
+.h-met-num{font-size:22px;font-weight:600;color:#fff;font-family:var(--font-head);letter-spacing:-.02em;line-height:1}
+.h-met-sub{font-size:10px;color:var(--mist4);margin-top:3px}
+.h-tag{font-size:9px;font-weight:500;padding:1px 6px;border-radius:3px;margin-top:4px;display:inline-block;font-family:var(--mono)}
+.ht-up{background:rgba(76,175,82,.2);color:#4CAF52}
+.ht-pend{background:rgba(224,124,58,.2);color:#E07C3A}
+.ht-new{background:rgba(53,137,212,.2);color:#3589D4}
+
+/* BODY */
+.body{padding:20px 28px;display:flex;flex-direction:column;gap:16px}
+
+/* CARD */
+.card{background:var(--mist);border:1px solid var(--wire);border-radius:var(--r);overflow:hidden}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--wire)}
+.ch-t{font-size:12px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:6px}
+.ch-ico{font-size:13px}
+.ch-acts{display:flex;gap:5px;align-items:center}
+.ch-btn{font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid var(--wire2);background:transparent;color:var(--ink3);cursor:pointer;font-family:var(--font)}
+.ch-btn:hover{background:var(--mist3)}
+.cbadge{font-size:9px;font-weight:500;padding:2px 7px;border-radius:20px;font-family:var(--mono)}
+.cb-sea{background:#E8F2FB;color:#0B4F8A}
+.cb-jade{background:#EAF4EB;color:#1A4D1E}
+.cb-amb{background:#FDF0E8;color:#7A3B0A}
+.cb-vio{background:#EEE9FB;color:#2D1F6E}
+.cb-rub{background:#FBE8E8;color:#7A1A1A}
+.cb-gld{background:#FDF8E1;color:#6B4F00}
+
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sm{background:var(--mist);border:1px solid var(--wire);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
+.sm-bar{position:absolute;top:0;left:0;right:0;height:3px}
+.sm-top{display:flex;align-items:flex-start;justify-content:space-between}
+.sm-ico{font-size:18px}
+.sm-tr{font-size:11px;font-weight:500}
+.tr-up{color:var(--jade2)}
+.tr-flat{color:var(--ink3)}
+.sm-num{font-size:24px;font-weight:700;color:var(--ink);font-family:var(--font-head);letter-spacing:-.02em;line-height:1}
+.sm-lbl{font-size:11px;color:var(--ink3)}
+
+/* GRID LAYOUTS */
+.g21{display:grid;grid-template-columns:1fr 340px;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+
+/* ROLES */
+.rr{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-bottom:1px solid var(--wire);cursor:pointer;transition:background .15s;position:relative}
+.rr:last-child{border-bottom:none}
+.rr:hover{background:var(--mist2)}
+.rr-bar{position:absolute;left:0;top:0;bottom:0;width:3px}
+.rr-logo{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;border:1px solid var(--wire)}
+.rr-body{flex:1;min-width:0}
+.rr-title{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:1px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rr-co{font-size:11px;color:var(--ink3);margin-bottom:6px}
+.rr-segs{display:flex;gap:2px;margin-bottom:4px}
+.seg{height:4px;border-radius:2px;flex:1}
+.seg-off{background:var(--wire)}
+.rr-info{font-size:10px;color:var(--ink3);display:flex;justify-content:space-between}
+.rr-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.rtag{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--mist2);color:var(--ink3);border:1px solid var(--wire)}
+.rr-right{text-align:right;flex-shrink:0;min-width:90px}
+.rr-rew{font-size:13px;font-weight:600;color:var(--ink);font-family:var(--font-head)}
+.rr-day{font-size:10px;color:var(--ink3);margin-top:1px;font-family:var(--mono)}
+.rr-cnd{font-size:10px;color:var(--sea2);margin-top:3px;font-weight:500}
+
+/* QUICK ACTIONS */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 16px}
+.qa{background:var(--mist2);border:1px solid var(--wire);border-radius:var(--rsm);padding:10px 12px;cursor:pointer;text-align:left;font-family:var(--font);transition:all .15s}
+.qa:hover{background:var(--mist3);border-color:var(--wire2)}
+.qa-ico{font-size:16px;margin-bottom:5px;display:block}
+.qa-lbl{font-size:11px;font-weight:500;color:var(--ink)}
+.qa-sub{font-size:10px;color:var(--ink3);margin-top:1px}
+
+/* TASKS */
+.ti{display:flex;gap:10px;padding:10px 16px;border-bottom:1px solid var(--wire);align-items:flex-start}
+.ti:last-child{border-bottom:none}
+.tck{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--wire2);flex-shrink:0;cursor:pointer;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px}
+.tck.done{background:var(--jade2);border-color:var(--jade2);color:#fff}
+.ttxt{font-size:12px;color:var(--ink);flex:1;line-height:1.4}
+.ttxt.done{color:var(--mist4);text-decoration:line-through}
+.tdue{font-size:10px;font-family:var(--mono);flex-shrink:0}
+.td-urg{color:var(--ruby2)}
+.td-sn{color:var(--amber2)}
+.td-nm{color:var(--ink3)}
+
+/* PIPELINE */
+.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:12px 16px}
+.pc-head{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;display:flex;justify-content:space-between}
+.pc-cnt{font-size:9px;font-weight:700;color:var(--ink2);font-family:var(--mono)}
+.pc{background:var(--mist2);border:1px solid var(--wire);border-radius:var(--rxs);padding:7px 8px;cursor:pointer;margin-bottom:4px}
+.pc:hover{border-color:var(--wire2)}
+.pc-name{font-size:11px;font-weight:500;color:var(--ink);margin-bottom:1px}
+.pc-co{font-size:10px;color:var(--ink3);margin-bottom:4px}
+.pc-bg{height:3px;background:var(--wire);border-radius:2px}
+.pc-fill{height:3px;border-radius:2px}
+.pc-pct{font-size:9px;color:var(--ink3);margin-top:2px;font-family:var(--mono)}
+
+/* CHART */
+.chart{padding:14px 16px}
+.chart-bars{display:flex;align-items:flex-end;gap:5px;height:84px;margin-bottom:10px}
+.bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}
+.bb{width:100%;border-radius:3px 3px 0 0;position:relative}
+.bv{font-size:8px;color:var(--ink3);font-family:var(--mono);text-align:center;position:absolute;top:-13px;width:100%}
+.bl{font-size:9px;color:var(--ink3);font-family:var(--mono)}
+.chart-leg{display:flex;gap:12px;padding:8px 0;border-top:1px solid var(--wire);border-bottom:1px solid var(--wire);margin-bottom:8px}
+.cl{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ink3)}
+.cl-dot{width:8px;height:8px;border-radius:2px}
+.chart-foot{display:flex;justify-content:space-between;align-items:center}
+.cf-lbl{font-size:11px;color:var(--ink3)}
+.cf-num{font-size:14px;font-weight:600;color:var(--jade2);font-family:var(--font-head)}
+
+/* LEADERBOARD */
+.lb{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--wire)}
+.lb:last-child{border-bottom:none}
+.lb.you-row{background:#E8F2FB}
+.lb-rank{font-size:11px;font-weight:700;width:18px;text-align:center;flex-shrink:0;font-family:var(--mono);color:var(--ink3)}
+.gd{color:#C49A00}
+.sv{color:var(--wire2)}
+.br{color:var(--amber2)}
+.lb-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0}
+.lb-name{font-size:12px;font-weight:500;color:var(--ink);flex:1}
+.lb-name.you{color:var(--sea)}
+.lb-bg{width:60px;height:4px;background:var(--wire);border-radius:2px;flex-shrink:0}
+.lb-fill{height:4px;border-radius:2px}
+.lb-earn{font-size:11px;font-weight:600;color:var(--ink2);font-family:var(--mono);width:72px;text-align:right;flex-shrink:0}
+.lb-earn.you{color:var(--sea)}
+.ychip{font-size:9px;background:#E8F2FB;color:var(--sea);border:1px solid #C5DFF5;border-radius:10px;padding:1px 5px;font-family:var(--mono);margin-left:4px}
+
+/* ACTIVITY */
+.ai{display:flex;gap:10px;padding:10px 16px;border-bottom:1px solid var(--wire)}
+.ai:last-child{border-bottom:none}
+.ai-ico{width:28px;height:28px;border-radius:var(--rxs);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.ai-txt{font-size:12px;font-weight:500;color:var(--ink);line-height:1.35}
+.ai-sub{font-size:11px;color:var(--ink3);margin-top:1px}
+.ai-time{font-size:10px;color:var(--mist4);margin-top:2px;font-family:var(--mono)}
+.ai-right{margin-left:auto;flex-shrink:0;padding-top:2px}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--mist4);border-radius:2px}
+
+@media(max-width:900px){
+  .sidebar{display:none}
+  .g21,.g3{grid-template-columns:1fr}
+  .stat-row{grid-template-columns:1fr 1fr}
+  .h-metrics{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-logo-wrap">
+    <div>
+      <div class="logo">Sea<span>Search</span></div>
+      <div class="logo-sub"><div class="logo-dot"></div>All systems live</div>
+    </div>
+  </div>
+  <div class="tb-mid">
+    <div class="tb-greet">Good morning, <b>Andika</b></div>
+    <div class="tb-search">
+      <span style="font-size:12px;color:var(--ink3)">⌕</span>
+      <input type="text" placeholder="Search roles, candidates, clients…">
+    </div>
+  </div>
+  <div class="tb-right">
+    <div class="tb-btn">🔔<div class="pip"></div></div>
+    <div class="tb-btn">✉</div>
+    <div class="tb-btn">⚙</div>
+    <div class="tb-av">AY</div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-sec">
+    <div class="sb-sec-lbl">Workspace</div>
+    <div class="sbi on"><span class="sbi-ico">▦</span><span class="sbi-lbl">Dashboard</span></div>
+    <div class="sbi"><span class="sbi-ico">◫</span><span class="sbi-lbl">Job listings</span><span class="sbadge">48</span></div>
+    <div class="sbi"><span class="sbi-ico">◎</span><span class="sbi-lbl">My roles</span><span class="sbadge">3</span></div>
+    <div class="sbi"><span class="sbi-ico">◉</span><span class="sbi-lbl">Candidates</span><span class="sbadge">14</span></div>
+    <div class="sbi"><span class="sbi-ico">◈</span><span class="sbi-lbl">Pipeline</span><span class="sbadge sbadge-a">2</span></div>
+  </div>
+  <div class="sb-div"></div>
+  <div class="sb-sec">
+    <div class="sb-sec-lbl">Analytics</div>
+    <div class="sbi"><span class="sbi-ico">◑</span><span class="sbi-lbl">Earnings</span></div>
+    <div class="sbi"><span class="sbi-ico">◐</span><span class="sbi-lbl">Performance</span></div>
+    <div class="sbi"><span class="sbi-ico">◒</span><span class="sbi-lbl">Leaderboard</span></div>
+  </div>
+  <div class="sb-div"></div>
+  <div class="sb-sec">
+    <div class="sb-sec-lbl">Tools</div>
+    <div class="sbi"><span class="sbi-ico">⚙</span><span class="sbi-lbl">AI matching</span></div>
+    <div class="sbi"><span class="sbi-ico">✉</span><span class="sbi-lbl">Outreach</span><span class="sbadge sbadge-r">1</span></div>
+    <div class="sbi"><span class="sbi-ico">◧</span><span class="sbi-lbl">Reports</span></div>
+  </div>
+  <div class="sb-rbox">
+    <div class="srb-lbl">2026 earnings goal</div>
+    <div class="srb-num">SGD 228.5K</div>
+    <div class="srb-sub">of SGD 400K target</div>
+    <div class="srb-bg"><div class="srb-fill"></div></div>
+    <div class="srb-foot"><span>57% achieved</span><span>SGD 171.5K left</span></div>
+  </div>
+  <div class="sb-bot">
+    <div class="sb-prof">
+      <div class="sp-av">AY</div>
+      <div><div class="sp-name">Andika Yusof</div><div class="sp-role">Senior Recruiter</div></div>
+      <div class="sp-arr">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HERO BAND -->
+  <div class="hero">
+    <div class="h-earn">
+      <div class="h-earn-top">
+        <div class="h-earn-lbl">Total earnings</div>
+        <div class="h-earn-period">YTD 2026</div>
+      </div>
+      <div class="h-earn-num">SGD 228,500</div>
+      <div class="h-change">
+        <span class="h-up">↑ 34%</span>
+        <span class="h-base">vs Jan–Mar 2025 (SGD 170K)</span>
+      </div>
+    </div>
+    <div class="h-metrics">
+      <div class="h-met">
+        <div class="h-met-lbl">Placements YTD</div>
+        <div class="h-met-num">4</div>
+        <div class="h-met-sub">+1 this month</div>
+        <div class="h-tag ht-up">↑ On track</div>
+      </div>
+      <div class="h-met">
+        <div class="h-met-lbl">Pending reward</div>
+        <div class="h-met-num">SGD 95K</div>
+        <div class="h-met-sub">Sarah Wong · DBS</div>
+        <div class="h-tag ht-pend">Processing</div>
+      </div>
+      <div class="h-met">
+        <div class="h-met-lbl">Active mandates</div>
+        <div class="h-met-num">3</div>
+        <div class="h-met-sub">2 in final stages</div>
+        <div class="h-tag ht-new">2 new this week</div>
+      </div>
+      <div class="h-met">
+        <div class="h-met-lbl">Avg. days to place</div>
+        <div class="h-met-num">18d</div>
+        <div class="h-met-sub">Platform avg: 31d</div>
+        <div class="h-tag ht-up">Top 10%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE BODY -->
+  <div class="body">
+
+    <!-- STATS -->
+    <div class="stat-row">
+      <div class="sm">
+        <div class="sm-bar" style="background:#1A6DB5"></div>
+        <div class="sm-top"><span class="sm-ico">📋</span><span class="sm-tr tr-up">+2 this week</span></div>
+        <div class="sm-num">3</div>
+        <div class="sm-lbl">Active roles picked</div>
+      </div>
+      <div class="sm">
+        <div class="sm-bar" style="background:#4B3AA8"></div>
+        <div class="sm-top"><span class="sm-ico">👥</span><span class="sm-tr tr-up">+5 added</span></div>
+        <div class="sm-num">14</div>
+        <div class="sm-lbl">Candidates in pipeline</div>
+      </div>
+      <div class="sm">
+        <div class="sm-bar" style="background:#B85C1A"></div>
+        <div class="sm-top"><span class="sm-ico">📤</span><span class="sm-tr tr-flat">Awaiting review</span></div>
+        <div class="sm-num">2</div>
+        <div class="sm-lbl">Submitted to clients</div>
+      </div>
+      <div class="sm">
+        <div class="sm-bar" style="background:#2E7D33"></div>
+        <div class="sm-top"><span class="sm-ico">🏆</span><span class="sm-tr tr-up">SGD 95K pending</span></div>
+        <div class="sm-num">4</div>
+        <div class="sm-lbl">Total placements 2026</div>
+      </div>
+    </div>
+
+    <!-- ROW 2 -->
+    <div class="g21">
+
+      <!-- Active roles -->
+      <div class="card">
+        <div class="ch">
+          <div class="ch-t"><span class="ch-ico">◎</span> Active roles</div>
+          <div class="ch-acts">
+            <span class="cbadge cb-sea">3 active</span>
+            <button class="ch-btn">Browse more →</button>
+          </div>
+        </div>
+
+        <!-- DBS -->
+        <div class="rr">
+          <div class="rr-bar" style="background:#1A6DB5"></div>
+          <div class="rr-logo" style="background:#E8F2FB;color:#0B4F8A;border-color:#C5DFF5">DB</div>
+          <div class="rr-body">
+            <div class="rr-title">
+              Chief HR Officer
+              <span class="cbadge cb-jade" style="font-size:9px">Offer stage</span>
+              <span class="cbadge cb-gld" style="font-size:9px">⭐ Exclusive</span>
+            </div>
+            <div class="rr-co">DBS Bank · Singapore</div>
+            <div class="rr-segs">
+              <div class="seg" style="background:#2E7D33"></div>
+              <div class="seg" style="background:#2E7D33"></div>
+              <div class="seg" style="background:#2E7D33"></div>
+              <div class="seg" style="background:#2E7D33"></div>
+              <div class="seg seg-off"></div>
+            </div>
+            <div class="rr-info"><span>Offered · 7 candidates</span><span>90% to placement</span></div>
+            <div class="rr-tags">
+              <span class="rtag">C-Suite</span>
+              <span class="rtag">Finance</span>
+              <span class="rtag">18d active</span>
+            </div>
+          </div>
+          <div class="rr-right">
+            <div class="rr-rew">SGD 72–95K</div>
+            <div class="rr-day">2 submitted</div>
+            <div class="rr-cnd">Offer pending</div>
+          </div>
+        </div>
+
+        <!-- Sea Limited -->
+        <div class="rr">
+          <div class="rr-bar" style="background:#4CAF52"></div>
+          <div class="rr-logo" style="background:#EAF4EB;color:#1A4D1E;border-color:#B8DFB9">SL</div>
+          <div class="rr-body">
+            <div class="rr-title">
+              VP Engineering
+              <span class="cbadge cb-amb" style="font-size:9px">In progress</span>
+            </div>
+            <div class="rr-co">Sea Limited · Singapore</div>
+            <div class="rr-segs">
+              <div class="seg" style="background:#B85C1A"></div>
+              <div class="seg" style="background:#B85C1A"></div>
+              <div class="seg seg-off"></div>
+              <div class="seg seg-off"></div>
+              <div class="seg seg-off"></div>
+            </div>
+            <div class="rr-info"><span>Screened · 4 candidates</span><span>42% to placement</span></div>
+            <div class="rr-tags">
+              <span class="rtag">VP / Director</span>
+              <span class="rtag">Technology</span>
+              <span class="rtag">5d active</span>
+            </div>
+          </div>
+          <div class="rr-right">
+            <div class="rr-rew">SGD 35–48K</div>
+            <div class="rr-day">AI matching due</div>
+            <div class="rr-cnd">0 submitted</div>
+          </div>
+        </div>
+
+        <!-- Parkway -->
+        <div class="rr">
+          <div class="rr-bar" style="background:#E07C3A"></div>
+          <div class="rr-logo" style="background:#FDF0E8;color:#7A3B0A;border-color:#F5C49A">PP</div>
+          <div class="rr-body">
+            <div class="rr-title">
+              Chief Digital Officer
+              <span class="cbadge cb-vio" style="font-size:9px">Just started</span>
+            </div>
+            <div class="rr-co">Parkway Pantai · Singapore</div>
+            <div class="rr-segs">
+              <div class="seg" style="background:#888780"></div>
+              <div class="seg seg-off"></div>
+              <div class="seg seg-off"></div>
+              <div class="seg seg-off"></div>
+              <div class="seg seg-off"></div>
+            </div>
+            <div class="rr-info"><span>Sourced · 2 candidates</span><span>15% to placement</span></div>
+            <div class="rr-tags">
+              <span class="rtag">C-Suite</span>
+              <span class="rtag">Healthcare</span>
+              <span class="rtag">2d active</span>
+            </div>
+          </div>
+          <div class="rr-right">
+            <div class="rr-rew">SGD 57–80K</div>
+            <div class="rr-day">Upload CVs</div>
+            <div class="rr-cnd">0 submitted</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right col -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <!-- Quick actions -->
+        <div class="card">
+          <div class="ch"><div class="ch-t"><span class="ch-ico">⚡</span> Quick actions</div></div>
+          <div class="qa-grid">
+            <button class="qa">
+              <span class="qa-ico">📤</span>
+              <div class="qa-lbl">Submit to client</div>
+              <div class="qa-sub">Sarah Wong · DBS Bank</div>
+            </button>
+            <button class="qa">
+              <span class="qa-ico">⚙</span>
+              <div class="qa-lbl">Run AI matching</div>
+              <div class="qa-sub">VP Eng · Sea Limited</div>
+            </button>
+            <button class="qa">
+              <span class="qa-ico">👤</span>
+              <div class="qa-lbl">Add candidate</div>
+              <div class="qa-sub">Upload CV to any role</div>
+            </button>
+            <button class="qa">
+              <span class="qa-ico">◫</span>
+              <div class="qa-lbl">Browse new roles</div>
+              <div class="qa-sub">48 open · 5 exclusive</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="card">
+          <div class="ch">
+            <div class="ch-t"><span class="ch-ico">✓</span> Today's tasks</div>
+            <span class="cbadge cb-rub">2 urgent</span>
+          </div>
+          <div class="ti">
+            <div class="tck" onclick="toggleTask(this)"></div>
+            <div class="ttxt">Follow up with DBS on Sarah Wong offer</div>
+            <div class="tdue td-urg">Today</div>
+          </div>
+          <div class="ti">
+            <div class="tck" onclick="toggleTask(this)"></div>
+            <div class="ttxt">Upload resume for CDO candidate at Parkway</div>
+            <div class="tdue td-urg">Today</div>
+          </div>
+          <div class="ti">
+            <div class="tck" onclick="toggleTask(this)"></div>
+            <div class="ttxt">Run AI matching — VP Engineering · Sea Limited</div>
+            <div class="tdue td-sn">Tomorrow</div>
+          </div>
+          <div class="ti">
+            <div class="tck" onclick="toggleTask(this)"></div>
+            <div class="ttxt">Review Jenny Lim screening notes from call</div>
+            <div class="tdue td-nm">Mar 30</div>
+          </div>
+          <div class="ti">
+            <div class="tck done" onclick="toggleTask(this)">✓</div>
+            <div class="ttxt done">Sent outreach email to Michelle Ng</div>
+            <div class="tdue td-nm">Done</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3 -->
+    <div class="g3">
+
+      <!-- Pipeline -->
+      <div class="card">
+        <div class="ch">
+          <div class="ch-t"><span class="ch-ico">◈</span> Pipeline overview</div>
+          <button class="ch-btn">Full Kanban →</button>
+        </div>
+        <div class="pipeline">
+          <div>
+            <div class="pc-head" style="color:#888780">Sourced<span class="pc-cnt">5</span></div>
+            <div class="pc">
+              <div class="pc-name">Ahmad Malik</div>
+              <div class="pc-co">Maybank</div>
+              <div class="pc-bg"><div class="pc-fill" style="width:68%;background:#888780"></div></div>
+              <div class="pc-pct">68% match</div>
+            </div>
+            <div class="pc">
+              <div class="pc-name">Lisa Tan</div>
+              <div class="pc-co">HSBC SEA</div>
+              <div class="pc-bg"><div class="pc-fill" style="width:74%;background:#888780"></div></div>
+              <div class="pc-pct">74% match</div>
+            </div>
+          </div>
+          <div>
+            <div class="pc-head" style="color:#B85C1A">Screened<span class="pc-cnt">3</span></div>
+            <div class="pc">
+              <div class="pc-name">Patrick Chen</div>
+              <div class="pc-co">UOB</div>
+              <div class="pc-bg"><div class="pc-fill" style="width:79%;background:#B85C1A"></div></div>
+              <div class="pc-pct">79% match</div>
+            </div>
+            <div class="pc">
+              <div class="pc-name">Jenny Lim</div>
+              <div class="pc-co">Std. Chartered</div>
+              <div class="pc-bg"><div class="pc-fill" style="width:88%;background:#B85C1A"></div></div>
+              <div class="pc-pct">88% match</div>
+            </div>
+          </div>
+          <div>
+            <div class="pc-head" style="color:#1A6DB5">Interviewed<span class="pc-cnt">2</span></div>
+            <div class="pc">
+              <div class="pc-name">Michelle Ng</div>
+              <div class="pc-co">Prudential Asia</div>
+              <div class="pc-bg"><div class="pc-fill" style="width:91%;background:#1A6DB5"></div></div>
+              <div class="pc-pct">91% match</div>
+            </div>
+          </div>
+          <div>
+            <div class="pc-head" style="color:#2E7D33">Offered<span class="pc-cnt">1</span></div>
+            <div class="pc">
+              <div class="pc-name">Sarah Wong</div>
+              <div class="pc-co">OCBC Bank</div>
+              <div class="pc-bg"><div class="pc-fill" style="width:92%;background:#2E7D33"></div></div>
+              <div class="pc-pct">92% match</div>
+            </div>
+          </div>
+          <div>
+            <div class="pc-head" style="color:#2E7D33">Hired<span class="pc-cnt">1</span></div>
+            <div class="pc">
+              <div class="pc-name">Priya Sharma</div>
+              <div class="pc-co">HSBC</div>
+              <div class="pc-bg"><div class="pc-fill" style="width:87%;background:#2E7D33"></div></div>
+              <div class="pc-pct">87% match</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Earnings chart -->
+      <div class="card">
+        <div class="ch">
+          <div class="ch-t"><span class="ch-ico">◑</span> Monthly earnings — 2026</div>
+          <span class="cbadge cb-jade">57% of goal</span>
+        </div>
+        <div class="chart">
+          <div class="chart-bars">
+            <div class="bc">
+              <div class="bb" style="height:45px;background:#3589D4;border:1px solid #1A6DB5"><div class="bv">47K</div></div>
+              <div class="bl">Jan</div>
+            </div>
+            <div class="bc">
+              <div class="bb" style="height:65px;background:#3589D4;border:1px solid #1A6DB5"><div class="bv">86K</div></div>
+              <div class="bl">Feb</div>
+            </div>
+            <div class="bc">
+              <div class="bb" style="height:72px;background:#1A6DB5;border:1px solid #0B4F8A"><div class="bv">95K</div></div>
+              <div class="bl">Mar</div>
+            </div>
+            <div class="bc">
+              <div class="bb" style="height:45px;background:var(--wire);border:1px solid var(--wire2);opacity:.5"><div class="bv">60K</div></div>
+              <div class="bl">Apr</div>
+            </div>
+            <div class="bc">
+              <div class="bb" style="height:40px;background:var(--wire);border:1px solid var(--wire2);opacity:.5"><div class="bv">55K</div></div>
+              <div class="bl">May</div>
+            </div>
+            <div class="bc">
+              <div class="bb" style="height:36px;background:var(--wire);border:1px solid var(--wire2);opacity:.5"><div class="bv">48K</div></div>
+              <div class="bl">Jun</div>
+            </div>
+          </div>
+          <div class="chart-leg">
+            <div class="cl"><div class="cl-dot" style="background:#3589D4"></div>Actual</div>
+            <div class="cl"><div class="cl-dot" style="background:#1A6DB5"></div>Current month</div>
+            <div class="cl"><div class="cl-dot" style="background:var(--wire);border:1px solid var(--wire2)"></div>Projected</div>
+          </div>
+          <div class="chart-foot">
+            <div class="cf-lbl">YTD total (Jan – Mar)</div>
+            <div class="cf-num">SGD 228,500</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaderboard + Activity -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <div class="card">
+          <div class="ch">
+            <div class="ch-t"><span class="ch-ico">◒</span> Leaderboard · March</div>
+            <span class="cbadge cb-sea">Rank #3</span>
+          </div>
+          <div class="lb">
+            <div class="lb-rank gd">1</div>
+            <div class="lb-av" style="background:#FDF0E8;color:#7A3B0A">PN</div>
+            <div class="lb-name">Priya Nair</div>
+            <div class="lb-bg"><div class="lb-fill" style="width:100%;background:var(--wire2)"></div></div>
+            <div class="lb-earn">SGD 114K</div>
+          </div>
+          <div class="lb">
+            <div class="lb-rank sv">2</div>
+            <div class="lb-av" style="background:#E8F2FB;color:#0B4F8A">ML</div>
+            <div class="lb-name">Marcus Lee</div>
+            <div class="lb-bg"><div class="lb-fill" style="width:83%;background:var(--wire2)"></div></div>
+            <div class="lb-earn">SGD 95K</div>
+          </div>
+          <div class="lb you-row">
+            <div class="lb-rank br">3</div>
+            <div class="lb-av" style="background:#E8F2FB;color:#0B4F8A">AY</div>
+            <div class="lb-name you">Andika<span class="ychip">you</span></div>
+            <div class="lb-bg"><div class="lb-fill" style="width:67%;background:#1A6DB5"></div></div>
+            <div class="lb-earn you">SGD 76K</div>
+          </div>
+          <div class="lb">
+            <div class="lb-rank">4</div>
+            <div class="lb-av" style="background:#EAF4EB;color:#1A4D1E">GT</div>
+            <div class="lb-name">Grace Tan</div>
+            <div class="lb-bg"><div class="lb-fill" style="width:50%;background:var(--wire2)"></div></div>
+            <div class="lb-earn">SGD 57K</div>
+          </div>
+          <div class="lb">
+            <div class="lb-rank">5</div>
+            <div class="lb-av" style="background:#FDF0E8;color:#7A3B0A">RS</div>
+            <div class="lb-name">Raj Sharma</div>
+            <div class="lb-bg"><div class="lb-fill" style="width:33%;background:var(--wire2)"></div></div>
+            <div class="lb-earn">SGD 38K</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch">
+            <div class="ch-t"><span class="ch-ico">◐</span> Recent activity</div>
+            <span class="cbadge cb-sea">4 new</span>
+          </div>
+          <div class="ai">
+            <div class="ai-ico" style="background:#EAF4EB">🏆</div>
+            <div style="flex:1">
+              <div class="ai-txt">Sarah Wong — Offer accepted</div>
+              <div class="ai-sub">Chief HR Officer · DBS Bank</div>
+              <div class="ai-time">2 hours ago</div>
+            </div>
+            <div class="ai-right"><span class="cbadge cb-jade">SGD 95K</span></div>
+          </div>
+          <div class="ai">
+            <div class="ai-ico" style="background:#E8F2FB">💬</div>
+            <div style="flex:1">
+              <div class="ai-txt">Client feedback — DBS Bank</div>
+              <div class="ai-sub">Michelle Ng interview completed</div>
+              <div class="ai-time">Yesterday</div>
+            </div>
+            <div class="ai-right"><span class="cbadge cb-sea">Positive</span></div>
+          </div>
+          <div class="ai">
+            <div class="ai-ico" style="background:#EEE9FB">⚙</div>
+            <div style="flex:1">
+              <div class="ai-txt">AI matching completed</div>
+              <div class="ai-sub">6 candidates scored · VP Engineering</div>
+              <div class="ai-time">2 days ago</div>
+            </div>
+          </div>
+          <div class="ai">
+            <div class="ai-ico" style="background:#FDF8E1">⭐</div>
+            <div style="flex:1">
+              <div class="ai-txt">New exclusive role posted</div>
+              <div class="ai-sub">CFO · Temasek · SGD 120K reward</div>
+              <div class="ai-time">2 days ago</div>
+            </div>
+            <div class="ai-right"><span class="cbadge cb-gld">New</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+function toggleTask(el){
+  const done = el.classList.toggle('done');
+  el.textContent = done ? '✓' : '';
+  el.nextElementSibling.classList.toggle('done', done);
+}
+document.querySelectorAll('.sbi').forEach(i=>{
+  i.addEventListener('click',function(){
+    document.querySelectorAll('.sbi').forEach(x=>x.classList.remove('on'));
+    this.classList.add('on');
+  });
+});
+</script>
+</body>
+</html>

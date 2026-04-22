@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sea Search — Candidate Profiles</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0D0C0A;--ink2:#2A2926;--ink3:#454340;--ink4:#6B6860;
+  --mist:#F9F8F5;--mist2:#F2F0EC;--mist3:#E8E5DF;
+  --wire:#E0DDD6;--wire2:#C8C4BC;
+  --sea:#0B4F8A;--sea2:#1A6DB5;--sea3:#3589D4;--sea-pale:#E8F2FB;--sea-soft:#C5DFF5;
+  --jade:#1A4D1E;--jade2:#2E7D33;--jade3:#4CAF52;--jade-pale:#EAF4EB;--jade-soft:#B8DFB9;
+  --amber:#7A3B0A;--amber2:#B85C1A;--amber-pale:#FDF0E8;--amber-soft:#F5C49A;
+  --ruby:#7A1A1A;--ruby2:#B52525;--ruby-pale:#FBE8E8;--ruby-soft:#F7C1C1;
+  --violet:#2D1F6E;--violet2:#4B3AA8;--violet-pale:#EEE9FB;--violet-soft:#C4B8F0;
+  --gold:#6B4F00;--gold2:#C49A00;--gold-pale:#FDF8E1;
+  --font:'DM Sans',sans-serif;--head:'Syne',sans-serif;--mono:'DM Mono',monospace;
+  --r:10px;--rsm:6px;--rxs:4px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--mist2);color:var(--ink);display:flex;flex-direction:column}
+
+/* NAV */
+.nav{height:52px;background:var(--ink);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0;border-bottom:1px solid var(--ink2)}
+.logo{font-family:var(--head);font-size:15px;font-weight:700;color:#fff}
+.logo span{color:#3589D4}
+.nav-sep{width:1px;height:18px;background:var(--ink2)}
+.crumb{font-size:12px;color:#D4D0C8;display:flex;align-items:center;gap:5px}
+.crumb a{color:#A09E99;text-decoration:none}
+.crumb a:hover{color:#fff}
+.nav-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nav-av{width:30px;height:30px;border-radius:50%;background:var(--sea);color:#E8F2FB;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;border:1.5px solid var(--sea2)}
+
+/* SHELL */
+.shell{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:270px;background:#fff;border-right:1px solid var(--wire);display:flex;flex-direction:column;flex-shrink:0}
+.sb-head{padding:12px 14px;border-bottom:1px solid var(--wire);flex-shrink:0}
+.sb-title{font-size:12px;font-weight:500;color:var(--ink);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.sb-search{display:flex;align-items:center;gap:7px;background:var(--mist2);border:1px solid var(--wire);border-radius:var(--rsm);padding:6px 10px}
+.sb-search input{border:none;background:transparent;font-size:12px;color:var(--ink);outline:none;width:100%;font-family:var(--font)}
+.sb-search input::placeholder{color:var(--wire2)}
+.sb-body{flex:1;overflow-y:auto;padding:8px 6px}
+.sb-lbl{font-size:9px;font-weight:500;color:#C8C4BC;text-transform:uppercase;letter-spacing:.07em;padding:5px 8px 3px}
+.citem{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--rsm);cursor:pointer;border:1px solid transparent;margin-bottom:2px;transition:all .15s}
+.citem:hover{background:var(--mist2)}
+.citem.on{background:var(--sea-pale);border-color:var(--sea-soft)}
+.cav{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0}
+.cinfo{flex:1;min-width:0}
+.cname{font-size:12px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crole{font-size:10px;color:var(--ink4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cscore{font-size:11px;font-weight:500;flex-shrink:0}
+.sb-foot{padding:8px 6px;border-top:1px solid var(--wire);flex-shrink:0}
+.add-cand{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border:1.5px dashed var(--wire2);border-radius:var(--rsm);font-size:12px;color:var(--ink4);background:transparent;cursor:pointer;font-family:var(--font);transition:all .15s}
+.add-cand:hover{background:var(--mist2);border-color:var(--wire2)}
+
+/* PROFILE AREA */
+.profile-area{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+
+/* PROFILE HEADER */
+.ph{background:#fff;border-bottom:1px solid var(--wire);padding:16px 22px;flex-shrink:0}
+.ph-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.ph-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0}
+.ph-info{flex:1}
+.ph-name{font-size:17px;font-weight:500;color:var(--ink);margin-bottom:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ph-sub{font-size:12px;color:var(--ink4);margin-bottom:7px}
+.ph-chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--mist2);color:var(--ink4);border:1px solid var(--wire)}
+.ph-right{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
+.score-ring{width:62px;height:62px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2.5px solid}
+.sr-num{font-size:17px;font-weight:600;font-family:var(--head)}
+.sr-lbl{font-size:9px;color:var(--ink4);text-transform:uppercase;letter-spacing:.04em}
+.ph-actions{display:flex;gap:5px;flex-wrap:wrap}
+.pa{font-size:11px;padding:5px 11px;border-radius:var(--rsm);border:1px solid var(--wire);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font)}
+.pa:hover{background:var(--mist2)}
+.pa-blue{background:var(--sea);color:#fff;border-color:var(--sea)}
+.pa-blue:hover{background:#0B4F8A}
+
+/* UPLOAD BANNER — prominent, always visible */
+.upload-banner{background:var(--mist2);border-bottom:1px solid var(--wire);padding:10px 22px;flex-shrink:0;display:flex;align-items:center;gap:14px}
+.upload-banner.has-cv{background:var(--jade-pale);border-color:var(--jade-soft)}
+.ub-file{display:flex;align-items:center;gap:10px;flex:1}
+.ub-ico{font-size:22px;flex-shrink:0}
+.ub-text{flex:1}
+.ub-filename{font-size:12px;font-weight:500;color:var(--ink)}
+.ub-meta{font-size:11px;color:var(--ink4)}
+.ub-actions{display:flex;gap:6px;align-items:center}
+.ub-btn{font-size:11px;padding:5px 12px;border-radius:var(--rsm);border:1px solid var(--wire2);background:#fff;color:var(--ink4);cursor:pointer;font-family:var(--font)}
+.ub-btn:hover{background:var(--mist3)}
+.ub-btn-primary{background:var(--sea);color:#fff;border-color:var(--sea)}
+.ub-btn-primary:hover{background:#0B4F8A}
+.ub-btn-green{background:var(--jade2);color:#fff;border-color:var(--jade2)}
+.ub-upload-zone{flex:1;display:flex;align-items:center;gap:12px;background:#fff;border:1.5px dashed var(--wire2);border-radius:var(--rsm);padding:10px 14px;cursor:pointer;transition:all .15s}
+.ub-upload-zone:hover{border-color:var(--sea3);background:var(--sea-pale)}
+.ub-upload-zone input[type=file]{display:none}
+.ub-zone-txt{font-size:12px;font-weight:500;color:var(--ink)}
+.ub-zone-sub{font-size:11px;color:var(--ink4)}
+
+/* TABS */
+.ptabs{background:#fff;border-bottom:1px solid var(--wire);padding:0 22px;display:flex;flex-shrink:0}
+.ptab{padding:9px 14px;font-size:12px;color:var(--ink4);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.ptab:hover{color:var(--ink)}
+.ptab.on{color:var(--sea2);border-bottom-color:var(--sea3);font-weight:500}
+
+/* PANEL */
+.ppanel{display:none;padding:18px 22px}.ppanel.on{display:block}
+
+/* SHARED SECTION LABEL */
+.sec-lbl{font-size:10px;font-weight:500;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.badge{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px}
+.b-sea{background:var(--sea-pale);color:var(--sea)}
+.b-jade{background:var(--jade-pale);color:var(--jade)}
+.b-amber{background:var(--amber-pale);color:var(--amber)}
+.b-violet{background:var(--violet-pale);color:var(--violet)}
+.b-ruby{background:var(--ruby-pale);color:var(--ruby)}
+.b-gold{background:var(--gold-pale);color:var(--gold)}
+
+/* INFO GRID */
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:16px}
+.ic{background:var(--mist2);border-radius:var(--rsm);padding:9px 11px}
+.ic-lbl{font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.ic-val{font-size:12px;font-weight:500;color:var(--ink)}
+
+/* EXPERIENCE */
+.exp-item{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--wire)}
+.exp-item:last-child{border-bottom:none}
+.exp-logo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;border:1px solid var(--wire)}
+.exp-title{font-size:13px;font-weight:500;color:var(--ink)}
+.exp-co{font-size:12px;color:var(--ink4)}
+.exp-date{font-size:11px;color:#C8C4BC;margin-bottom:4px;font-family:var(--mono)}
+.exp-desc{font-size:11px;color:var(--ink4);line-height:1.65}
+
+/* EDUCATION */
+.edu-item{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--wire)}
+.edu-item:last-child{border-bottom:none}
+.edu-name{font-size:12px;font-weight:500;color:var(--ink)}
+.edu-school{font-size:11px;color:var(--ink4)}
+.edu-yr{font-size:11px;color:#C8C4BC;font-family:var(--mono)}
+
+/* SKILLS */
+.skill-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px}
+.skill{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--mist2);color:var(--ink4);border:1px solid var(--wire)}
+.skill.strong{background:var(--sea-pale);color:var(--sea);border-color:var(--sea-soft)}
+
+/* STAGE MOVER */
+.stage-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px}
+.stg-btn{font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--wire);background:#fff;color:var(--ink4);cursor:pointer;font-family:var(--font)}
+.stg-btn:hover{background:var(--mist2)}
+.stg-btn.on{background:var(--sea-pale);color:var(--sea);border-color:var(--sea-soft);font-weight:500}
+
+/* AI MATCH TAB */
+.bd-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.bd-lbl{font-size:11px;color:var(--ink4);width:120px;flex-shrink:0}
+.bd-bg{flex:1;height:5px;background:var(--mist2);border-radius:3px;border:1px solid var(--wire)}
+.bd-fill{height:5px;border-radius:3px;transition:width .6s ease}
+.bd-pct{font-size:10px;color:var(--ink4);width:28px;text-align:right;font-family:var(--mono)}
+.flag-pill{font-size:11px;padding:3px 8px;border-radius:5px;margin:2px;display:inline-flex;align-items:center;gap:4px}
+.fp-g{background:var(--jade-pale);color:var(--jade)}
+.fp-r{background:var(--ruby-pale);color:var(--ruby)}
+.ai-note{font-size:12px;color:var(--ink4);line-height:1.75;background:var(--mist2);border-left:2px solid var(--violet-soft);padding:10px 12px;border-radius:0 var(--rsm) var(--rsm) 0;margin-bottom:14px}
+
+/* NOTES */
+.note-area{width:100%;padding:9px 11px;font-size:12px;border:1px solid var(--wire);border-radius:var(--rsm);background:#fff;color:var(--ink);resize:vertical;min-height:90px;outline:none;font-family:var(--font);line-height:1.65}
+.note-area:focus{border-color:var(--sea3)}
+.note-save{font-size:11px;padding:5px 14px;border-radius:var(--rsm);border:1px solid var(--wire2);background:transparent;color:var(--sea);cursor:pointer;margin-top:6px;font-family:var(--font)}
+.tl-item{display:flex;gap:9px;padding:7px 0;border-bottom:1px solid var(--wire)}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.tl-label{font-size:12px;font-weight:500;color:var(--ink)}
+.tl-sub{font-size:11px;color:var(--ink4)}
+.tl-time{font-size:10px;color:#C8C4BC;font-family:var(--mono)}
+
+/* ── CV UPLOAD FLOW ── */
+
+/* Processing overlay */
+.processing-overlay{display:none;position:fixed;inset:0;background:rgba(13,12,10,.55);z-index:200;align-items:center;justify-content:center}
+.processing-overlay.open{display:flex}
+.proc-card{background:#fff;border-radius:var(--r);border:1px solid var(--wire);padding:28px 32px;width:100%;max-width:480px;text-align:center}
+.proc-steps{display:flex;flex-direction:column;gap:10px;margin:18px 0}
+.proc-step{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--rsm);font-size:12px;text-align:left;transition:all .3s}
+.ps-idle{background:var(--mist2);color:var(--ink4)}
+.ps-running{background:var(--sea-pale);color:var(--sea);border:1px solid var(--sea-soft)}
+.ps-done{background:var(--jade-pale);color:var(--jade);border:1px solid var(--jade-soft)}
+.ps-ico{font-size:16px;flex-shrink:0;width:24px;text-align:center}
+.ps-txt{flex:1}
+.ps-status{font-size:10px;font-family:var(--mono);flex-shrink:0}
+.proc-progress{height:4px;background:var(--mist2);border-radius:2px;margin:6px 0 14px;overflow:hidden}
+.proc-bar{height:4px;background:var(--sea3);border-radius:2px;transition:width .4s ease;width:0%}
+
+/* Parsed CV panel */
+.parsed-banner{background:var(--jade-pale);border:1px solid var(--jade-soft);border-radius:var(--rsm);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.pb-ico{font-size:18px}
+.pb-text{flex:1;font-size:12px;color:var(--jade);font-weight:500}
+.pb-sub{font-size:11px;color:var(--jade2)}
+
+/* Score reveal */
+.score-reveal{background:#fff;border:1px solid var(--wire);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.sr-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.sr-big{text-align:center;flex-shrink:0}
+.sr-big-num{font-size:42px;font-weight:700;font-family:var(--head);letter-spacing:-.03em;line-height:1}
+.sr-big-lbl{font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.sr-big-sub{font-size:11px;font-weight:500;margin-top:4px}
+.sr-summary{flex:1;font-size:12px;color:var(--ink4);line-height:1.7;background:var(--mist2);border-left:2px solid var(--violet-soft);padding:10px 12px;border-radius:0 var(--rsm) var(--rsm) 0}
+
+/* No CV state */
+.no-cv-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;text-align:center}
+.no-cv-ico{font-size:40px;margin-bottom:12px;opacity:.35}
+.no-cv-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.no-cv-sub{font-size:12px;color:var(--ink4);margin-bottom:16px;line-height:1.6}
+.no-cv-upload{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;background:var(--sea);color:#fff;border-radius:var(--rsm);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:var(--font)}
+.no-cv-upload:hover{background:#0B4F8A}
+
+/* Two col layout */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--wire2);border-radius:2px}
+
+/* Loading spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--sea-soft);border-top-color:var(--sea);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .3s ease both}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo">Sea<span>Search</span></div>
+  <div class="nav-sep"></div>
+  <div class="crumb"><a href="#">Job listings</a> › <a href="#">Chief HR Officer — DBS Bank</a> › Candidates</div>
+  <div class="nav-right">
+    <span style="font-size:11px;padding:3px 10px;background:var(--jade-pale);color:var(--jade);border-radius:20px;font-weight:500">✓ Picked by you</span>
+    <div class="nav-av">AY</div>
+  </div>
+</nav>
+
+<!-- SHELL -->
+<div class="shell">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-head">
+    <div class="sb-title">
+      <span>Candidates <span style="font-size:10px;background:var(--mist2);border:1px solid var(--wire);border-radius:10px;padding:1px 6px;font-family:var(--mono);color:var(--ink4)">7</span></span>
+      <button onclick="openAddModal()" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--sea3);background:var(--sea-pale);color:var(--sea);cursor:pointer;font-family:var(--font)">+ Add</button>
+    </div>
+    <div class="sb-search">
+      <span style="font-size:12px;color:var(--wire2)">⌕</span>
+      <input type="text" id="sbSearch" placeholder="Search candidates…" oninput="filterSidebar(this.value)">
+    </div>
+  </div>
+  <div class="sb-body">
+    <div class="sb-lbl">Strong matches (80%+)</div>
+    <div id="sb-strong"></div>
+    <div class="sb-lbl" style="margin-top:6px">Moderate matches</div>
+    <div id="sb-moderate"></div>
+  </div>
+  <div class="sb-foot">
+    <button class="add-cand" onclick="openAddModal()">📄 Upload CV &amp; add candidate</button>
+  </div>
+</div>
+
+<!-- PROFILE AREA -->
+<div class="profile-area" id="profileArea">
+  <!-- rendered by JS -->
+</div>
+
+</div><!-- /shell -->
+
+<!-- PROCESSING OVERLAY -->
+<div class="processing-overlay" id="procOverlay">
+  <div class="proc-card">
+    <div style="font-size:15px;font-weight:500;color:var(--ink);margin-bottom:4px" id="procTitle">Processing CV…</div>
+    <div style="font-size:12px;color:var(--ink4)" id="procSub">Please wait while we extract and score this candidate</div>
+    <div class="proc-progress"><div class="proc-bar" id="procBar"></div></div>
+    <div class="proc-steps">
+      <div class="proc-step ps-idle" id="ps1"><span class="ps-ico">📄</span><span class="ps-txt">Reading and parsing CV content</span><span class="ps-status" id="ps1s">Waiting</span></div>
+      <div class="proc-step ps-idle" id="ps2"><span class="ps-ico">⚙</span><span class="ps-txt">Extracting skills, experience &amp; education</span><span class="ps-status" id="ps2s">Waiting</span></div>
+      <div class="proc-step ps-idle" id="ps3"><span class="ps-ico">🧠</span><span class="ps-txt">AI matching against role requirements</span><span class="ps-status" id="ps3s">Waiting</span></div>
+      <div class="proc-step ps-idle" id="ps4"><span class="ps-ico">📊</span><span class="ps-txt">Generating match score &amp; recruiter brief</span><span class="ps-status" id="ps4s">Waiting</span></div>
+    </div>
+    <div style="font-size:11px;color:var(--ink4)" id="procNote">Powered by Claude AI</div>
+  </div>
+</div>
+
+<!-- ADD CANDIDATE MODAL -->
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:var(--r);border:1px solid var(--wire);padding:22px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:500">Add new candidate</div>
+      <button onclick="closeAddModal()" style="font-size:16px;cursor:pointer;background:none;border:none;color:var(--ink4)">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px">
+      <div><div style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">First name</div><input id="newFirst" type="text" placeholder="Sarah" style="width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font)"></div>
+      <div><div style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Last name</div><input id="newLast" type="text" placeholder="Wong" style="width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font)"></div>
+    </div>
+    <div style="margin-bottom:9px"><div style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Current role &amp; company</div><input id="newRole" type="text" placeholder="CHRO, OCBC Bank" style="width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font)"></div>
+    <div style="margin-bottom:9px"><div style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Email</div><input type="email" placeholder="sarah@email.com" style="width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font)"></div>
+    <div style="margin-bottom:14px"><div style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">LinkedIn URL</div><input type="text" placeholder="linkedin.com/in/sarahwong" style="width:100%;padding:8px 10px;font-size:12px;border:1px solid var(--wire2);border-radius:var(--rsm);background:#fff;color:var(--ink);outline:none;font-family:var(--font)"></div>
+
+    <!-- CV UPLOAD — prominent -->
+    <div style="background:var(--mist2);border:1.5px dashed var(--wire2);border-radius:var(--rsm);padding:16px;text-align:center;cursor:pointer;margin-bottom:14px;transition:all .15s" id="modalUploadZone" onclick="triggerModalUpload()">
+      <div style="font-size:24px;margin-bottom:6px">📄</div>
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:3px" id="modalUploadLabel">Upload CV (PDF or DOCX)</div>
+      <div style="font-size:11px;color:var(--ink4)" id="modalUploadSub">Claude will auto-parse skills, experience &amp; education, then score against the role</div>
+      <input type="file" id="modalFileInput" accept=".pdf,.doc,.docx" style="display:none" onchange="handleModalFile(this)">
+      <div id="modalFileName" style="margin-top:8px;font-size:11px;color:var(--jade);display:none"></div>
+    </div>
+
+    <div style="background:var(--violet-pale);border:1px solid var(--violet-soft);border-radius:var(--rsm);padding:9px 12px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start">
+      <span style="font-size:14px">⚙</span>
+      <div style="font-size:11px;color:var(--violet)"><strong style="font-weight:500">What happens after upload:</strong><br>Claude reads the CV → extracts all structured data → scores the candidate against Chief HR Officer requirements → generates a match breakdown and recruiter brief automatically.</div>
+    </div>
+
+    <button onclick="submitNewCandidate()" style="width:100%;padding:9px;font-size:12px;font-weight:500;border-radius:var(--rsm);border:none;background:var(--sea);color:#fff;cursor:pointer;font-family:var(--font);margin-bottom:6px">Add candidate &amp; run AI analysis</button>
+    <button onclick="closeAddModal()" style="width:100%;padding:7px;font-size:12px;border-radius:var(--rsm);border:1px solid var(--wire);background:transparent;color:var(--ink4);cursor:pointer;font-family:var(--font)">Cancel</button>
+  </div>
+</div>
+
+<script>
+var activeId = 1;
+var activeTab = 'profile';
+var modalFileChosen = false;
+
+var candidates = [
+  {id:1,initials:'SW',bg:'#E8F2FB',col:'#0B4F8A',name:'Sarah Wong',role:'CHRO',company:'OCBC Bank',location:'Singapore',email:'sarah.wong@email.com',phone:'+65 9123 4567',linkedin:'linkedin.com/in/sarahwong',years:22,score:92,tier:'strong',stage:'Offered',hasCv:true,cvName:'Sarah_Wong_CV_2026.pdf',cvSize:'1.2 MB',cvDate:'Uploaded 2 days ago',
+   breakdown:{Experience:95,Industry:90,Scope:95,Leadership:92,'Digital HR':85},
+   skills:['HR strategy','Talent acquisition','Org design','HR transformation','Workday','SAP SuccessFactors','Succession planning','Comp & benefits','Board reporting','Change management'],
+   strongSkills:['HR transformation','Workday','Succession planning','Board reporting'],
+   greenFlags:['22 yrs HR leadership','CHRO at Tier-1 bank','18-market regional scope','Board succession experience'],
+   redFlags:['Possible OCBC non-compete'],
+   aiSummary:'Sarah is an exceptional fit. Her tenure as CHRO at OCBC maps almost perfectly to the DBS mandate — peer institution, comparable scale, and direct banking sector experience. Primary risk is a potential non-compete clause from OCBC that should be clarified before progressing to final offer stage.',
+   experience:[{title:'Chief HR Officer',company:'OCBC Bank',date:'2018 – Present · 7 yrs',logo:'OC',logoBg:'#E8F2FB',logoCol:'#0B4F8A',desc:'Led HR for 30,000 employees across 15 markets. Drove full HRIS transformation to Workday. Chaired Board People Committee.'},{title:'Group HR Director',company:'Standard Chartered',date:'2013 – 2018 · 5 yrs',logo:'SC',logoBg:'#EEE9FB',logoCol:'#2D1F6E',desc:'Regional HR Director for SEA covering 8 markets. Led talent management and leadership development programmes.'},{title:'HR Vice President',company:'DBS Bank',date:'2009 – 2013 · 4 yrs',logo:'DB',logoBg:'#EAF4EB',logoCol:'#1A4D1E',desc:'VP HR for Consumer Banking division. Led org redesign and compensation benchmarking.'}],
+   education:[{name:'MBA — Human Resources',school:'INSEAD',year:'2005'},{name:'BA Business Administration',school:'NUS',year:'2001'}],
+   notes:'Met at HR Leaders Summit 2025. Very receptive to a new challenge. Strong relationship with DBS CEO from industry events.',
+   timeline:[{txt:'Offer letter sent',sub:'DBS Bank',time:'Today',color:'#2E7D33'},{txt:'Interview feedback submitted',sub:'DBS hiring panel',time:'2 days ago',color:'#3589D4'},{txt:'AI match score generated',sub:'Score: 92%',time:'4 days ago',color:'#4B3AA8'},{txt:'CV uploaded & parsed',sub:'Profile auto-extracted',time:'5 days ago',color:'#B85C1A'},{txt:'Profile created',sub:'Added to pipeline',time:'1 week ago',color:'#888780'}]},
+  {id:2,initials:'MN',bg:'#EEE9FB',col:'#2D1F6E',name:'Michelle Ng',role:'CHRO',company:'Prudential Asia',location:'Singapore',email:'michelle.ng@email.com',phone:'+65 9234 5678',linkedin:'linkedin.com/in/michelleng',years:19,score:91,tier:'strong',stage:'Interviewed',hasCv:true,cvName:'Michelle_Ng_Resume.pdf',cvSize:'980 KB',cvDate:'Uploaded 3 days ago',
+   breakdown:{Experience:90,Industry:85,Scope:92,Leadership:95,'Digital HR':88},
+   skills:['Leadership development','Culture transformation','HRIS','Succession planning','Stakeholder management','Employer branding','D&I strategy','Performance management'],
+   strongSkills:['Leadership development','Culture transformation','Succession planning'],
+   greenFlags:['Board-level stakeholder exp','19 yrs progressive HR','Strong culture transformation track record'],
+   redFlags:['Insurance vs banking background'],
+   aiSummary:'Michelle is a near-perfect match with exceptional leadership credentials. Her background at Prudential spans 12 markets in Asia and she has driven large-scale people transformation. The only nuance is her insurance vs. pure banking background — however, financial services pedigree and regulatory familiarity make this a minor gap.',
+   experience:[{title:'Chief HR Officer',company:'Prudential Asia',date:'2016 – Present · 9 yrs',logo:'PR',logoBg:'#EEE9FB',logoCol:'#2D1F6E',desc:'CHRO for 20,000 employees across 12 Asian markets. Led transformation of HR operating model and digital people strategy.'},{title:'HR Director SEA',company:'AIA Group',date:'2011 – 2016 · 5 yrs',logo:'AI',logoBg:'#FDF0E8',logoCol:'#7A3B0A',desc:'Regional HR Director covering SEA. Built and scaled talent acquisition function across 6 markets.'}],
+   education:[{name:'MSc HR Management',school:'London School of Economics',year:'2006'},{name:'BA Psychology',school:'NTU Singapore',year:'2003'}],
+   notes:'Interviewed well. Strong culture credentials. Client loved her approach to transformation. Awaiting feedback from DBS panel.',
+   timeline:[{txt:'Client interview completed',sub:'DBS Bank',time:'Yesterday',color:'#3589D4'},{txt:'AI match score generated',sub:'Score: 91%',time:'3 days ago',color:'#4B3AA8'},{txt:'CV uploaded & parsed',sub:'Profile auto-extracted',time:'4 days ago',color:'#B85C1A'},{txt:'Profile created',sub:'Added to pipeline',time:'5 days ago',color:'#888780'}]},
+  {id:3,initials:'JL',bg:'#EAF4EB',col:'#1A4D1E',name:'Jenny Lim',role:'CHRO Asia',company:'Standard Chartered',location:'Singapore',email:'jenny.lim@email.com',phone:'+65 9345 6789',linkedin:'linkedin.com/in/jennylim',years:20,score:88,tier:'strong',stage:'Screened',hasCv:false,cvName:'',cvSize:'',cvDate:'',
+   breakdown:{Experience:88,Industry:95,Scope:85,Leadership:88,'Digital HR':80},
+   skills:['Banking HR','Regulatory compliance','Compensation','Talent pipeline','Multi-market HR','Performance management'],
+   strongSkills:['Banking HR','Regulatory compliance'],
+   greenFlags:['Direct banking CHRO exp','Multi-market Asia exposure'],
+   redFlags:['Team size smaller than DBS scope'],
+   aiSummary:'Jenny brings direct banking CHRO experience from Standard Chartered. The scope gap (SCB Asia ~20K vs DBS 40K employees) is bridgeable with a strong onboarding support structure.',
+   experience:[{title:'CHRO Asia',company:'Standard Chartered',date:'2019 – Present · 6 yrs',logo:'SC',logoBg:'#EEE9FB',logoCol:'#2D1F6E',desc:'CHRO for Asia region covering 12 markets, 20,000 employees. Led regulatory talent compliance and digital HR roadmap.'},{title:'Head of HR SEA',company:'Citi',date:'2014 – 2019 · 5 yrs',logo:'CI',logoBg:'#E8F2FB',logoCol:'#0B4F8A',desc:'Head of HR for Southeast Asia region. Built HRBP model and led compensation harmonisation across 8 countries.'}],
+   education:[{name:'MBA',school:'Melbourne Business School',year:'2007'},{name:'BA Economics',school:'NUS',year:'2003'}],
+   notes:'No CV on file — follow up urgently. Screened via phone call. Very strong responses to scenario questions.',
+   timeline:[{txt:'Phone screen completed',sub:'Positive outcome',time:'3 days ago',color:'#B85C1A'},{txt:'Profile created',sub:'No CV yet',time:'5 days ago',color:'#888780'}]},
+  {id:4,initials:'RK',bg:'#FDF0E8',col:'#7A3B0A',name:'Ravi Kumar',role:'VP HR',company:'Citi Singapore',location:'Singapore',email:'ravi.kumar@email.com',phone:'+65 9456 7890',linkedin:'linkedin.com/in/ravikumar',years:16,score:81,tier:'strong',stage:'Sourced',hasCv:true,cvName:'Ravi_Kumar_CV.pdf',cvSize:'750 KB',cvDate:'Uploaded 5 days ago',
+   breakdown:{Experience:80,Industry:88,Scope:78,Leadership:82,'Digital HR':82},
+   skills:['Digital HR','Workday implementation','Talent strategy','HR analytics','Banking HR','Learning & development'],
+   strongSkills:['Digital HR','Workday implementation','HR analytics'],
+   greenFlags:['Strong banking pedigree','Digital HR transformation exp'],
+   redFlags:['VP not CHRO level yet','Smaller regional footprint'],
+   aiSummary:'Ravi is one level below CHRO. His Citi credentials and digital HR capabilities are impressive. Recommend positioning as a high-potential stretch candidate.',
+   experience:[{title:'VP Human Resources',company:'Citi Singapore',date:'2017 – Present · 8 yrs',logo:'CI',logoBg:'#E8F2FB',logoCol:'#0B4F8A',desc:'VP HR for Institutional Clients Group SEA. Led Workday implementation and HR analytics platform build.'},{title:'Senior HR Manager',company:'HSBC',date:'2012 – 2017 · 5 yrs',logo:'HS',logoBg:'#FBE8E8',logoCol:'#7A1A1A',desc:'Senior HR Manager for Global Banking division. Led graduate recruitment and talent pipeline programmes.'}],
+   education:[{name:'MSc Organisational Psychology',school:'University of Manchester',year:'2008'},{name:'BCom',school:'University of Delhi',year:'2005'}],
+   notes:'Sourced via LinkedIn. Has not been approached yet — reach out this week.',
+   timeline:[{txt:'AI match score generated',sub:'Score: 81%',time:'5 days ago',color:'#4B3AA8'},{txt:'CV uploaded & parsed',sub:'Profile auto-extracted',time:'5 days ago',color:'#B85C1A'},{txt:'Profile created',sub:'Added to pipeline',time:'6 days ago',color:'#888780'}]},
+  {id:5,initials:'PC',bg:'#E8F2FB',col:'#0B4F8A',name:'Patrick Chen',role:'Global HR VP',company:'UOB',location:'Singapore',email:'patrick.chen@email.com',phone:'+65 9567 8901',linkedin:'linkedin.com/in/patrickchen',years:17,score:79,tier:'moderate',stage:'Screened',hasCv:true,cvName:'Patrick_Chen_CV.pdf',cvSize:'620 KB',cvDate:'Uploaded 1 week ago',
+   breakdown:{Experience:78,Industry:90,Scope:75,Leadership:78,'Digital HR':72},
+   skills:['Compensation & benefits','Banking HR','Talent management','Performance management','HRBP'],
+   strongSkills:['Compensation & benefits','Banking HR'],
+   greenFlags:['UOB banking background','Strong comp & benefits depth'],
+   redFlags:['SG-centric scope','No CHRO title held'],
+   aiSummary:'Patrick has solid banking HR fundamentals but scope has been largely SG-centric. Best positioned as a backup candidate.',
+   experience:[{title:'Global HR VP',company:'UOB',date:'2015 – Present · 10 yrs',logo:'UO',logoBg:'#FDF0E8',logoCol:'#7A3B0A',desc:'Global VP HR for Group Technology and Operations. Led compensation harmonisation across SG, MY, TH.'}],
+   education:[{name:'BA HRM',school:'SMU',year:'2006'}],
+   notes:'Backup candidate. Screened — decent but not top of the list.',
+   timeline:[{txt:'Phone screen completed',sub:'Adequate',time:'4 days ago',color:'#B85C1A'},{txt:'Profile created',sub:'Added to pipeline',time:'1 week ago',color:'#888780'}]},
+  {id:6,initials:'LT',bg:'#FAECE7',col:'#993C1D',name:'Lisa Tan',role:'HR Director',company:'HSBC SEA',location:'Singapore',email:'lisa.tan@email.com',phone:'+65 9678 9012',linkedin:'linkedin.com/in/listatan',years:14,score:74,tier:'moderate',stage:'Sourced',hasCv:false,cvName:'',cvSize:'',cvDate:'',
+   breakdown:{Experience:72,Industry:85,Scope:70,Leadership:74,'Digital HR':75},
+   skills:['Talent acquisition','HSBC HR','Financial services','L&D','Employer branding'],
+   strongSkills:['Talent acquisition'],
+   greenFlags:['HSBC financial services background'],
+   redFlags:['Director not CHRO level','No board exposure'],
+   aiSummary:'Lisa has a solid financial services foundation but is at Director level — a significant stretch for this CHRO mandate. Better suited for Head of HR at a smaller institution.',
+   experience:[{title:'HR Director SEA',company:'HSBC',date:'2018 – Present · 7 yrs',logo:'HS',logoBg:'#FAECE7',logoCol:'#993C1D',desc:'HR Director for HSBC SEA region. Led talent acquisition and employer branding across 5 markets.'}],
+   education:[{name:'BA Psychology',school:'NUS',year:'2009'}],
+   notes:'Long shot for this role. Keep for future Director-level mandates.',
+   timeline:[{txt:'Profile created',sub:'Sourced via LinkedIn',time:'6 days ago',color:'#888780'}]},
+  {id:7,initials:'AM',bg:'#F1EFE8',col:'#444441',name:'Ahmad Malik',role:'Head of HR',company:'Maybank',location:'Malaysia',email:'ahmad.malik@email.com',phone:'+60 12 345 6789',linkedin:'linkedin.com/in/ahmadmalik',years:13,score:68,tier:'moderate',stage:'Sourced',hasCv:false,cvName:'',cvSize:'',cvDate:'',
+   breakdown:{Experience:65,Industry:75,Scope:60,Leadership:70,'Digital HR':60},
+   skills:['Banking HR','Malaysia market','Talent management','Compliance'],
+   strongSkills:['Malaysia market'],
+   greenFlags:['Banking sector experience','MY market knowledge'],
+   redFlags:['Malaysia-only scope','No board exposure','Gap too large for CHRO'],
+   aiSummary:'Ahmad has banking HR experience but his scope is primarily Malaysia-focused and seniority falls short of CHRO requirements. Not recommended for this mandate.',
+   experience:[{title:'Head of HR',company:'Maybank',date:'2016 – Present · 9 yrs',logo:'MB',logoBg:'#F1EFE8',logoCol:'#444441',desc:'Head of HR for Maybank Group Malaysia. Manages HR operations for 8,000 employees.'}],
+   education:[{name:'BBA Human Resources',school:'University of Malaya',year:'2010'}],
+   notes:'Not suitable for this role. Consider for future MY-based mandates.',
+   timeline:[{txt:'Profile created',sub:'Added to pipeline',time:'1 week ago',color:'#888780'}]}
+];
+
+var bdColors={Experience:'#3589D4',Industry:'#2E7D33',Scope:'#4B3AA8',Leadership:'#B85C1A','Digital HR':'#1A9E75'};
+var stages=['Sourced','Screened','Interviewed','Offered','Hired'];
+
+function renderSidebar(filter){
+  filter = filter||'';
+  var f = filter.toLowerCase();
+  function mkItem(c){
+    var scoreCol = c.score>=80?'#2E7D33':c.score>=60?'#B85C1A':'#B52525';
+    return '<div class="citem'+(c.id===activeId?' on':'')+'" onclick="selectCandidate('+c.id+')">'
+      +'<div class="cav" style="background:'+c.bg+';color:'+c.col+'">'+c.initials+'</div>'
+      +'<div class="cinfo"><div class="cname">'+c.name+'</div><div class="crole">'+c.role+', '+c.company+'</div></div>'
+      +'<div class="cscore" style="color:'+scoreCol+'">'+c.score+'%</div>'
+      +'</div>';
+  }
+  var strong = candidates.filter(c=>c.tier==='strong'&&(c.name.toLowerCase().includes(f)||c.company.toLowerCase().includes(f)));
+  var mod = candidates.filter(c=>c.tier==='moderate'&&(c.name.toLowerCase().includes(f)||c.company.toLowerCase().includes(f)));
+  document.getElementById('sb-strong').innerHTML = strong.map(mkItem).join('');
+  document.getElementById('sb-moderate').innerHTML = mod.map(mkItem).join('');
+}
+
+function filterSidebar(v){ renderSidebar(v); }
+
+function selectCandidate(id){
+  activeId = id;
+  activeTab = 'profile';
+  renderSidebar(document.getElementById('sbSearch').value);
+  renderProfile();
+}
+
+function renderProfile(){
+  var c = candidates.find(x=>x.id===activeId);
+  var scoreCol = c.score>=80?'#1A4D1E':c.score>=60?'#7A3B0A':'#7A1A1A';
+  var scoreBorder = c.score>=80?'#B8DFB9':c.score>=60?'#F5C49A':'#F7C1C1';
+  var scoreBg = c.score>=80?'#EAF4EB':c.score>=60?'#FDF0E8':'#FBE8E8';
+
+  var uploadBannerHTML = c.hasCv
+    ? '<div class="upload-banner has-cv">'
+      +'<div class="ub-file">'
+      +'<div class="ub-ico">📄</div>'
+      +'<div class="ub-text">'
+      +'<div class="ub-filename">'+c.cvName+'</div>'
+      +'<div class="ub-meta">'+c.cvSize+' · '+c.cvDate+' · AI parsed ✓</div>'
+      +'</div></div>'
+      +'<div class="ub-actions">'
+      +'<button class="ub-btn" onclick="triggerCvUpload('+c.id+')">Replace CV</button>'
+      +'<button class="ub-btn" style="color:var(--sea);border-color:var(--sea-soft)">View CV</button>'
+      +'<button class="ub-btn" style="color:var(--jade);border-color:var(--jade-soft)">Download</button>'
+      +'</div></div>'
+    : '<div class="upload-banner">'
+      +'<label class="ub-upload-zone" onclick="triggerCvUpload('+c.id+')">'
+      +'<div class="ub-ico">📤</div>'
+      +'<div>'
+      +'<div class="ub-zone-txt">Upload CV to unlock AI parsing &amp; match scoring</div>'
+      +'<div class="ub-zone-sub">PDF or DOCX · Claude will extract profile data and score against the role</div>'
+      +'</div>'
+      +'<button class="ub-btn-primary ub-btn" style="margin-left:auto;white-space:nowrap">Upload CV →</button>'
+      +'</label>'
+      +'</div>';
+
+  var html = '<div class="ph">'
+    +'<div class="ph-top">'
+    +'<div class="ph-av" style="background:'+c.bg+';color:'+c.col+'">'+c.initials+'</div>'
+    +'<div class="ph-info">'
+    +'<div class="ph-name">'+c.name+' <span class="badge b-'+(c.score>=80?'jade':'amber')+'">'+c.score+'% match</span> <span class="badge b-sea">'+c.stage+'</span>'+(c.hasCv?'<span class="badge" style="background:var(--jade-pale);color:var(--jade);font-size:9px">📄 CV on file</span>':'<span class="badge b-ruby" style="font-size:9px">⚠ No CV</span>')+'</div>'
+    +'<div class="ph-sub">'+c.role+' — '+c.company+' · '+c.location+' · '+c.years+' yrs experience</div>'
+    +'<div class="ph-chips"><span class="chip">✉ '+c.email+'</span><span class="chip">☏ '+c.phone+'</span><span class="chip">↗ '+c.linkedin+'</span></div>'
+    +'</div>'
+    +'<div class="ph-right">'
+    +'<div class="score-ring" style="border-color:'+scoreBorder+';background:'+scoreBg+'">'
+    +'<div class="sr-num" style="color:'+scoreCol+'">'+c.score+'%</div>'
+    +'<div class="sr-lbl">AI match</div>'
+    +'</div>'
+    +'<div class="ph-actions">'
+    +'<button class="pa" onclick="alert(\'Drafting outreach for '+c.name+'…\')">Draft email</button>'
+    +'<button class="pa" onclick="alert(\'Generating interview questions for '+c.name+'…\')">Interview Qs</button>'
+    +'<button class="pa pa-blue">+ Shortlist</button>'
+    +'</div></div></div></div>'
+
+    + uploadBannerHTML
+
+    +'<div class="ptabs">'
+    +'<div class="ptab'+(activeTab==='profile'?' on':'')+'" onclick="switchTab(\'profile\',this)">Profile</div>'
+    +'<div class="ptab'+(activeTab==='resume'?' on':'')+'" onclick="switchTab(\'resume\',this)">CV &amp; Parsing</div>'
+    +'<div class="ptab'+(activeTab==='aimatch'?' on':'')+'" onclick="switchTab(\'aimatch\',this)">AI match</div>'
+    +'<div class="ptab'+(activeTab==='notes'?' on':'')+'" onclick="switchTab(\'notes\',this)">Notes</div>'
+    +'</div>';
+
+  // PROFILE TAB
+  html += '<div class="ppanel'+(activeTab==='profile'?' on':'')+'" id="pp-profile">';
+  html += '<div class="sec-lbl" style="margin-bottom:6px">Move stage</div>';
+  html += '<div class="stage-row">';
+  stages.forEach(s=>{ html += '<button class="stg-btn'+(s===c.stage?' on':'')+'" onclick="moveStage(\''+s+'\')">'+s+'</button>'; });
+  html += '</div>';
+  html += '<div class="sec-lbl">Contact details</div>';
+  html += '<div class="info-grid">';
+  html += '<div class="ic"><div class="ic-lbl">Email</div><div class="ic-val" style="font-size:11px">'+c.email+'</div></div>';
+  html += '<div class="ic"><div class="ic-lbl">Phone</div><div class="ic-val">'+c.phone+'</div></div>';
+  html += '<div class="ic"><div class="ic-lbl">Location</div><div class="ic-val">'+c.location+'</div></div>';
+  html += '<div class="ic"><div class="ic-lbl">LinkedIn</div><div class="ic-val" style="color:var(--sea);font-size:11px">'+c.linkedin+'</div></div>';
+  html += '<div class="ic"><div class="ic-lbl">Experience</div><div class="ic-val">'+c.years+' years</div></div>';
+  html += '<div class="ic"><div class="ic-lbl">Stage</div><div class="ic-val" style="color:var(--sea2)">'+c.stage+'</div></div>';
+  html += '</div>';
+  html += '<div class="sec-lbl">Work experience</div><div style="margin-bottom:16px">';
+  c.experience.forEach(e=>{
+    html += '<div class="exp-item"><div class="exp-logo" style="background:'+e.logoBg+';color:'+e.logoCol+'">'+e.logo+'</div><div><div class="exp-title">'+e.title+'</div><div class="exp-co">'+e.company+'</div><div class="exp-date">'+e.date+'</div><div class="exp-desc">'+e.desc+'</div></div></div>';
+  });
+  html += '</div>';
+  html += '<div class="sec-lbl">Education</div><div style="margin-bottom:16px">';
+  c.education.forEach(e=>{
+    html += '<div class="edu-item"><div><div class="edu-name">'+e.name+'</div><div class="edu-school">'+e.school+'</div></div><div class="edu-yr">'+e.year+'</div></div>';
+  });
+  html += '</div>';
+  html += '<div class="sec-lbl">Skills &amp; competencies</div><div class="skill-wrap">';
+  c.skills.forEach(s=>{ html += '<span class="skill'+(c.strongSkills.includes(s)?' strong':'')+'" >'+s+'</span>'; });
+  html += '</div></div>';
+
+  // CV & PARSING TAB
+  html += '<div class="ppanel'+(activeTab==='resume'?' on':'')+'" id="pp-resume">';
+  if(c.hasCv){
+    html += '<div class="parsed-banner"><div class="pb-ico">⚙</div><div><div class="pb-text">AI extraction complete — all profile data parsed from CV</div><div class="pb-sub">Skills, experience, education, seniority, and key achievements have been auto-extracted.</div></div></div>';
+    html += '<div class="score-reveal fade-in">';
+    html += '<div class="sr-top">';
+    html += '<div class="sr-big"><div class="sr-big-num" style="color:'+(c.score>=80?'#1A4D1E':c.score>=60?'#7A3B0A':'#7A1A1A')+'">'+c.score+'%</div><div class="sr-big-lbl">AI match score</div><div class="sr-big-sub" style="color:'+(c.score>=80?'#2E7D33':'#B85C1A')+'">'+(c.score>=80?'Strong match':c.score>=60?'Moderate match':'Weak match')+'</div></div>';
+    html += '<div class="sr-summary">'+c.aiSummary+'</div>';
+    html += '</div>';
+    html += '<div style="margin-top:10px">';
+    Object.entries(c.breakdown).forEach(([k,v])=>{
+      html += '<div class="bd-row"><div class="bd-lbl">'+k+'</div><div class="bd-bg"><div class="bd-fill" style="width:'+v+'%;background:'+(bdColors[k]||'#3589D4')+'"></div></div><div class="bd-pct">'+v+'%</div></div>';
+    });
+    html += '</div></div>';
+    html += '<div class="two-col">';
+    html += '<div><div class="sec-lbl">Green flags extracted from CV</div><div>';
+    c.greenFlags.forEach(f=>{ html += '<div class="flag-pill fp-g">✓ '+f+'</div>'; });
+    html += '</div></div>';
+    html += '<div><div class="sec-lbl">Risk flags identified</div><div>';
+    if(c.redFlags.length){ c.redFlags.forEach(f=>{ html += '<div class="flag-pill fp-r">✕ '+f+'</div>'; }); }
+    else { html += '<span style="font-size:12px;color:var(--ink4)">No red flags identified</span>'; }
+    html += '</div></div></div>';
+    html += '<div class="sec-lbl" style="margin-bottom:6px">CV file</div>';
+    html += '<div style="display:flex;align-items:center;gap:12px;background:var(--mist2);border:1px solid var(--wire);border-radius:var(--rsm);padding:11px 14px;margin-bottom:10px">';
+    html += '<span style="font-size:22px">📄</span><div><div style="font-size:13px;font-weight:500">'+c.cvName+'</div><div style="font-size:11px;color:var(--ink4)">'+c.cvSize+' · '+c.cvDate+'</div></div>';
+    html += '<div style="margin-left:auto;display:flex;gap:6px"><button class="ub-btn" onclick="triggerCvUpload('+c.id+')">Replace</button><button class="ub-btn" style="color:var(--sea);border-color:var(--sea-soft)">View</button></div></div>';
+  } else {
+    html += '<div class="no-cv-state">';
+    html += '<div class="no-cv-ico">📄</div>';
+    html += '<div class="no-cv-title">No CV uploaded yet</div>';
+    html += '<div class="no-cv-sub">Upload a CV to unlock AI parsing and automatic match scoring.<br>Claude will extract skills, experience, education, and generate a detailed recruiter brief.</div>';
+    html += '<button class="no-cv-upload" onclick="triggerCvUpload('+c.id+')">📤 Upload CV now</button>';
+    html += '</div>';
+    html += '<div style="background:var(--violet-pale);border:1px solid var(--violet-soft);border-radius:var(--rsm);padding:12px 14px;margin-top:14px">';
+    html += '<div style="font-size:11px;font-weight:500;color:var(--violet);margin-bottom:8px">⚙ What AI extraction does automatically:</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">';
+    ['Full work history','Education & qualifications','Skills & competencies','Certifications & languages','Years of experience','Seniority level','Industry background','Key achievements','AI match score','Green & red flag analysis'].forEach(item=>{
+      html += '<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--violet2)"><span style="color:var(--jade2)">✓</span>'+item+'</div>';
+    });
+    html += '</div></div>';
+  }
+  html += '</div>';
+
+  // AI MATCH TAB
+  html += '<div class="ppanel'+(activeTab==='aimatch'?' on':'')+'" id="pp-aimatch">';
+  if(c.hasCv){
+    html += '<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:16px">';
+    html += '<div style="width:80px;height:80px;border-radius:50%;border:3px solid '+(c.score>=80?'#B8DFB9':c.score>=60?'#F5C49A':'#F7C1C1')+';background:'+(c.score>=80?'#EAF4EB':c.score>=60?'#FDF0E8':'#FBE8E8')+';display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">';
+    html += '<div style="font-size:24px;font-weight:700;color:'+scoreCol+';font-family:var(--head)">'+c.score+'%</div><div style="font-size:9px;color:var(--ink4);text-transform:uppercase;letter-spacing:.04em">match</div></div>';
+    html += '<div style="flex:1"><div class="sec-lbl" style="margin-bottom:8px">Match breakdown vs Chief HR Officer — DBS Bank</div>';
+    Object.entries(c.breakdown).forEach(([k,v])=>{
+      html += '<div class="bd-row"><div class="bd-lbl">'+k+'</div><div class="bd-bg"><div class="bd-fill" style="width:'+v+'%;background:'+(bdColors[k]||'#3589D4')+'"></div></div><div class="bd-pct">'+v+'%</div></div>';
+    });
+    html += '</div></div>';
+    html += '<div class="two-col">';
+    html += '<div><div class="sec-lbl">Green flags</div><div>';
+    c.greenFlags.forEach(f=>{ html += '<div class="flag-pill fp-g" style="margin-bottom:4px">✓ '+f+'</div>'; });
+    html += '</div></div>';
+    html += '<div><div class="sec-lbl">Red flags</div><div>';
+    if(c.redFlags.length){ c.redFlags.forEach(f=>{ html += '<div class="flag-pill fp-r" style="margin-bottom:4px">✕ '+f+'</div>'; }); }
+    else { html += '<span style="font-size:12px;color:var(--ink4)">No red flags</span>'; }
+    html += '</div></div></div>';
+    html += '<div class="sec-lbl" style="margin-bottom:6px">AI recruiter summary</div>';
+    html += '<div class="ai-note">'+c.aiSummary+'</div>';
+    html += '<div style="display:flex;gap:7px">';
+    html += '<button class="pa pa-blue" onclick="alert(\'Generating interview questions for '+c.name+'…\')">Generate interview questions</button>';
+    html += '<button class="pa" onclick="alert(\'Drafting outreach for '+c.name+'…\')">Draft outreach email</button>';
+    html += '</div>';
+  } else {
+    html += '<div class="no-cv-state"><div class="no-cv-ico">🧠</div><div class="no-cv-title">Upload a CV to generate AI match score</div><div class="no-cv-sub">The AI matching engine requires a CV to analyse. Upload one to get a score breakdown, green/red flags, and a full recruiter brief.</div><button class="no-cv-upload" onclick="triggerCvUpload('+c.id+')">📤 Upload CV to score</button></div>';
+  }
+  html += '</div>';
+
+  // NOTES TAB
+  html += '<div class="ppanel'+(activeTab==='notes'?' on':'')+'" id="pp-notes">';
+  html += '<div class="sec-lbl" style="margin-bottom:5px">Recruiter notes</div>';
+  html += '<textarea class="note-area" id="noteArea" placeholder="Add your notes…">'+c.notes+'</textarea>';
+  html += '<button class="note-save" onclick="saveNote()">Save note</button>';
+  html += '<div style="margin-top:16px;border-top:1px solid var(--wire);padding-top:14px">';
+  html += '<div class="sec-lbl" style="margin-bottom:8px">Activity timeline</div>';
+  c.timeline.forEach(t=>{
+    html += '<div class="tl-item"><div class="tl-dot" style="background:'+t.color+'"></div><div style="flex:1"><div class="tl-label">'+t.txt+'</div><div class="tl-sub">'+t.sub+'</div><div class="tl-time">'+t.time+'</div></div></div>';
+  });
+  html += '</div></div>';
+
+  document.getElementById('profileArea').innerHTML = html;
+}
+
+function switchTab(tab, el){
+  activeTab = tab;
+  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.ppanel').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('pp-'+tab).classList.add('on');
+}
+
+function moveStage(s){
+  candidates.find(x=>x.id===activeId).stage = s;
+  renderProfile();
+}
+
+function saveNote(){
+  var c = candidates.find(x=>x.id===activeId);
+  c.notes = document.getElementById('noteArea').value;
+  var btn = document.querySelector('.note-save');
+  btn.textContent = 'Saved ✓';
+  setTimeout(()=>btn.textContent='Save note', 1500);
+}
+
+/* ── CV UPLOAD FLOW ── */
+function triggerCvUpload(id){
+  var inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.pdf,.doc,.docx';
+  inp.onchange = function(){ handleCvFile(id, this.files[0]); };
+  inp.click();
+}
+
+function handleCvFile(id, file){
+  if(!file) return;
+  runCvProcessing(id, file.name, (Math.round(file.size/1024)+' KB'));
+}
+
+function runCvProcessing(id, filename, filesize){
+  var overlay = document.getElementById('procOverlay');
+  var bar = document.getElementById('procBar');
+  overlay.classList.add('open');
+
+  var steps = [
+    {id:'ps1', label:'Reading and parsing CV content', icon:'📄', done:'CV read successfully'},
+    {id:'ps2', label:'Extracting skills, experience & education', icon:'⚙', done:'Profile data extracted'},
+    {id:'ps3', label:'AI matching against role requirements', icon:'🧠', done:'Match analysis complete'},
+    {id:'ps4', label:'Generating match score & recruiter brief', icon:'📊', done:'Score & brief ready'}
+  ];
+
+  // Reset all steps
+  steps.forEach(s=>{
+    var el = document.getElementById(s.id);
+    el.className = 'proc-step ps-idle';
+    el.querySelector('.ps-status').textContent = 'Waiting';
+  });
+  bar.style.width = '0%';
+
+  var delays = [400, 1200, 2200, 3400];
+  var doneTimes = [1100, 2100, 3300, 4300];
+
+  steps.forEach((s,i)=>{
+    setTimeout(()=>{
+      document.getElementById(s.id).className = 'proc-step ps-running';
+      document.getElementById(s.id+' .ps-status') ;
+      document.getElementById(s.id).querySelector('.ps-status').textContent = i===2?'Claude AI…':'Processing…';
+      bar.style.width = ((i+1)/steps.length*85)+'%';
+    }, delays[i]);
+
+    setTimeout(()=>{
+      document.getElementById(s.id).className = 'proc-step ps-done';
+      document.getElementById(s.id).querySelector('.ps-status').textContent = '✓ Done';
+      bar.style.width = ((i+1)/steps.length*100)+'%';
+    }, doneTimes[i]);
+  });
+
+  // Finish
+  setTimeout(()=>{
+    overlay.classList.remove('open');
+    // Update candidate
+    var c = candidates.find(x=>x.id===id);
+    c.hasCv = true;
+    c.cvName = filename || 'CV_uploaded.pdf';
+    c.cvSize = filesize || 'Unknown';
+    c.cvDate = 'Just uploaded';
+    c.timeline.unshift(
+      {txt:'CV uploaded & AI analysis complete',sub:'Score: '+c.score+'%',time:'Just now',color:'#4B3AA8'},
+      {txt:'CV file uploaded',sub:c.cvName,time:'Just now',color:'#B85C1A'}
+    );
+    activeTab = 'resume';
+    renderSidebar(document.getElementById('sbSearch').value);
+    renderProfile();
+  }, 5000);
+}
+
+/* ── ADD CANDIDATE MODAL ── */
+function triggerModalUpload(){
+  document.getElementById('modalFileInput').click();
+}
+function handleModalFile(inp){
+  if(!inp.files[0]) return;
+  modalFileChosen = true;
+  var fn = document.getElementById('modalFileName');
+  fn.textContent = '📄 '+inp.files[0].name+' selected';
+  fn.style.display = 'block';
+  document.getElementById('modalUploadZone').style.borderColor = '#2E7D33';
+  document.getElementById('modalUploadLabel').textContent = 'CV selected ✓';
+}
+
+function submitNewCandidate(){
+  var first = document.getElementById('newFirst').value.trim();
+  var last = document.getElementById('newLast').value.trim();
+  var role = document.getElementById('newRole').value.trim();
+  if(!first){ alert('Please enter a first name.'); return; }
+  closeAddModal();
+  // Add placeholder candidate
+  var newId = candidates.length+1;
+  var initials = (first[0]+(last[0]||'')).toUpperCase();
+  candidates.push({
+    id:newId,initials:initials,bg:'#F2F0EC',col:'#454340',
+    name:(first+' '+last).trim(),role:role.split(',')[0]||'Unknown',
+    company:role.split(',')[1]||'Unknown',location:'Singapore',
+    email:'',phone:'',linkedin:'',years:0,score:0,tier:'moderate',stage:'Sourced',
+    hasCv:false,cvName:'',cvSize:'',cvDate:'',
+    breakdown:{Experience:0,Industry:0,Scope:0,Leadership:0,'Digital HR':0},
+    skills:[],strongSkills:[],greenFlags:[],redFlags:[],
+    aiSummary:'Upload a CV to generate AI match analysis.',
+    experience:[],education:[],
+    notes:'Newly added candidate — awaiting CV upload for AI analysis.',
+    timeline:[{txt:'Profile created',sub:'Added to pipeline',time:'Just now',color:'#888780'}]
+  });
+  activeId = newId;
+  activeTab = 'profile';
+  renderSidebar('');
+  renderProfile();
+  // Auto-trigger CV upload if file was chosen in modal
+  if(modalFileChosen){
+    var file = document.getElementById('modalFileInput').files[0];
+    setTimeout(()=>runCvProcessing(newId, file?file.name:'CV.pdf', file?Math.round(file.size/1024)+' KB':'—'), 300);
+  }
+  modalFileChosen = false;
+}
+
+function openAddModal(){
+  document.getElementById('addModal').style.display = 'flex';
+  document.getElementById('newFirst').value='';
+  document.getElementById('newLast').value='';
+  document.getElementById('newRole').value='';
+  document.getElementById('modalFileName').style.display='none';
+  document.getElementById('modalUploadLabel').textContent='Upload CV (PDF or DOCX)';
+  document.getElementById('modalUploadZone').style.borderColor='';
+  modalFileChosen=false;
+}
+function closeAddModal(){ document.getElementById('addModal').style.display='none'; }
+document.getElementById('addModal').addEventListener('click',function(e){if(e.target===this)closeAddModal();});
+
+// Init
+renderSidebar('');
+renderProfile();
+</script>
+</body>
+</html>
