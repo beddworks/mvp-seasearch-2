@@ -36,7 +36,7 @@ class HandleInertiaRequests extends Middleware
         $unreadNotifications = $user
             ? DB::table('notifications')
                 ->where('user_id', $user->id)
-                ->where('is_read', false)
+                ->whereNull('read_at')
                 ->count()
             : 0;
 
@@ -56,10 +56,6 @@ class HandleInertiaRequests extends Middleware
                 'error'   => $request->session()->get('error'),
             ],
             'unread_notifications' => $unreadNotifications,
-        ];
-    }
-}
-
         ];
     }
 }

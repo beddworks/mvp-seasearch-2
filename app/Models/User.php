@@ -47,4 +47,29 @@ class User extends Authenticatable
             'password'          => 'hashed',
         ];
     }
+
+    public function recruiter()
+    {
+        return $this->hasOne(Recruiter::class);
+    }
+
+    public function client()
+    {
+        return $this->hasOne(Client::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin']);
+    }
+
+    public function isRecruiter(): bool
+    {
+        return $this->role === 'recruiter';
+    }
+
+    public function isClient(): bool
+    {
+        return $this->role === 'client';
+    }
 }
