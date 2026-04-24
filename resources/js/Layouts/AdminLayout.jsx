@@ -6,7 +6,7 @@ const NAV_ITEMS = [
     { icon: '📋', label: 'Roles',    route: 'admin.mandates.index' },
     { icon: '🏢', label: 'Clients',     route: 'admin.clients.index' },
     { icon: '◉', label: 'Recruiters', route: 'admin.recruiters.index' },
-    { icon: '🔑', label: 'Claims',     route: 'admin.claims.index' },
+    { icon: '🔑', label: 'Claims Roles Request',     route: 'admin.claims.index' },
     { icon: '📥', label: 'Submissions', route: 'admin.submissions.index' },
     { icon: '⚙', label: 'Config',     route: 'admin.compensation-types.index' },
     { icon: '⏱', label: 'Timers',     route: 'admin.timer-config' },

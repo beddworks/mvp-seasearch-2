@@ -17,45 +17,23 @@ class MandateController extends Controller
     public function index(Request $request)
     {
         $recruiter = Auth::user()->recruiter;
+        if (!$recruiter) abort(403);
+
         $tab = $request->get('tab', 'all');
-        $q   = $request->get('q', '');
 
-        $query = Mandate::with('client')
-            ->where('status', 'active');
+        $query = MandateClaim::with('mandate.client')
+            ->where('recruiter_id', $recruiter->id);
 
-        // Tab filters
-        if ($tab === 'exclusive')   $query->where('is_exclusive', true);
-        if ($tab === 'remote')      $query->where('is_remote', true);
-        if ($tab === 'multi')       $query->where('openings_count', '>', 1);
-        if ($tab === 'featured')    $query->where('is_featured', true);
+        if ($tab === 'pending')  $query->where('status', 'pending');
+        if ($tab === 'approved') $query->where('status', 'approved');
+        if ($tab === 'rejected') $query->where('status', 'rejected');
 
-        // Search
-        if ($q) {
-            $query->where(function ($q2) use ($q) {
-                $q2->where('title', 'like', "%$q%")
-                   ->orWhere('industry', 'like', "%$q%")
-                   ->orWhereHas('client', fn($c) => $c->where('company_name', 'like', "%$q%"));
-            });
-        }
-
-        // Industry / location filters
-        if ($request->industry) $query->where('industry', $request->industry);
-        if ($request->seniority) $query->where('seniority', $request->seniority);
-
-        $mandates = $query->orderByDesc('is_featured')->orderByDesc('created_at')->paginate(20)->withQueryString();
-
-        // IDs the recruiter already claimed
-        $myClaimIds = $recruiter
-            ? MandateClaim::where('recruiter_id', $recruiter->id)->pluck('mandate_id')->all()
-            : [];
+        $claims = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
 
         return Inertia::render('Recruiter/Mandates/Index', [
-            'mandates'    => $mandates,
-            'myClaimIds'  => $myClaimIds,
-            'tab'         => $tab,
-            'q'           => $q,
-            'filters'     => $request->only('industry', 'seniority'),
-            'atCapacity'  => $recruiter ? $recruiter->active_mandates_count >= 2 : true,
+            'claims'     => $claims,
+            'tab'        => $tab,
+            'atCapacity' => $recruiter->active_mandates_count >= 2,
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Recruiter extends Model
@@ -35,5 +36,15 @@ class Recruiter extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function claims(): HasMany
+    {
+        return $this->hasMany(MandateClaim::class);
+    }
+
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(CddSubmission::class);
     }
 }

@@ -5,7 +5,7 @@ const NAV_ITEMS = [
     { key: 'dashboard',  icon: '▦', label: 'Dashboard',         route: 'recruiter.dashboard' },
     { key: 'mandates',   icon: '◫', label: 'Job listings',       route: 'recruiter.mandates.index' },
     { key: 'candidates', icon: '◉', label: 'Candidate profiles', route: 'recruiter.candidates.index' },
-    { key: 'earnings',   icon: '◈', label: 'Earnings',           route: 'recruiter.earnings.index' },
+    // { key: 'earnings',   icon: '◈', label: 'Earnings',           route: 'recruiter.earnings.index' },
 ]
 
 export default function RecruiterLayout({ children, breadcrumb = null, noPadding = false }) {
@@ -54,9 +54,9 @@ export default function RecruiterLayout({ children, breadcrumb = null, noPadding
                     />
                 ))}
 
-                <div style={{ height: 1, background: 'var(--ink2)', margin: '8px 14px' }} />
+                {/* <div style={{ height: 1, background: 'var(--ink2)', margin: '8px 14px' }} /> */}
 
-                <NavBtn icon="🔔" label="Notifications" href={route('recruiter.notifications.index')} badge={unread_notifications > 0 ? unread_notifications : null} active={isActive('recruiter.notifications.index')} />
+                {/* <NavBtn icon="🔔" label="Notifications" href={route('recruiter.notifications.index')} badge={unread_notifications > 0 ? unread_notifications : null} active={isActive('recruiter.notifications.index')} /> */}
 
                 {/* Bottom: user + logout */}
                 <div style={{ marginTop: 'auto', padding: '10px 12px 4px', borderTop: '1px solid var(--ink2)' }}>

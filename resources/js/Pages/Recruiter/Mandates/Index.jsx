@@ -1,191 +1,312 @@
-import { useState } from 'react'
-import { router, usePage } from '@inertiajs/react'
+import { router, usePage, Link } from '@inertiajs/react'
 import RecruiterLayout from '@/Layouts/RecruiterLayout'
 
+// ─── constants ────────────────────────────────────────────────────────────────
+
 const TABS = [
-    { key: 'all',      icon: '⊞', label: 'All Jobs' },
-    { key: 'featured', icon: '⭐', label: 'Featured' },
-    { key: 'exclusive',icon: '🏅', label: 'Exclusive' },
-    { key: 'remote',   icon: '🏠', label: 'Remote' },
-    { key: 'multi',    icon: '👥', label: 'Multi-hire' },
+    { key: 'all',      label: 'All' },
+    { key: 'approved', label: 'Active' },
+    { key: 'pending',  label: 'Pending approval' },
+    { key: 'rejected', label: 'Rejected' },
 ]
 
-const SENIORITY_LABELS = { c_suite: 'C-Suite', vp_director: 'VP / Director', manager: 'Manager', ic: 'IC' }
-
-function seniorityBadgeColor(s) {
-    if (s === 'c_suite') return 'var(--amber2)'
-    if (s === 'vp_director') return 'var(--violet2)'
-    if (s === 'manager') return 'var(--sea2)'
-    return 'var(--ink4)'
+const CLAIM_STATUS = {
+    approved: { label: 'Active',           cls: 'badge badge-jade'   },
+    pending:  { label: 'Pending approval', cls: 'badge badge-amber'  },
+    rejected: { label: 'Rejected',         cls: 'badge badge-ruby'   },
 }
 
-export default function MandatesIndex({ mandates, myClaimIds, tab, q, filters, atCapacity }) {
+const CONTRACT = { full_time: 'Full-time', contract: 'Contract', part_time: 'Part-time', interim: 'Interim' }
+
+const SENIORITY = {
+    c_suite:     { label: 'C-Suite',       cls: 'badge badge-amber'  },
+    vp_director: { label: 'VP / Director', cls: 'badge badge-violet' },
+    manager:     { label: 'Manager',       cls: 'badge badge-sea'    },
+    ic:          { label: 'IC',            cls: 'badge badge-sea'    },
+}
+
+const IND_LOGO = {
+    Finance:    { bg: '#E8F2FB', color: '#0B4F8A', border: '#C5DFF5' },
+    Technology: { bg: '#EEE9FB', color: '#2D1F6E', border: '#C4B8F0' },
+    Healthcare: { bg: '#FBE8E8', color: '#7A1A1A', border: '#F7C1C1' },
+    FMCG:       { bg: '#FDF0E8', color: '#7A3B0A', border: '#F5C49A' },
+    Consulting: { bg: '#EEE9FB', color: '#2D1F6E', border: '#C4B8F0' },
+    _default:   { bg: '#F2F0EC', color: '#6B6860', border: '#E0DDD6' },
+}
+
+const IND_BAR = {
+    Finance: '#1A6DB5', Technology: '#4B3AA8', Healthcare: '#B52525',
+    FMCG: '#4CAF52', Consulting: '#4B3AA8', _default: '#1A6DB5',
+}
+
+// ─── helpers ──────────────────────────────────────────────────────────────────
+
+function coInitials(name) {
+    return (name || '').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??'
+}
+
+function fmtPosted(iso) {
+    if (!iso) return null
+    const days = Math.floor((Date.now() - new Date(iso)) / 86_400_000)
+    if (days === 0) return 'Posted today'
+    if (days === 1) return 'Posted 1d ago'
+    if (days < 7)   return `Posted ${days}d ago`
+    if (days < 14)  return 'Posted 1w ago'
+    return `Posted ${Math.floor(days / 7)}w ago`
+}
+
+function fmtK(n) {
+    if (n == null) return '?'
+    const v = Math.round(Number(n))
+    return v >= 1000 ? `${Math.round(v / 1000)}K` : String(v)
+}
+
+function calcReward(m) {
+    if (m.reward_min && m.reward_max) return { min: Number(m.reward_min), max: Number(m.reward_max) }
+    if (m.salary_min && m.salary_max && m.reward_pct) {
+        const p = Number(m.reward_pct)
+        return { min: Math.round(Number(m.salary_min) * p), max: Math.round(Number(m.salary_max) * p) }
+    }
+    return null
+}
+
+// ─── main page ────────────────────────────────────────────────────────────────
+
+export default function MandatesIndex({ claims, tab, atCapacity }) {
     const { flash } = usePage().props
-    const [search, setSearch] = useState(q || '')
-
-    function applyTab(t) {
-        router.get(route('recruiter.mandates.index'), { tab: t, q: search, ...filters }, { preserveState: true })
-    }
-
-    function applySearch(e) {
-        e.preventDefault()
-        router.get(route('recruiter.mandates.index'), { tab, q: search, ...filters }, { preserveState: true })
-    }
-
-    function applyFilter(key, val) {
-        router.get(route('recruiter.mandates.index'), { tab, q: search, ...filters, [key]: val }, { preserveState: true })
-    }
 
     return (
         <RecruiterLayout>
-            <div className="page-content">
-                {/* Flash */}
-                {flash?.success && (
-                    <div style={{ background: 'var(--jade-pale)', border: '1px solid var(--jade3)', borderRadius: 8, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: 'var(--jade2)' }}>
-                        {flash.success}
-                    </div>
-                )}
-                {flash?.error && (
-                    <div style={{ background: 'var(--ruby-pale, #fbe8e8)', border: '1px solid var(--ruby2)', borderRadius: 8, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: 'var(--ruby2)' }}>
-                        {flash.error}
-                    </div>
-                )}
+            <div style={{ padding: 24 }}>
 
-                {/* Header */}
-                <div className="page-head">
+                {flash?.success && <Flash color="jade">{flash.success}</Flash>}
+                {flash?.error   && <Flash color="ruby">{flash.error}</Flash>}
+
+                {/* header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
                     <div>
-                        <div className="page-title">Job listings</div>
-                        <div className="page-sub">{mandates.total} open mandates · pick up to 2 roles</div>
+                        <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-.02em' }}>
+                            My roles
+                        </div>
+                        <div style={{ fontSize: 13, color: 'var(--ink4)', marginTop: 3 }}>
+                            Mandates you have picked · {claims.total} role{claims.total !== 1 ? 's' : ''}
+                        </div>
                     </div>
-                    {atCapacity && (
-                        <span className="badge badge-amber" style={{ fontSize: 12 }}>At capacity (2/2)</span>
-                    )}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {atCapacity && <span className="badge badge-amber" style={{ fontSize: 12 }}>At capacity (2/2)</span>}
+                        <Link href={route('public.roles')} className="btn btn-primary btn-sm">
+                            Browse all roles →
+                        </Link>
+                    </div>
                 </div>
 
-                {/* Tab filters */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+                {/* tabs */}
+                <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid var(--wire)', paddingBottom: 0 }}>
                     {TABS.map(t => (
-                        <button key={t.key} onClick={() => applyTab(t.key)} style={{
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                            padding: '8px 14px', border: `1px solid ${tab === t.key ? 'var(--sea3)' : 'var(--wire)'}`,
-                            borderRadius: 10, cursor: 'pointer', background: tab === t.key ? 'var(--sea-pale)' : '#fff',
-                            minWidth: 76,
-                        }}>
-                            <span style={{ fontSize: 15 }}>{t.icon}</span>
-                            <span style={{ fontSize: 10, color: tab === t.key ? 'var(--sea2)' : 'var(--ink4)', whiteSpace: 'nowrap' }}>{t.label}</span>
+                        <button key={t.key} onClick={() => router.get(route('recruiter.mandates.index'), { tab: t.key }, { preserveState: true })}
+                            style={{
+                                padding: '7px 14px', fontSize: 12, border: 'none', borderBottom: `2px solid ${tab === t.key ? 'var(--sea2)' : 'transparent'}`,
+                                background: 'transparent', color: tab === t.key ? 'var(--sea2)' : 'var(--ink4)',
+                                cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: tab === t.key ? 500 : 400,
+                                marginBottom: -1,
+                            }}>
+                            {t.label}
                         </button>
                     ))}
                 </div>
 
-                {/* Search + filters */}
-                <form onSubmit={applySearch} style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--wire2)', borderRadius: 6, padding: '0 12px', background: '#fff', height: 36 }}>
-                        <span style={{ color: 'var(--wire2)' }}>⌕</span>
-                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search title, company, keyword…" style={{ border: 'none', background: 'transparent', fontSize: 13, color: 'var(--ink)', fontFamily: 'var(--font)', width: '100%', outline: 'none' }} />
-                    </div>
-                    <button type="submit" className="btn btn-primary btn-sm">Search</button>
-                </form>
-
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-                    <select className="form-input" style={{ padding: '5px 10px', fontSize: 12, maxWidth: 160 }} value={filters?.industry || ''} onChange={e => applyFilter('industry', e.target.value)}>
-                        <option value="">All industries</option>
-                        {['Technology','Finance','Healthcare','FMCG','Consulting'].map(i => <option key={i} value={i}>{i}</option>)}
-                    </select>
-                    <select className="form-input" style={{ padding: '5px 10px', fontSize: 12, maxWidth: 160 }} value={filters?.seniority || ''} onChange={e => applyFilter('seniority', e.target.value)}>
-                        <option value="">All seniority</option>
-                        {Object.entries(SENIORITY_LABELS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
-                    </select>
-                </div>
-
-                <div style={{ fontSize: 12, color: 'var(--ink4)', marginBottom: 12 }}>{mandates.total} roles found</div>
-
-                {/* Job cards */}
+                {/* claim cards */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {mandates.data.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: 48, color: 'var(--ink4)', fontSize: 14 }}>No mandates found.</div>
+                    {claims.data.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: 64, color: 'var(--ink4)', fontSize: 14 }}>
+                            <div style={{ fontSize: 32, marginBottom: 12 }}>📋</div>
+                            <div style={{ fontWeight: 500, color: 'var(--ink)', marginBottom: 6 }}>No roles yet</div>
+                            <div style={{ marginBottom: 20 }}>You haven't picked any roles. Browse the job listings to get started.</div>
+                            <Link href={route('public.roles')} className="btn btn-primary btn-sm">Browse roles</Link>
+                        </div>
                     )}
-                    {mandates.data.map(m => {
-                        const claimed = myClaimIds.includes(m.id)
-                        const co = m.client?.company_name || '—'
-                        const initials2 = co.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-                        return (
-                            <div key={m.id} style={{
-                                background: '#fff', border: `${m.is_featured ? '1.5px' : '1px'} solid ${m.is_featured ? 'var(--sea3)' : 'var(--wire)'}`,
-                                borderRadius: 10, padding: '16px 18px', position: 'relative', overflow: 'hidden',
-                            }}>
-                                {m.is_featured && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'var(--sea2)' }} />}
-                                <div style={{ display: 'flex', gap: 12 }}>
-                                    {/* Logo */}
-                                    <div style={{ width: 46, height: 46, borderRadius: 10, background: 'var(--sea-pale)', color: 'var(--sea)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 500, flexShrink: 0, border: '1px solid var(--wire)' }}>
-                                        {initials2}
-                                    </div>
-
-                                    {/* Body */}
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 2 }}>{co}</div>
-                                        <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--ink)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--jade3)', flexShrink: 0, display: 'inline-block' }} />
-                                            {m.title}
-                                            {m.is_featured && <span className="badge badge-sea" style={{ fontSize: 10 }}>Featured</span>}
-                                            {m.is_exclusive && <span className="badge badge-gold" style={{ fontSize: 10 }}>⭐ Exclusive</span>}
-                                        </div>
-                                        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 8 }}>
-                                            {m.location && <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'var(--mist2)', color: 'var(--ink4)', border: '1px solid var(--wire)' }}>📍 {m.location}</span>}
-                                            {m.salary_min && <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'var(--mist2)', color: 'var(--ink4)', border: '1px solid var(--wire)' }}>💰 {m.salary_currency} {Number(m.salary_min).toLocaleString()}–{Number(m.salary_max).toLocaleString()}</span>}
-                                            <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'var(--mist2)', color: 'var(--ink4)', border: '1px solid var(--wire)' }}>👥 {m.openings_count} opening{m.openings_count > 1 ? 's' : ''}</span>
-                                            {m.seniority && <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: 'var(--mist2)', color: seniorityBadgeColor(m.seniority), fontWeight: 500 }}>{SENIORITY_LABELS[m.seniority]}</span>}
-                                            {m.industry && <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: 'var(--sea-pale)', color: 'var(--sea2)', fontWeight: 500 }}>{m.industry}</span>}
-                                        </div>
-                                        {m.description && <div style={{ fontSize: 12, color: 'var(--ink4)', lineHeight: 1.65, marginBottom: 8 }}>{m.description.substring(0, 180)}{m.description.length > 180 ? '…' : ''}</div>}
-                                    </div>
-
-                                    {/* Right: reward + pick */}
-                                    <div style={{ minWidth: 180, textAlign: 'right', borderLeft: '1px solid var(--wire)', paddingLeft: 16, flexShrink: 0 }}>
-                                        {m.reward_pct && (
-                                            <>
-                                                <div style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 1 }}>Base hire reward</div>
-                                                <div style={{ fontSize: 13, color: 'var(--ink)', marginBottom: 1 }}>
-                                                    {m.salary_min ? `${m.salary_currency} ${Math.round(m.salary_min * m.reward_pct).toLocaleString()}–${Math.round(m.salary_max * m.reward_pct).toLocaleString()}` : '—'}
-                                                </div>
-                                                <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 8 }}>{Math.round(m.reward_pct * 100)}% of first year salary</div>
-                                            </>
-                                        )}
-                                        <div style={{ height: 1, background: 'var(--wire)', margin: '6px 0' }} />
-                                        <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink4)', marginBottom: 2 }}>Openings</div>
-                                        <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-head)', marginBottom: 10 }}>{m.openings_count}×</div>
-
-                                        {claimed ? (
-                                            <a href={route('recruiter.mandates.workspace', m.id)} style={{ display: 'block', width: '100%', padding: '6px 0', fontSize: 11, fontWeight: 500, border: '1px solid var(--jade3)', borderRadius: 6, background: 'var(--jade-pale)', color: 'var(--jade2)', textAlign: 'center', textDecoration: 'none' }}>
-                                                Open workspace →
-                                            </a>
-                                        ) : atCapacity ? (
-                                            <button disabled style={{ width: '100%', padding: '6px 0', fontSize: 11, border: '1px solid var(--wire2)', borderRadius: 6, background: 'var(--mist2)', color: 'var(--ink4)', cursor: 'not-allowed', fontFamily: 'var(--font)' }}>
-                                                At capacity
-                                            </button>
-                                        ) : (
-                                            <a href={route('recruiter.mandates.pick', m.id)} style={{ display: 'block', width: '100%', padding: '6px 0', fontSize: 11, fontWeight: 500, border: '1px solid var(--sea3)', borderRadius: 6, background: 'transparent', color: 'var(--sea2)', textAlign: 'center', textDecoration: 'none' }}>
-                                                Pick this role →
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    })}
+                    {claims.data.map(claim => (
+                        <ClaimCard key={claim.id} claim={claim} />
+                    ))}
                 </div>
 
-                {/* Pagination */}
-                {mandates.last_page > 1 && (
+                {/* pagination */}
+                {claims.last_page > 1 && (
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
-                        {mandates.links.map((link, i) => (
-                            <button key={i} disabled={!link.url} onClick={() => link.url && router.get(link.url)}
+                        {claims.links.map((link, i) => (
+                            <button key={i} disabled={!link.url}
+                                onClick={() => link.url && router.get(link.url)}
                                 dangerouslySetInnerHTML={{ __html: link.label }}
-                                style={{ padding: '5px 10px', fontSize: 12, border: '1px solid var(--wire2)', borderRadius: 6, background: link.active ? 'var(--sea2)' : '#fff', color: link.active ? '#fff' : 'var(--ink)', cursor: link.url ? 'pointer' : 'default', fontFamily: 'var(--font)' }}
+                                style={{
+                                    padding: '5px 10px', fontSize: 12, border: '1px solid var(--wire2)',
+                                    borderRadius: 6, background: link.active ? 'var(--sea2)' : '#fff',
+                                    color: link.active ? '#fff' : 'var(--ink)', cursor: link.url ? 'pointer' : 'default',
+                                    fontFamily: 'var(--font)',
+                                }}
                             />
                         ))}
                     </div>
                 )}
             </div>
         </RecruiterLayout>
+    )
+}
+
+// ─── ClaimCard ────────────────────────────────────────────────────────────────
+
+function ClaimCard({ claim }) {
+    const m        = claim.mandate
+    if (!m) return null
+    const co       = m.client?.company_name || '—'
+    const logo     = IND_LOGO[m.industry] || IND_LOGO._default
+    const bar      = IND_BAR[m.industry]  || IND_BAR._default
+    const reward   = calcReward(m)
+    const sen      = SENIORITY[m.seniority]
+    const pct      = m.reward_pct ? (Number(m.reward_pct) * 100).toFixed(1).replace(/\.0$/, '') : null
+    const openings = m.openings_count || 1
+    const totalMin = reward ? reward.min * openings : null
+    const totalMax = reward ? reward.max * openings : null
+    const posted   = fmtPosted(m.published_at)
+    const status   = CLAIM_STATUS[claim.status] || CLAIM_STATUS.pending
+
+    const tags = [
+        ...(Array.isArray(m.must_haves) ? m.must_haves.slice(0, 3) : []),
+        posted,
+    ].filter(Boolean)
+
+    return (
+        <div style={{
+            background: '#fff',
+            border: `1px solid ${claim.status === 'approved' ? 'var(--jade-soft)' : claim.status === 'rejected' ? '#F7C1C1' : 'var(--wire)'}`,
+            borderRadius: 10, padding: '16px 18px',
+            position: 'relative', overflow: 'hidden',
+        }}>
+            {/* accent bar */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: bar }} />
+
+            <div style={{ display: 'flex', gap: 12 }}>
+                {/* logo */}
+                <div style={{
+                    width: 46, height: 46, borderRadius: 10, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 12, fontWeight: 500,
+                    background: logo.bg, color: logo.color, border: `1px solid ${logo.border}`,
+                }}>
+                    {coInitials(co)}
+                </div>
+
+                {/* body */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 2 }}>{co}</div>
+
+                    <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--ink)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4CAF52', flexShrink: 0, display: 'inline-block' }} />
+                        {m.title}
+                        <span className={status.cls} style={{ fontSize: 10 }}>{status.label}</span>
+                        {m.is_featured  && <span className="badge badge-sea"  style={{ fontSize: 10 }}>Featured</span>}
+                        {m.is_exclusive && <span className="badge badge-gold" style={{ fontSize: 10 }}>⭐ Exclusive</span>}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 8 }}>
+                        {m.contract_type && <Chip>💼 {CONTRACT[m.contract_type] || m.contract_type}</Chip>}
+                        {m.location      && <Chip>📍 {m.location}</Chip>}
+                        {m.salary_min && m.salary_max && (
+                            <Chip>💰 {m.salary_currency} {fmtK(m.salary_min)} – {fmtK(m.salary_max)}</Chip>
+                        )}
+                        <Chip>👥 {openings} opening{openings !== 1 ? 's' : ''}</Chip>
+                        {sen && <span className={sen.cls} style={{ fontSize: 10 }}>{sen.label}</span>}
+                        {m.industry && <span className="badge badge-sea" style={{ fontSize: 10 }}>{m.industry}</span>}
+                    </div>
+
+                    {m.description && (
+                        <div style={{ fontSize: 12, color: 'var(--ink4)', lineHeight: 1.65, marginBottom: 8 }}>
+                            {m.description.length > 180 ? m.description.slice(0, 180) + '…' : m.description}
+                        </div>
+                    )}
+
+                    {tags.length > 0 && (
+                        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                            {tags.map((t, i) => (
+                                <span key={i} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: 'var(--mist2)', color: 'var(--ink4)', border: '1px solid var(--wire)' }}>
+                                    {t}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* right panel */}
+                <div style={{ minWidth: 190, textAlign: 'right', borderLeft: '1px solid var(--wire)', paddingLeft: 16, flexShrink: 0 }}>
+                    {reward ? (
+                        <>
+                            <div style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 1 }}>Base hire reward</div>
+                            <div style={{ fontSize: 13, color: 'var(--ink)', marginBottom: 1 }}>
+                                {m.salary_currency} {fmtK(reward.min)} – {fmtK(reward.max)}
+                            </div>
+                            {pct && <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 8 }}>{pct}% of first year salary</div>}
+                        </>
+                    ) : (
+                        <>
+                            <div style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 1 }}>Reward</div>
+                            <div style={{ fontSize: 13, color: 'var(--ink)', marginBottom: 8 }}>TBD</div>
+                        </>
+                    )}
+
+                    <div style={{ height: 1, background: 'var(--wire)', margin: '6px 0' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink4)', padding: '1px 0' }}>
+                        <span>Roles</span><span>{openings}×</span>
+                    </div>
+                    <div style={{ height: 1, background: 'var(--wire)', margin: '6px 0' }} />
+                    <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink4)', marginTop: 6, marginBottom: 2 }}>Total base reward</div>
+                    <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-head)' }}>
+                        {totalMin ? `${m.salary_currency} ${fmtK(totalMin)}–${fmtK(totalMax)}+` : '—'}
+                    </div>
+
+                    <div style={{ marginTop: 10 }}>
+                        {claim.status === 'approved' ? (
+                            <Link href={route('recruiter.mandates.workspace', m.id)} style={{
+                                display: 'block', width: '100%', padding: '6px 0', fontSize: 11, fontWeight: 500,
+                                border: '1px solid var(--jade3)', borderRadius: 6,
+                                background: 'var(--jade-pale)', color: 'var(--jade2)',
+                                textAlign: 'center', textDecoration: 'none',
+                            }}>
+                                Open workspace →
+                            </Link>
+                        ) : claim.status === 'rejected' ? (
+                            <div style={{ fontSize: 11, color: 'var(--ruby2)', padding: '6px 0', textAlign: 'center' }}>
+                                Claim rejected
+                            </div>
+                        ) : (
+                            <div style={{ fontSize: 11, color: 'var(--amber2)', padding: '6px 0', textAlign: 'center' }}>
+                                ⏳ Awaiting admin approval
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// ─── tiny sub-components ──────────────────────────────────────────────────────
+
+function Flash({ color, children }) {
+    const map = {
+        jade: { bg: 'var(--jade-pale)', border: 'var(--jade-soft)', text: 'var(--jade2)' },
+        ruby: { bg: 'var(--ruby-pale)', border: '#F7C1C1',          text: 'var(--ruby2)' },
+    }
+    const c = map[color] || map.jade
+    return (
+        <div style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 8, padding: '10px 16px', marginBottom: 16, fontSize: 13, color: c.text }}>
+            {children}
+        </div>
+    )
+}
+
+function Chip({ children }) {
+    return (
+        <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'var(--mist2)', color: 'var(--ink4)', border: '1px solid var(--wire)' }}>
+            {children}
+        </span>
     )
 }

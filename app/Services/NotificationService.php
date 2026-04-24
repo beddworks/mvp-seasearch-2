@@ -51,7 +51,7 @@ class NotificationService
         $user  = $claim->recruiter->user;
         $title = 'Claim approved — ' . $claim->mandate->title;
         $body  = 'Your claim for "' . $claim->mandate->title . '" has been approved. Day 0 starts today.';
-        $link  = route('kanban.show', $claim->mandate_id);
+        $link  = route('recruiter.kanban.show', $claim->mandate_id);
 
         $this->notify($user, 'claim_approved', $title, $body, $link, [
             'mandate_id' => $claim->mandate_id,
@@ -64,7 +64,7 @@ class NotificationService
         $user  = $claim->recruiter->user;
         $title = 'Claim rejected — ' . $claim->mandate->title;
         $body  = 'Your claim for "' . $claim->mandate->title . '" was not approved. You may pick another role.';
-        $link  = route('mandates.index');
+        $link  = route('recruiter.mandates.index');
 
         $this->notify($user, 'claim_rejected', $title, $body, $link, [
             'mandate_id' => $claim->mandate_id,
@@ -78,7 +78,7 @@ class NotificationService
         $cName = optional($sub->candidate)->first_name . ' ' . optional($sub->candidate)->last_name;
         $title = 'CDD approved — ' . trim($cName);
         $body  = trim($cName) . ' has been approved and is now visible to the client.';
-        $link  = route('kanban.show', $sub->mandate_id);
+        $link  = route('recruiter.kanban.show', $sub->mandate_id);
 
         $this->notify($user, 'submission_approved', $title, $body, $link, [
             'submission_id' => $sub->id,
@@ -92,7 +92,7 @@ class NotificationService
         $cName = optional($sub->candidate)->first_name . ' ' . optional($sub->candidate)->last_name;
         $title = 'CDD rejected — ' . trim($cName);
         $body  = trim($cName) . ' was not approved by admin. Please review and re-submit or find a new candidate.';
-        $link  = route('kanban.show', $sub->mandate_id);
+        $link  = route('recruiter.kanban.show', $sub->mandate_id);
 
         $this->notify($user, 'submission_rejected', $title, $body, $link, [
             'submission_id' => $sub->id,
@@ -106,7 +106,7 @@ class NotificationService
         $admins = User::whereIn('role', ['admin', 'super_admin'])->get();
         $title  = 'New claim — ' . $claim->mandate->title;
         $body   = ($claim->recruiter->user->name ?? 'A recruiter') . ' has picked "' . $claim->mandate->title . '" and is awaiting approval.';
-        $link   = route('claims.index');
+        $link   = route('admin.claims.index');
 
         foreach ($admins as $admin) {
             $this->notify($admin, 'mandate_picked', $title, $body, $link, [
@@ -123,7 +123,7 @@ class NotificationService
         $recruiter = $sub->recruiter->user->name ?? 'A recruiter';
         $title     = 'Candidate added — ' . $cName;
         $body      = $recruiter . ' added ' . $cName . ' to "' . optional($sub->mandate)->title . '".';
-        $link      = route('mandates.kanban', ['id' => $sub->mandate_id]);
+        $link      = route('admin.mandates.kanban', ['id' => $sub->mandate_id]);
 
         foreach ($admins as $admin) {
             $this->notify($admin, 'candidate_added', $title, $body, $link, [
@@ -139,7 +139,7 @@ class NotificationService
         $cName  = trim(optional($sub->candidate)->first_name . ' ' . optional($sub->candidate)->last_name);
         $title  = 'Stage update — ' . $cName;
         $body   = $cName . ' moved from ' . ucfirst($oldStage) . ' → ' . ucfirst($newStage) . ' in "' . optional($sub->mandate)->title . '".';
-        $link   = route('mandates.kanban', ['id' => $sub->mandate_id]);
+        $link   = route('admin.mandates.kanban', ['id' => $sub->mandate_id]);
 
         foreach ($admins as $admin) {
             $this->notify($admin, 'candidate_moved', $title, $body, $link, [
@@ -158,7 +158,7 @@ class NotificationService
         $recruiter = $sub->recruiter->user->name ?? 'A recruiter';
         $title     = 'CDD submitted for review — ' . $cName;
         $body      = $recruiter . ' submitted ' . $cName . ' for admin review on "' . optional($sub->mandate)->title . '".';
-        $link      = route('submissions.index');
+        $link      = route('admin.submissions.index');
 
         foreach ($admins as $admin) {
             $this->notify($admin, 'candidate_submitted', $title, $body, $link, [
