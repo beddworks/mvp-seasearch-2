@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Recruiter;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncGSheetJob;
 use App\Models\Candidate;
 use App\Models\CddSubmission;
 use App\Models\Mandate;
 use App\Models\MandateClaim;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -62,13 +64,20 @@ class KanbanController extends Controller
             'new_stage'     => 'required|in:sourced,screened,interview,offered,hired,rejected,on_hold',
         ]);
 
-        $sub = CddSubmission::findOrFail($request->submission_id);
+        $sub = CddSubmission::with(['candidate','mandate','recruiter.user'])->findOrFail($request->submission_id);
         abort_if($sub->recruiter_id !== Auth::user()->recruiter->id, 403);
+
+        $oldStage = $sub->client_status;
 
         $sub->update([
             'client_status'            => $request->new_stage,
             'client_status_updated_at' => now(),
         ]);
+
+        (new NotificationService())->candidateMoved($sub->fresh(['candidate','mandate','recruiter.user']), $oldStage, $request->new_stage);
+
+        // Async: sync row to Google Sheets
+        SyncGSheetJob::dispatch($sub->fresh(['candidate','mandate.client','recruiter.user']))->onQueue('sheets');
 
         return response()->json(['success' => true, 'new_stage' => $request->new_stage]);
     }
@@ -138,6 +147,11 @@ class KanbanController extends Controller
             'exception_bypass'    => $bypass,
         ]);
 
+        (new NotificationService())->candidateSubmitted($sub->fresh(['candidate','mandate','recruiter.user']));
+
+        // Async: sync row to Google Sheets
+        SyncGSheetJob::dispatch($sub->fresh(['candidate','mandate.client','recruiter.user']))->onQueue('sheets');
+
         return response()->json([
             'success'  => true,
             'bypassed' => $bypass,
@@ -161,6 +175,9 @@ class KanbanController extends Controller
             'client_rejection_reason'  => $request->rejection_reason,
             'client_status_updated_at' => now(),
         ]);
+
+        // Async: sync row to Google Sheets
+        SyncGSheetJob::dispatch($sub->fresh(['candidate','mandate.client','recruiter.user']))->onQueue('sheets');
 
         return response()->json(['success' => true]);
     }
@@ -204,7 +221,12 @@ class KanbanController extends Controller
             'submitted_at'        => now(),
         ]);
 
-        $submission->load('candidate');
+        $submission->load(['candidate','mandate','recruiter.user']);
+
+        (new NotificationService())->candidateAdded($submission);
+
+        // Async: add new row to Google Sheets
+        SyncGSheetJob::dispatch($submission->load(['candidate','mandate.client','recruiter.user']))->onQueue('sheets');
 
         return response()->json([
             'success'    => true,

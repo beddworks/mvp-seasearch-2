@@ -8,6 +8,11 @@ use App\Http\Controllers\Recruiter\DashboardController as RecruiterDashboard;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// ─── Google Sheets webhook (push notifications from Google Drive API) ───────
+// Google sends a POST here when a sheet changes. No auth needed — verified by token header.
+Route::post('/webhooks/gsheet', [\App\Http\Controllers\GSheetWebhookController::class, 'handle'])
+    ->name('webhooks.gsheet');
+
 // ─── Public ────────────────────────────────────────────────────────────────
 Route::get('/', fn() => redirect()->route('login'))->name('home');
 

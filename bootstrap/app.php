@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureRole::class,
         ]);
+        // Exclude Google Sheets webhook from CSRF protection
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/gsheet',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

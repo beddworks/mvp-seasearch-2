@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\CreateMandateSheetJob;
 use App\Models\Mandate;
 use App\Models\Client;
 use App\Models\CompensationType;
@@ -55,7 +56,11 @@ class MandateController extends Controller
             'timer_c_active'       => ['boolean'],
         ]);
         $data['status'] = 'draft';
-        Mandate::create($data);
+        $mandate = Mandate::create($data);
+
+        // Async: create Google Sheet tab for this mandate
+        CreateMandateSheetJob::dispatch($mandate->load('client'))->onQueue('sheets');
+
         return redirect()->route('admin.mandates.index')->with('success', 'Mandate created.');
     }
 

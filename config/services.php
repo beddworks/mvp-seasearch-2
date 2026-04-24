@@ -39,6 +39,13 @@ return [
         'model'   => 'claude-sonnet-4-6',
     ],
 
+    'google_sheets' => [
+        'credentials_json'  => env('GOOGLE_SHEETS_CREDENTIALS_JSON'),
+        'credentials_path'  => env('GOOGLE_SHEETS_CREDENTIALS_PATH', storage_path('google-service-account.json')),
+        'webhook_token'     => env('GOOGLE_SHEETS_WEBHOOK_TOKEN'),
+        'folder_id'         => env('GOOGLE_SHEETS_FOLDER_ID'), // drive folder where spreadsheets are created
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

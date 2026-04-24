@@ -7,6 +7,7 @@ use App\Models\Mandate;
 use App\Models\MandateClaim;
 use App\Models\Candidate;
 use App\Models\CddSubmission;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -118,6 +119,12 @@ class MandateController extends Controller
         ]);
 
         $recruiter->increment('active_mandates_count');
+
+        $claim = MandateClaim::with(['mandate','recruiter.user'])
+            ->where('recruiter_id', $recruiter->id)
+            ->where('mandate_id', $id)
+            ->latest()->first();
+        (new NotificationService())->mandatePicked($claim);
 
         return redirect()->route('recruiter.mandates.index')
             ->with('success', 'Role claimed! Awaiting admin approval.');

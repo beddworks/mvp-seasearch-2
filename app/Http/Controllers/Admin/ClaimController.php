@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MandateClaim;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -38,6 +39,7 @@ class ClaimController extends Controller
         ]);
         $claim->recruiter->increment('active_mandates_count');
         $claim->mandate->increment('assignment_count');
+        (new NotificationService())->claimApproved($claim->fresh(['mandate','recruiter.user']));
         return back()->with('success', 'Claim approved. Day 0 set to ' . now()->format('d M Y') . '.');
     }
 
@@ -51,6 +53,7 @@ class ClaimController extends Controller
             'status'         => 'rejected',
             'rejection_note' => $request->input('note'),
         ]);
+        (new NotificationService())->claimRejected($claim->fresh(['mandate','recruiter.user']));
         return back()->with('success', 'Claim rejected.');
     }
 }

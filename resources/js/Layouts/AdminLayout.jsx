@@ -3,7 +3,7 @@ import { initials } from '@/lib/utils'
 
 const NAV_ITEMS = [
     { icon: '▦', label: 'Dashboard',   route: 'admin.dashboard' },
-    { icon: '📋', label: 'Mandates',    route: 'admin.mandates.index' },
+    { icon: '📋', label: 'Roles',    route: 'admin.mandates.index' },
     { icon: '🏢', label: 'Clients',     route: 'admin.clients.index' },
     { icon: '◉', label: 'Recruiters', route: 'admin.recruiters.index' },
     { icon: '🔑', label: 'Claims',     route: 'admin.claims.index' },

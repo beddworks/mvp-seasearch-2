@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CddSubmission;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -37,6 +38,7 @@ class SubmissionController extends Controller
             'exception_bypass'    => $bypass,
             'client_status'       => 'pending',
         ]);
+        (new NotificationService())->submissionApproved($submission->fresh(['mandate','recruiter.user','candidate']));
         return back()->with('success', 'Submission approved' . ($bypass ? ' (bypass applied)' : '') . '.');
     }
 
@@ -48,6 +50,7 @@ class SubmissionController extends Controller
             'admin_reviewed_at'   => now(),
             'rejection_reason'    => $request->input('reason'),
         ]);
+        (new NotificationService())->submissionRejected($submission->fresh(['mandate','recruiter.user','candidate']));
         return back()->with('success', 'Submission rejected.');
     }
 }

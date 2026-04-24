@@ -15,3 +15,8 @@ Artisan::command('inspire', function () {
 Schedule::command('timers:check')->hourly()->withoutOverlapping()->runInBackground()
     ->appendOutputTo(storage_path('logs/timers.log'));
 
+// ─── Google Sheets polling sync (Sheet → DB) ───────────────────────────────
+// Polls every 5 minutes — fallback for when Google push webhooks can't reach the server.
+Schedule::command('gsheet:sync')->everyFiveMinutes()->withoutOverlapping()->runInBackground()
+    ->appendOutputTo(storage_path('logs/gsheet-sync.log'));
+

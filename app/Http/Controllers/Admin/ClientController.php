@@ -42,7 +42,7 @@ class ClientController extends Controller
         $user = User::create([
             'name'     => $data['contact_name'],
             'email'    => $data['contact_email'],
-            'password' => Hash::make(Str::random(16)),
+            'password' => Hash::make('password'),
             'role'     => 'client',
             'status'   => 'active',
         ]);

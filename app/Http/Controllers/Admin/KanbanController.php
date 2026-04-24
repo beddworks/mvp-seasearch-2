@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncGSheetJob;
+use App\Mail\CandidateMovedMail;
 use App\Models\Candidate;
 use App\Models\CddSubmission;
 use App\Models\Mandate;
 use App\Models\MandateClaim;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class KanbanController extends Controller
@@ -65,6 +68,27 @@ class KanbanController extends Controller
             'client_status'            => $request->new_stage,
             'client_status_updated_at' => now(),
         ]);
+
+        $sub->load('candidate', 'mandate', 'recruiter.user');
+
+        // Notify recruiter by email when admin moves their candidate
+        $recruiterUser = $sub->recruiter?->user;
+        if ($recruiterUser?->email) {
+            $candidateName = trim(($sub->candidate->first_name ?? '') . ' ' . ($sub->candidate->last_name ?? ''));
+            $mandateTitle  = $sub->mandate?->title ?? 'the mandate';
+            $stageLabel    = ucfirst(str_replace('_', ' ', $request->new_stage));
+            $kanbanUrl     = route('admin.mandates.kanban', $sub->mandate_id);
+
+            Mail::to($recruiterUser->email)
+                ->send(new CandidateMovedMail(
+                    title: "Candidate stage updated — {$candidateName}",
+                    body:  "Admin moved <strong>{$candidateName}</strong> to <strong>{$stageLabel}</strong> on the pipeline for <em>{$mandateTitle}</em>.",
+                    link:  $kanbanUrl,
+                ));
+        }
+
+        // Async: sync row to Google Sheets
+        SyncGSheetJob::dispatch($sub->fresh(['candidate', 'mandate.client', 'recruiter.user']))->onQueue('sheets');
 
         return response()->json(['success' => true, 'new_stage' => $request->new_stage]);
     }
