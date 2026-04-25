@@ -1,8 +1,10 @@
-import { useForm } from '@inertiajs/react'
+import { useState } from 'react'
+import { router, useForm } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import { fmtDate, initials } from '@/lib/utils'
 
 export default function RecruiterShow({ recruiter }) {
+    const [showDelete, setShowDelete] = useState(false)
     const { data, setData, put, processing } = useForm({
         tier:            recruiter.tier,
         trust_level:     recruiter.trust_level,
@@ -30,7 +32,10 @@ export default function RecruiterShow({ recruiter }) {
                             <div className="page-sub">{recruiter.user?.email} · {recruiter.tier} · {recruiter.trust_level}</div>
                         </div>
                     </div>
-                    <a href={route('admin.recruiters.index')} className="btn btn-secondary">← Back</a>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <a href={route('admin.recruiters.index')} className="btn btn-secondary">← Back</a>
+                        <button className="btn btn-danger" onClick={() => setShowDelete(true)}>Delete</button>
+                    </div>
                 </div>
 
                 <div className="g21" style={{ gap: 16 }}>
@@ -90,6 +95,21 @@ export default function RecruiterShow({ recruiter }) {
                     </div>
                 </div>
             </div>
+
+            {showDelete && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="dcard" style={{ width: 380, padding: 28 }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-head)', marginBottom: 10 }}>Delete Recruiter?</div>
+                        <div style={{ fontSize: 13, color: 'var(--ink3)', marginBottom: 20 }}>
+                            This will permanently delete <strong>{recruiter.user?.name}</strong> and their account. This cannot be undone.
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setShowDelete(false)}>Cancel</button>
+                            <button className="btn btn-danger btn-sm" onClick={() => router.delete(route('admin.recruiters.destroy', recruiter.id))}>Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     )
 }

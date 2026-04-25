@@ -1,15 +1,38 @@
-import { Link, router, usePage } from '@inertiajs/react'
+import { useState } from 'react'
+import { Link, router, useForm, usePage } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import { initials } from '@/lib/utils'
 
 export default function RecruitersIndex({ recruiters, filters, stats }) {
     const { flash } = usePage().props
+    const [showAdd, setShowAdd] = useState(false)
+    const [deleteTarget, setDeleteTarget] = useState(null)
+
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '', email: '', password: '', tier: 'junior', trust_level: 'standard', recruiter_group: '',
+    })
 
     function filter(key, val) {
         router.get(route('admin.recruiters.index'), { ...filters, [key]: val }, { preserveState: true, replace: true })
     }
 
+    function submitAdd(e) {
+        e.preventDefault()
+        post(route('admin.recruiters.store'), {
+            onSuccess: () => { setShowAdd(false); reset() }
+        })
+    }
+
+    function confirmDelete(r) { setDeleteTarget(r) }
+    function doDelete() {
+        if (!deleteTarget) return
+        router.delete(route('admin.recruiters.destroy', deleteTarget.id), {
+            onSuccess: () => setDeleteTarget(null)
+        })
+    }
+
     const TIER_COLORS = { junior: 'var(--sea2)', senior: 'var(--amber2)', elite: 'var(--violet2)' }
+    const labelStyle = { fontSize: 12, fontWeight: 500, color: 'var(--ink2)', display: 'block', marginBottom: 4 }
 
     return (
         <AdminLayout title="Recruiters">
@@ -19,6 +42,7 @@ export default function RecruitersIndex({ recruiters, filters, stats }) {
                         <div className="page-title">Recruiters</div>
                         <div className="page-sub">Manage recruiter tiers, trust levels, and groups</div>
                     </div>
+                    <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Recruiter</button>
                 </div>
 
                 <div className="stat-row" style={{ marginBottom: 20 }}>
@@ -80,7 +104,10 @@ export default function RecruitersIndex({ recruiters, filters, stats }) {
                                         <span style={{ fontSize: 11, color: r.user?.status === 'active' ? 'var(--jade2)' : 'var(--ruby2)', fontWeight: 500 }}>{r.user?.status || '—'}</span>
                                     </td>
                                     <td style={{ padding: '10px 14px' }}>
-                                        <Link href={route('admin.recruiters.show', r.id)} className="btn btn-sm btn-secondary">View</Link>
+                                        <div style={{ display: 'flex', gap: 6 }}>
+                                            <Link href={route('admin.recruiters.show', r.id)} className="btn btn-sm btn-secondary">View</Link>
+                                            <button className="btn btn-sm btn-danger" onClick={() => confirmDelete(r)}>Delete</button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -88,6 +115,76 @@ export default function RecruitersIndex({ recruiters, filters, stats }) {
                     </table>
                 </div>
             </div>
+
+            {/* Add Recruiter Modal */}
+            {showAdd && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="dcard" style={{ width: 440, padding: 28, position: 'relative' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                            <div style={{ fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-head)' }}>Add Recruiter</div>
+                            <button className="btn btn-sm btn-ghost" onClick={() => { setShowAdd(false); reset() }}>✕</button>
+                        </div>
+                        <form onSubmit={submitAdd}>
+                            <div className="form-group" style={{ marginBottom: 12 }}>
+                                <label style={labelStyle}>Full Name</label>
+                                <input className="form-input" value={data.name} onChange={e => setData('name', e.target.value)} placeholder="Jane Doe" />
+                                {errors.name && <div className="form-error">{errors.name}</div>}
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 12 }}>
+                                <label style={labelStyle}>Email</label>
+                                <input className="form-input" type="email" value={data.email} onChange={e => setData('email', e.target.value)} placeholder="jane@example.com" />
+                                {errors.email && <div className="form-error">{errors.email}</div>}
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 12 }}>
+                                <label style={labelStyle}>Password</label>
+                                <input className="form-input" type="password" value={data.password} onChange={e => setData('password', e.target.value)} placeholder="Min. 8 characters" />
+                                {errors.password && <div className="form-error">{errors.password}</div>}
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                                <div className="form-group">
+                                    <label style={labelStyle}>Tier</label>
+                                    <select className="form-input" value={data.tier} onChange={e => setData('tier', e.target.value)}>
+                                        {['junior', 'senior', 'elite'].map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label style={labelStyle}>Trust Level</label>
+                                    <select className="form-input" value={data.trust_level} onChange={e => setData('trust_level', e.target.value)}>
+                                        {['standard', 'trusted'].map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="form-group" style={{ marginBottom: 20 }}>
+                                <label style={labelStyle}>Recruiter Group</label>
+                                <select className="form-input" value={data.recruiter_group} onChange={e => setData('recruiter_group', e.target.value)}>
+                                    <option value="">None</option>
+                                    {['Dwikar', 'Emma', 'BTI', 'Jiebei'].map(g => <option key={g} value={g}>{g}</option>)}
+                                </select>
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setShowAdd(false); reset() }}>Cancel</button>
+                                <button type="submit" className="btn btn-primary btn-sm" disabled={processing}>{processing ? 'Creating…' : 'Create Recruiter'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirm Modal */}
+            {deleteTarget && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="dcard" style={{ width: 380, padding: 28 }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-head)', marginBottom: 10 }}>Delete Recruiter?</div>
+                        <div style={{ fontSize: 13, color: 'var(--ink3)', marginBottom: 20 }}>
+                            This will permanently delete <strong>{deleteTarget.user?.name}</strong> and their account. This cannot be undone.
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setDeleteTarget(null)}>Cancel</button>
+                            <button className="btn btn-danger btn-sm" onClick={doDelete}>Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     )
 }
