@@ -10,7 +10,7 @@ const NAV_ITEMS = [
     { icon: '📥', label: 'Submissions', route: 'admin.submissions.index' },
     { icon: '⚙', label: 'Config',     route: 'admin.compensation-types.index' },
     { icon: '⏱', label: 'Timers',     route: 'admin.timer-config' },
-    { icon: '📊', label: 'Analytics',  route: 'admin.analytics.index' },
+    // { icon: '📊', label: 'Analytics',  route: 'admin.analytics.index' },
 ]
 
 export default function AdminLayout({ children, breadcrumb = null, noPadding = false }) {

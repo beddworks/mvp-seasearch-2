@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link, router } from '@inertiajs/react'
 import {
     DndContext, DragOverlay, PointerSensor,
     useSensor, useSensors,
@@ -90,6 +91,15 @@ export default function KanbanShow({ mandate, claim, submissions: rawSubs, stage
 
     const routeBase = layoutRole === 'admin' ? 'admin.kanban' : layoutRole === 'client' ? 'client.kanban' : 'recruiter.kanban'
     const Layout = layoutRole === 'admin' ? AdminLayout : layoutRole === 'client' ? ClientLayout : RecruiterLayout
+    const recruiterAddCandidateUrl = route('recruiter.mandates.add-candidate', mandate.id)
+
+    function openAddCandidate() {
+        if (layoutRole === 'recruiter') {
+            router.visit(recruiterAddCandidateUrl)
+            return
+        }
+        setAddModal(true)
+    }
 
     return (
         <Layout breadcrumb={breadcrumb} noPadding>
@@ -134,7 +144,11 @@ export default function KanbanShow({ mandate, claim, submissions: rawSubs, stage
                             backRoute && <a href={backRoute} className="btn btn-secondary btn-sm">← My Roles</a>
                         ) : (
                             <>
-                                <button className="btn btn-secondary btn-sm" onClick={() => setAddModal(true)}>+ Add candidate</button>
+                                {layoutRole === 'recruiter' ? (
+                                    <Link href={recruiterAddCandidateUrl} className="btn btn-secondary btn-sm">+ Add candidate</Link>
+                                ) : (
+                                    <button className="btn btn-secondary btn-sm" onClick={() => setAddModal(true)}>+ Add candidate</button>
+                                )}
                                 <button className="btn btn-primary btn-sm"
                                     onClick={() => {
                                         const unsubmitted = allCards().find(c => !['approved', 'bypassed'].includes(c.admin_review_status))
@@ -160,7 +174,7 @@ export default function KanbanShow({ mandate, claim, submissions: rawSubs, stage
                                         cards={cards[stage] ?? []}
                                         onCardClick={setSidePanel}
                                         onReject={viewOnly ? null : setRejectModal}
-                                        onAdd={viewOnly ? null : () => setAddModal(true)}
+                                        onAdd={viewOnly ? null : openAddCandidate}
                                     />
                                 ))}
                             </div>

@@ -43,6 +43,9 @@ Route::middleware(['auth', 'role:recruiter'])->prefix('recruiter')->name('recrui
     // mandates
     Route::get('/mandates',                      [\App\Http\Controllers\Recruiter\MandateController::class, 'index'])->name('mandates.index');
     Route::get('/mandates/{mandate}/workspace',  [\App\Http\Controllers\Recruiter\MandateController::class, 'workspace'])->name('mandates.workspace');
+    Route::get('/mandates/{mandate}/workspace/add-candidate', [\App\Http\Controllers\Recruiter\MandateController::class, 'addCandidatePage'])->name('mandates.add-candidate');
+    Route::get('/mandates/{mandate}/ai-status',  [\App\Http\Controllers\Recruiter\MandateController::class, 'aiStatus'])->name('mandates.ai-status');
+    Route::post('/mandates/{mandate}/ai-preview', [\App\Http\Controllers\Recruiter\MandateController::class, 'aiPreview'])->name('mandates.ai-preview');
     Route::get('/mandates/{mandate}/pick',       [\App\Http\Controllers\Recruiter\MandateController::class, 'pick'])->name('mandates.pick');
     Route::post('/mandates/{mandate}/pick',      [\App\Http\Controllers\Recruiter\MandateController::class, 'confirmPick'])->name('mandates.pick.confirm');
     Route::get('/mandates/{mandate}',            [\App\Http\Controllers\Recruiter\MandateController::class, 'show'])->name('mandates.show');

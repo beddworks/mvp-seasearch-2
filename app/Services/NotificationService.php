@@ -10,8 +10,10 @@ use App\Mail\MandatePickedMail;
 use App\Mail\CandidateAddedMail;
 use App\Mail\CandidateMovedMail;
 use App\Mail\CandidateSubmittedMail;
+use App\Models\Client;
 use App\Models\PlatformNotification;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class NotificationService
@@ -38,7 +40,7 @@ class NotificationService
                 Mail::to($user->email, $user->name)->send($mailable);
             }
         } catch (\Throwable $e) {
-            \Log::warning('NotificationService: email failed', ['error' => $e->getMessage()]);
+            Log::warning('NotificationService: email failed', ['error' => $e->getMessage()]);
         }
 
         return $notification;
@@ -131,6 +133,43 @@ class NotificationService
                 'mandate_id'    => $sub->mandate_id,
             ]);
         }
+
+        // Notify mandate client as soon as a candidate is added.
+        $sub->loadMissing('mandate.client.user');
+        /** @var Client|null $client */
+        $client = optional($sub->mandate)->client;
+
+        if (!$client) {
+            return;
+        }
+
+        $clientTitle = 'New candidate added — ' . $cName;
+        $clientBody = $recruiter . ' added ' . $cName . ' to role "' . optional($sub->mandate)->title . '".';
+
+        // In-app + email for linked client user account.
+        if ($client->user) {
+            $this->notify(
+                $client->user,
+                'candidate_added_client',
+                $clientTitle,
+                $clientBody,
+                route('client.mandates.kanban', ['id' => $sub->mandate_id]),
+                [
+                    'submission_id' => $sub->id,
+                    'mandate_id' => $sub->mandate_id,
+                ]
+            );
+        }
+
+        // Email fallback for contact email (avoid duplicate if same as client user email).
+        if (!empty($client->contact_email) && strtolower((string) $client->contact_email) !== strtolower((string) optional($client->user)->email)) {
+            try {
+                Mail::to($client->contact_email, $client->contact_name ?: $client->company_name)
+                    ->send(new CandidateAddedMail($clientTitle, $clientBody, route('login')));
+            } catch (\Throwable $e) {
+                Log::warning('NotificationService: client contact email failed', ['error' => $e->getMessage()]);
+            }
+        }
     }
 
     public function candidateMoved(\App\Models\CddSubmission $sub, string $oldStage, string $newStage): void
@@ -179,6 +218,7 @@ class NotificationService
             'submission_rejected' => new SubmissionRejectedMail($title, $body, $link),
             'mandate_picked'      => new MandatePickedMail($title, $body, $link),
             'candidate_added'     => new CandidateAddedMail($title, $body, $link),
+            'candidate_added_client' => new CandidateAddedMail($title, $body, $link),
             'candidate_moved'     => new CandidateMovedMail($title, $body, $link),
             'candidate_submitted' => new CandidateSubmittedMail($title, $body, $link),
             default               => null,

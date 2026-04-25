@@ -189,6 +189,70 @@ input, textarea, select { font-family: inherit; }
 .table-wrap tbody td { font-size: 12px; color: var(--ink); padding: 10px 14px; border-top: 1px solid var(--wire); }
 .table-wrap tbody tr:hover td { background: var(--mist2); }
 
+/* Role workspace table + AI actions */
+.ctable { width: 100%; border-collapse: collapse; }
+.ctable th {
+   font-size: 10px;
+   color: var(--ink4);
+   font-weight: 500;
+   text-align: left;
+   padding: 7px 12px;
+   border-bottom: 1px solid var(--wire);
+   text-transform: uppercase;
+   letter-spacing: .05em;
+}
+.ctable td {
+   font-size: 12px;
+   color: var(--ink);
+   padding: 9px 12px;
+   border-bottom: 1px solid var(--wire);
+   vertical-align: middle;
+}
+.ctable tr:last-child td { border-bottom: none; }
+.ctable tr:hover td { background: var(--mist2); }
+
+.mpill {
+   font-size: 10px;
+   font-weight: 500;
+   padding: 2px 8px;
+   border-radius: 10px;
+}
+.mp-high { background: var(--jade-pale); color: var(--jade); }
+.mp-mid { background: var(--amber-pale); color: var(--amber); }
+
+.sdot {
+   width: 6px;
+   height: 6px;
+   border-radius: 50%;
+   display: inline-block;
+   margin-right: 5px;
+}
+
+.mc-btn {
+   font-size: 10px;
+   padding: 4px 10px;
+   border-radius: 20px;
+   border: 1px solid var(--wire2);
+   background: transparent;
+   color: var(--ink3);
+   cursor: pointer;
+   font-family: var(--font);
+}
+.mc-btn:hover { background: var(--mist2); }
+
+.ai-action-btn {
+   font-size: 12px;
+   padding: 7px 16px;
+   border: 1px solid var(--sea3);
+   border-radius: var(--rsm);
+   background: transparent;
+   color: var(--sea);
+   cursor: pointer;
+   font-weight: 500;
+   font-family: var(--font);
+}
+.ai-action-btn:hover { background: var(--sea-pale); }
+
 /* ============================================================
    Forms
    ============================================================ */

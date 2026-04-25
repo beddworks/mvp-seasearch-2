@@ -3,8 +3,8 @@ import { initials } from '@/lib/utils'
 
 const NAV_ITEMS = [
     { key: 'dashboard',  icon: '▦', label: 'Dashboard',         route: 'recruiter.dashboard' },
-    { key: 'mandates',   icon: '◫', label: 'Job listings',       route: 'recruiter.mandates.index' },
-    { key: 'candidates', icon: '◉', label: 'Candidate profiles', route: 'recruiter.candidates.index' },
+    { key: 'mandates',   icon: '◫', label: 'Roles',       route: 'recruiter.mandates.index' },
+    { key: 'candidates', icon: '◉', label: 'Candidates', route: 'recruiter.candidates.index' },
     // { key: 'earnings',   icon: '◈', label: 'Earnings',           route: 'recruiter.earnings.index' },
 ]
 

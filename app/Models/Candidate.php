@@ -16,11 +16,15 @@ class Candidate extends Model
         'location', 'years_experience',
         'cv_url', 'cv_original_name', 'cv_uploaded_at', 'cv_parsed_at',
         'parsed_profile', 'skills', 'notes',
+        'ai_score', 'score_breakdown', 'green_flags', 'red_flags', 'ai_summary',
     ];
 
     protected $casts = [
         'skills'         => 'array',
         'parsed_profile' => 'array',
+        'score_breakdown' => 'array',
+        'green_flags'    => 'array',
+        'red_flags'      => 'array',
         'cv_uploaded_at' => 'datetime',
         'cv_parsed_at'   => 'datetime',
     ];

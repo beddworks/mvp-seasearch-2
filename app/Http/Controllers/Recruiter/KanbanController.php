@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\Recruiter;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ParseCvJob;
 use App\Jobs\SyncGSheetJob;
 use App\Models\Candidate;
 use App\Models\CddSubmission;
 use App\Models\Mandate;
 use App\Models\MandateClaim;
+use App\Services\ClaudeService;
+use App\Services\CvTextExtractor;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -182,36 +186,80 @@ class KanbanController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function addCandidate(Request $request)
+    public function addCandidate(Request $request, CvTextExtractor $extractor, ClaudeService $claude)
     {
         $request->validate([
             'mandate_id'      => 'required|string|exists:mandates,id',
-            'first_name'      => 'required|string|max:100',
-            'last_name'       => 'required|string|max:100',
+            'existing_candidate_id' => 'nullable|string|exists:candidates,id',
+            'first_name'      => 'required_without:existing_candidate_id|string|max:100',
+            'last_name'       => 'required_without:existing_candidate_id|string|max:100',
             'email'           => 'nullable|email',
             'linkedin_url'    => 'nullable|url',
             'current_role'    => 'nullable|string|max:200',
             'current_company' => 'nullable|string|max:200',
             'initial_stage'   => 'required|in:sourced,screened',
+            'cv_file'         => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'ai_data'         => 'nullable|json',
         ]);
 
         $recruiter = Auth::user()->recruiter;
+        $mandate = Mandate::findOrFail($request->mandate_id);
 
-        $candidate = Candidate::create([
-            'recruiter_id'    => $recruiter->id,
-            'first_name'      => $request->first_name,
-            'last_name'       => $request->last_name,
-            'email'           => $request->email,
-            'linkedin_url'    => $request->linkedin_url,
-            'current_role'    => $request->current_role,
-            'current_company' => $request->current_company,
-        ]);
+        $candidate = null;
+        $cvUrl = null;
+        $parsedProfile = [];
+        $aiDataFromForm = [];
+
+        // Parse AI data from frontend if provided
+        if ($request->filled('ai_data')) {
+            $aiDataFromForm = json_decode($request->ai_data, true) ?? [];
+        }
+
+        if ($request->filled('existing_candidate_id')) {
+            $candidate = Candidate::where('id', $request->existing_candidate_id)
+                ->where('recruiter_id', $recruiter->id)
+                ->firstOrFail();
+            $cvUrl = $candidate->cv_url;
+            $parsedProfile = $candidate->parsed_profile ?? [];
+        } else {
+            // Handle CV upload for new candidate
+            $cvOriginalName = null;
+            if ($request->hasFile('cv_file')) {
+                $file           = $request->file('cv_file');
+                $cvOriginalName = $file->getClientOriginalName();
+                $path           = $file->store('cvs', 'public');
+                $cvUrl          = Storage::url($path);
+
+                // Parse CV immediately to cache extracted data
+                $cvText = $extractor->extractFromUploadedFile($file);
+                if (!empty($cvText)) {
+                    $parsedProfile = $claude->parseCV($cvText, $mandate);
+                }
+            }
+
+            $candidate = Candidate::create([
+                'recruiter_id'     => $recruiter->id,
+                'first_name'       => $request->first_name,
+                'last_name'        => $request->last_name,
+                'email'            => $request->email,
+                'linkedin_url'     => $request->linkedin_url,
+                'current_role'     => $request->current_role,
+                'current_company'  => $request->current_company,
+                'cv_url'           => $cvUrl,
+                'cv_original_name' => $cvOriginalName,
+                'cv_uploaded_at'   => $cvUrl ? now() : null,
+                'parsed_profile'   => !empty($parsedProfile) ? $parsedProfile : null,
+                'skills'           => $parsedProfile['skills'] ?? null,
+                'years_experience' => $parsedProfile['years_experience'] ?? null,
+            ]);
+        }
 
         $count = CddSubmission::where('mandate_id', $request->mandate_id)
             ->where('recruiter_id', $recruiter->id)
             ->count() + 1;
 
-        $submission = CddSubmission::create([
+        // Prepare submission data with AI scores from preview
+        $submissionData = [
             'mandate_id'          => $request->mandate_id,
             'recruiter_id'        => $recruiter->id,
             'candidate_id'        => $candidate->id,
@@ -219,11 +267,26 @@ class KanbanController extends Controller
             'client_status'       => $request->initial_stage,
             'admin_review_status' => 'pending',
             'submitted_at'        => now(),
-        ]);
+        ];
 
+        // Store AI data from preview if available
+        if (!empty($aiDataFromForm)) {
+            $submissionData['ai_score'] = $aiDataFromForm['ai_score'] ?? null;
+            $submissionData['score_breakdown'] = $aiDataFromForm['score_breakdown'] ?? null;
+            $submissionData['green_flags'] = $aiDataFromForm['green_flags'] ?? null;
+            $submissionData['red_flags'] = $aiDataFromForm['red_flags'] ?? null;
+            $submissionData['ai_summary'] = $aiDataFromForm['ai_summary'] ?? null;
+        }
+
+        $submission = CddSubmission::create($submissionData);
         $submission->load(['candidate','mandate','recruiter.user']);
 
         (new NotificationService())->candidateAdded($submission);
+
+        // Dispatch AI scoring if candidate has a CV (for detailed scoring breakdown and cache)
+        if ($cvUrl) {
+            ParseCvJob::dispatch($candidate, $request->mandate_id)->onQueue('ai');
+        }
 
         // Async: add new row to Google Sheets
         SyncGSheetJob::dispatch($submission->load(['candidate','mandate.client','recruiter.user']))->onQueue('sheets');
@@ -237,6 +300,9 @@ class KanbanController extends Controller
     private function formatSubmission(CddSubmission $s): array
     {
         $c = $s->candidate;
+        $hasCv = (bool) ($c?->cv_url);
+        $hasScore = !is_null($s->ai_score);
+
         return [
             'id'                        => $s->id,
             'submission_number'         => $s->submission_number,
@@ -255,6 +321,9 @@ class KanbanController extends Controller
             'client_feedback_sentiment' => $s->client_feedback_sentiment,
             'client_rejection_reason'   => $s->client_rejection_reason,
             'submitted_at'              => $s->submitted_at,
+            'updated_at'                => $s->updated_at,
+            'client_status_updated_at'  => $s->client_status_updated_at,
+            'ai_processing'             => $hasCv && !$hasScore,
             'candidate'                 => $c ? [
                 'id'               => $c->id,
                 'first_name'       => $c->first_name,

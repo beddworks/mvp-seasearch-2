@@ -7,9 +7,12 @@ use App\Models\Mandate;
 use App\Models\MandateClaim;
 use App\Models\Candidate;
 use App\Models\CddSubmission;
+use App\Services\ClaudeService;
+use App\Services\CvTextExtractor;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 
 class MandateController extends Controller
@@ -131,6 +134,200 @@ class MandateController extends Controller
             'claim'       => $claim,
             'candidates'  => $candidates,
             'submissions' => $submissions,
+        ]);
+    }
+
+    public function addCandidatePage($id)
+    {
+        $recruiter = Auth::user()->recruiter;
+        $claim = MandateClaim::with(['mandate.client'])
+            ->where('recruiter_id', $recruiter?->id)
+            ->where('mandate_id', $id)
+            ->firstOrFail();
+
+        $candidates = Candidate::where('recruiter_id', $recruiter->id)
+            ->orderByDesc('created_at')
+            ->get([
+                'id',
+                'first_name',
+                'last_name',
+                'email',
+                'linkedin_url',
+                'current_role',
+                'current_company',
+                'cv_url',
+                'skills',
+                'years_experience',
+                'parsed_profile',
+            ]);
+
+        return Inertia::render('Recruiter/Mandates/AddCandidate', [
+            'mandate' => $claim->mandate,
+            'claim' => $claim,
+            'candidates' => $candidates,
+        ]);
+    }
+
+    public function aiPreview(Request $request, $id, ClaudeService $claude, CvTextExtractor $extractor): JsonResponse
+    {
+        $recruiter = Auth::user()->recruiter;
+
+        MandateClaim::where('recruiter_id', $recruiter?->id)
+            ->where('mandate_id', $id)
+            ->firstOrFail();
+
+        $mandate = Mandate::findOrFail($id);
+
+        $request->validate([
+            'candidate_id' => 'nullable|string|exists:candidates,id',
+            'first_name' => 'nullable|string|max:100',
+            'last_name' => 'nullable|string|max:100',
+            'current_role' => 'nullable|string|max:200',
+            'current_company' => 'nullable|string|max:200',
+            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+        ]);
+
+        if (!$request->candidate_id && !$request->hasFile('cv_file')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload a CV or select an existing candidate first.',
+            ], 422);
+        }
+
+        if ($request->candidate_id) {
+            $candidate = Candidate::where('id', $request->candidate_id)
+                ->where('recruiter_id', $recruiter->id)
+                ->firstOrFail();
+
+            $working = new Candidate($candidate->toArray());
+
+            if (empty($working->parsed_profile) && !empty($working->cv_url)) {
+                $cvText = $extractor->extractFromStoredUrl($working->cv_url, (string) $candidate->id);
+                if (!empty($cvText)) {
+                    $parsed = $claude->parseCV($cvText, $mandate);
+                    if (!empty($parsed)) {
+                        $working->parsed_profile = $parsed;
+                        $working->skills = $parsed['skills'] ?? $working->skills;
+                        $working->years_experience = $parsed['years_experience'] ?? $working->years_experience;
+                        $working->current_role = $parsed['current_role'] ?? $working->current_role;
+                        $working->current_company = $parsed['current_company'] ?? $working->current_company;
+                    }
+                }
+            }
+
+            $score = $claude->scoreCandidate($working, $mandate);
+
+            return response()->json([
+                'success' => true,
+                'source' => 'existing',
+                'candidate' => [
+                    'id' => $candidate->id,
+                    'first_name' => $candidate->first_name,
+                    'last_name' => $candidate->last_name,
+                    'email' => $candidate->email,
+                    'linkedin_url' => $candidate->linkedin_url,
+                    'current_role' => $working->current_role,
+                    'current_company' => $working->current_company,
+                ],
+                'parsed_profile' => $working->parsed_profile ?? [],
+                'score' => $score,
+            ]);
+        }
+
+        $working = new Candidate([
+            'first_name' => $request->first_name ?: 'New',
+            'last_name' => $request->last_name ?: 'Candidate',
+            'current_role' => $request->current_role,
+            'current_company' => $request->current_company,
+        ]);
+
+        $cvText = '';
+        $parsed = [];
+
+        if ($request->hasFile('cv_file')) {
+            $cvText = $extractor->extractFromUploadedFile($request->file('cv_file'));
+        }
+
+        if (!empty($cvText ?? '')) {
+            $parsed = $claude->parseCV($cvText, $mandate);
+            if (!empty($parsed)) {
+                $working->parsed_profile = $parsed;
+                $working->skills = $parsed['skills'] ?? [];
+                $working->years_experience = $parsed['years_experience'] ?? null;
+                if (empty($working->current_role)) $working->current_role = $parsed['current_role'] ?? null;
+                if (empty($working->current_company)) $working->current_company = $parsed['current_company'] ?? null;
+            }
+        }
+
+        $score = $claude->scoreCandidate($working, $mandate);
+
+        return response()->json([
+            'success' => true,
+            'source' => 'upload',
+            'candidate' => [
+                'first_name' => $working->first_name,
+                'last_name' => $working->last_name,
+                'email' => $parsed['email'] ?? '',
+                'linkedin_url' => $parsed['linkedin_url'] ?? '',
+                'current_role' => $working->current_role,
+                'current_company' => $working->current_company,
+                'years_experience' => $parsed['years_experience'] ?? null,
+                'skills' => $parsed['skills'] ?? [],
+            ],
+            'parsed_profile' => $parsed,
+            'score' => $score,
+        ]);
+    }
+
+    public function aiStatus($id): JsonResponse
+    {
+        $recruiter = Auth::user()->recruiter;
+
+        MandateClaim::where('recruiter_id', $recruiter?->id)
+            ->where('mandate_id', $id)
+            ->firstOrFail();
+
+        $submissions = CddSubmission::with('candidate')
+            ->where('mandate_id', $id)
+            ->where('recruiter_id', $recruiter->id)
+            ->orderByDesc('submitted_at')
+            ->get()
+            ->map(function (CddSubmission $s) {
+                $candidate = $s->candidate;
+                $hasCv = (bool) ($candidate?->cv_url);
+                $hasScore = !is_null($s->ai_score);
+
+                return [
+                    'id' => $s->id,
+                    'submission_number' => $s->submission_number,
+                    'client_status' => $s->client_status,
+                    'admin_review_status' => $s->admin_review_status,
+                    'ai_score' => $s->ai_score,
+                    'ai_summary' => $s->ai_summary,
+                    'score_breakdown' => $s->score_breakdown,
+                    'green_flags' => $s->green_flags,
+                    'red_flags' => $s->red_flags,
+                    'submitted_at' => $s->submitted_at,
+                    'updated_at' => $s->updated_at,
+                    'client_status_updated_at' => $s->client_status_updated_at,
+                    'ai_processing' => $hasCv && !$hasScore,
+                    'candidate' => $candidate ? [
+                        'id' => $candidate->id,
+                        'first_name' => $candidate->first_name,
+                        'last_name' => $candidate->last_name,
+                        'current_role' => $candidate->current_role,
+                        'current_company' => $candidate->current_company,
+                        'cv_url' => $candidate->cv_url,
+                        'cv_original_name' => $candidate->cv_original_name,
+                    ] : null,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'submissions' => $submissions,
+            'processing_count' => $submissions->where('ai_processing', true)->count(),
         ]);
     }
 
