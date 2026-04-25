@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Recruiter;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\ParseCvJob;
-use App\Jobs\SyncGSheetJob;
 use App\Models\Candidate;
 use App\Models\CddSubmission;
 use App\Models\Mandate;
 use App\Models\MandateClaim;
 use App\Services\ClaudeService;
 use App\Services\CvTextExtractor;
+use App\Services\GoogleSheetsService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -61,7 +61,7 @@ class KanbanController extends Controller
         ]);
     }
 
-    public function move(Request $request)
+    public function move(Request $request, GoogleSheetsService $sheets)
     {
         $request->validate([
             'submission_id' => 'required|string|exists:cdd_submissions,id',
@@ -80,8 +80,7 @@ class KanbanController extends Controller
 
         (new NotificationService())->candidateMoved($sub->fresh(['candidate','mandate','recruiter.user']), $oldStage, $request->new_stage);
 
-        // Async: sync row to Google Sheets
-        SyncGSheetJob::dispatch($sub->fresh(['candidate','mandate.client','recruiter.user']))->onQueue('sheets');
+        $this->syncSubmissionToSheets($sub->fresh(['candidate','mandate.client','recruiter.user']), $sheets);
 
         return response()->json(['success' => true, 'new_stage' => $request->new_stage]);
     }
@@ -128,7 +127,7 @@ class KanbanController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function submitToClient(Request $request)
+    public function submitToClient(Request $request, GoogleSheetsService $sheets)
     {
         $request->validate([
             'submission_id'  => 'required|string|exists:cdd_submissions,id',
@@ -153,8 +152,7 @@ class KanbanController extends Controller
 
         (new NotificationService())->candidateSubmitted($sub->fresh(['candidate','mandate','recruiter.user']));
 
-        // Async: sync row to Google Sheets
-        SyncGSheetJob::dispatch($sub->fresh(['candidate','mandate.client','recruiter.user']))->onQueue('sheets');
+        $this->syncSubmissionToSheets($sub->fresh(['candidate','mandate.client','recruiter.user']), $sheets);
 
         return response()->json([
             'success'  => true,
@@ -163,7 +161,7 @@ class KanbanController extends Controller
         ]);
     }
 
-    public function reject(Request $request)
+    public function reject(Request $request, GoogleSheetsService $sheets)
     {
         $request->validate([
             'submission_id'    => 'required|string|exists:cdd_submissions,id',
@@ -180,13 +178,12 @@ class KanbanController extends Controller
             'client_status_updated_at' => now(),
         ]);
 
-        // Async: sync row to Google Sheets
-        SyncGSheetJob::dispatch($sub->fresh(['candidate','mandate.client','recruiter.user']))->onQueue('sheets');
+        $this->syncSubmissionToSheets($sub->fresh(['candidate','mandate.client','recruiter.user']), $sheets);
 
         return response()->json(['success' => true]);
     }
 
-    public function addCandidate(Request $request, CvTextExtractor $extractor, ClaudeService $claude)
+    public function addCandidate(Request $request, CvTextExtractor $extractor, ClaudeService $claude, GoogleSheetsService $sheets)
     {
         $request->validate([
             'mandate_id'      => 'required|string|exists:mandates,id',
@@ -283,13 +280,12 @@ class KanbanController extends Controller
 
         (new NotificationService())->candidateAdded($submission);
 
-        // Dispatch AI scoring if candidate has a CV (for detailed scoring breakdown and cache)
-        if ($cvUrl) {
-            ParseCvJob::dispatch($candidate, $request->mandate_id)->onQueue('ai');
+        if ($cvUrl && empty($aiDataFromForm)) {
+            $this->scoreCandidateSubmission($candidate, $mandate, $submission, $claude, $extractor);
+            $submission->refresh()->load(['candidate','mandate','recruiter.user']);
         }
 
-        // Async: add new row to Google Sheets
-        SyncGSheetJob::dispatch($submission->load(['candidate','mandate.client','recruiter.user']))->onQueue('sheets');
+        $this->syncSubmissionToSheets($submission->load(['candidate','mandate.client','recruiter.user']), $sheets);
 
         return response()->json([
             'success'    => true,
@@ -297,12 +293,74 @@ class KanbanController extends Controller
         ]);
     }
 
+    private function scoreCandidateSubmission(Candidate $candidate, Mandate $mandate, CddSubmission $submission, ClaudeService $claude, CvTextExtractor $extractor): void
+    {
+        try {
+            $cvText = $extractor->extractFromStoredUrl($candidate->cv_url, (string) $candidate->id);
+
+            if (empty($cvText)) {
+                Log::warning('Inline CV scoring skipped: no CV text', ['candidate_id' => $candidate->id]);
+                return;
+            }
+
+            $parsed = $claude->parseCV($cvText, $mandate);
+
+            if (!empty($parsed)) {
+                $candidate->update([
+                    'parsed_profile'   => $parsed,
+                    'skills'           => $parsed['skills'] ?? $candidate->skills,
+                    'years_experience' => $parsed['years_experience'] ?? $candidate->years_experience,
+                    'cv_parsed_at'     => now(),
+                ]);
+            }
+
+            $candidate->refresh();
+            $scoring = $claude->scoreCandidate($candidate, $mandate);
+
+            if (empty($scoring['ai_score'])) {
+                return;
+            }
+
+            $candidate->update([
+                'ai_score'        => $scoring['ai_score'],
+                'score_breakdown' => $scoring['score_breakdown'],
+                'green_flags'     => $scoring['green_flags'],
+                'red_flags'       => $scoring['red_flags'],
+                'ai_summary'      => $scoring['ai_summary'],
+            ]);
+
+            $submission->update([
+                'ai_score'        => $scoring['ai_score'],
+                'score_breakdown' => $scoring['score_breakdown'],
+                'green_flags'     => $scoring['green_flags'],
+                'red_flags'       => $scoring['red_flags'],
+                'ai_summary'      => $scoring['ai_summary'],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Inline CV scoring failed', [
+                'candidate_id' => $candidate->id,
+                'mandate_id' => $mandate->id,
+                'submission_id' => $submission->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function syncSubmissionToSheets(CddSubmission $submission, GoogleSheetsService $sheets): void
+    {
+        try {
+            $sheets->addOrUpdateRow($submission);
+        } catch (\Throwable $e) {
+            Log::error('Inline Google Sheets sync failed', [
+                'submission_id' => $submission->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     private function formatSubmission(CddSubmission $s): array
     {
         $c = $s->candidate;
-        $hasCv = (bool) ($c?->cv_url);
-        $hasScore = !is_null($s->ai_score);
-
         return [
             'id'                        => $s->id,
             'submission_number'         => $s->submission_number,
@@ -323,7 +381,7 @@ class KanbanController extends Controller
             'submitted_at'              => $s->submitted_at,
             'updated_at'                => $s->updated_at,
             'client_status_updated_at'  => $s->client_status_updated_at,
-            'ai_processing'             => $hasCv && !$hasScore,
+            'ai_processing'             => false,
             'candidate'                 => $c ? [
                 'id'               => $c->id,
                 'first_name'       => $c->first_name,

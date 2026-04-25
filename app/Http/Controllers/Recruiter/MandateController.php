@@ -294,9 +294,6 @@ class MandateController extends Controller
             ->get()
             ->map(function (CddSubmission $s) {
                 $candidate = $s->candidate;
-                $hasCv = (bool) ($candidate?->cv_url);
-                $hasScore = !is_null($s->ai_score);
-
                 return [
                     'id' => $s->id,
                     'submission_number' => $s->submission_number,
@@ -310,7 +307,7 @@ class MandateController extends Controller
                     'submitted_at' => $s->submitted_at,
                     'updated_at' => $s->updated_at,
                     'client_status_updated_at' => $s->client_status_updated_at,
-                    'ai_processing' => $hasCv && !$hasScore,
+                    'ai_processing' => false,
                     'candidate' => $candidate ? [
                         'id' => $candidate->id,
                         'first_name' => $candidate->first_name,

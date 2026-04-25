@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\SyncGSheetJob;
 use App\Mail\CandidateMovedMail;
 use App\Models\Candidate;
 use App\Models\CddSubmission;
 use App\Models\Mandate;
 use App\Models\MandateClaim;
+use App\Services\GoogleSheetsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
@@ -56,7 +57,7 @@ class KanbanController extends Controller
         ]);
     }
 
-    public function move(Request $request)
+    public function move(Request $request, GoogleSheetsService $sheets)
     {
         $request->validate([
             'submission_id' => 'required|string|exists:cdd_submissions,id',
@@ -87,8 +88,14 @@ class KanbanController extends Controller
                 ));
         }
 
-        // Async: sync row to Google Sheets
-        SyncGSheetJob::dispatch($sub->fresh(['candidate', 'mandate.client', 'recruiter.user']))->onQueue('sheets');
+        try {
+            $sheets->addOrUpdateRow($sub->fresh(['candidate', 'mandate.client', 'recruiter.user']));
+        } catch (\Throwable $e) {
+            Log::error('Inline Google Sheets sync failed', [
+                'submission_id' => $sub->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response()->json(['success' => true, 'new_stage' => $request->new_stage]);
     }

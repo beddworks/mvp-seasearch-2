@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\SyncFromSheetJob;
 use App\Models\Mandate;
+use App\Services\GoogleSheetsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -24,7 +24,7 @@ class GSheetWebhookController extends Controller
      * Handle incoming push notification from Google.
      * Always return 200; if we return >=400 Google will stop pushing.
      */
-    public function handle(Request $request)
+    public function handle(Request $request, GoogleSheetsService $sheets)
     {
         $channelId     = $request->header('X-Goog-Channel-Id');
         $resourceState = $request->header('X-Goog-Resource-State');
@@ -58,7 +58,15 @@ class GSheetWebhookController extends Controller
             'resource_state' => $resourceState,
         ]);
 
-        SyncFromSheetJob::dispatch($mandate)->onQueue('sheets');
+        try {
+            $result = $sheets->syncFromSheet($mandate);
+            Log::info('Inline GSheet webhook sync complete', $result);
+        } catch (\Throwable $e) {
+            Log::error('Inline GSheet webhook sync failed', [
+                'mandate_id' => $mandate->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return response('', 200);
     }

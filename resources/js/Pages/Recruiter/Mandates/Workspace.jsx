@@ -1,6 +1,6 @@
 import RecruiterLayout from '@/Layouts/RecruiterLayout'
 import { Link, useForm, usePage } from '@inertiajs/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import CandidateDetailModal from '@/Components/CandidateDetailModal'
 
 const SENIORITY_LABELS = { c_suite: 'C-Suite', vp_director: 'VP / Director', manager: 'Manager', ic: 'IC' }
@@ -59,11 +59,7 @@ function activityLabel(value) {
 }
 
 function isAiProcessing(submission) {
-    if (!submission) return false
-    if (submission.ai_processing === true) return true
-    const hasCv = Boolean(submission?.candidate?.cv_url)
-    const hasScore = submission?.ai_score !== null && submission?.ai_score !== undefined
-    return hasCv && !hasScore
+    return submission?.ai_processing === true
 }
 
 export default function MandateWorkspace({ mandate, claim, candidates = [], submissions = [] }) {
@@ -114,36 +110,6 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
             },
         })
     }
-
-    useEffect(() => {
-        if (processingCount === 0) return
-
-        let active = true
-
-        const poll = async () => {
-            try {
-                const response = await fetch(route('recruiter.mandates.ai-status', mandate.id), {
-                    headers: { Accept: 'application/json' },
-                })
-                if (!response.ok) return
-
-                const payload = await response.json()
-                if (!active || !payload?.success || !Array.isArray(payload.submissions)) return
-
-                setLiveSubmissions(payload.submissions)
-            } catch {
-                // Silent retry on next interval
-            }
-        }
-
-        poll()
-        const timer = setInterval(poll, 4000)
-
-        return () => {
-            active = false
-            clearInterval(timer)
-        }
-    }, [processingCount, mandate.id])
 
     return (
         <RecruiterLayout breadcrumb={[{ label: 'Job listings', href: route('recruiter.mandates.index') }, { label: mandate.title }]}>

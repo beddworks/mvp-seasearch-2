@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\CreateMandateSheetJob;
 use App\Models\Mandate;
 use App\Models\Client;
 use App\Models\CompensationType;
+use App\Services\GoogleSheetsService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -38,7 +38,7 @@ class MandateController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, GoogleSheetsService $sheets)
     {
         $data = $request->validate([
             'title'                => ['required', 'string', 'max:255'],
@@ -58,8 +58,7 @@ class MandateController extends Controller
         $data['status'] = 'draft';
         $mandate = Mandate::create($data);
 
-        // Async: create Google Sheet tab for this mandate
-        CreateMandateSheetJob::dispatch($mandate->load('client'))->onQueue('sheets');
+        $sheets->createMandateTab($mandate->load('client'));
 
         return redirect()->route('admin.mandates.index')->with('success', 'Mandate created.');
     }

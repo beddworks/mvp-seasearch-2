@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\SyncFromSheetJob;
 use App\Models\Mandate;
+use App\Services\GoogleSheetsService;
 use Illuminate\Console\Command;
 
 class SyncGoogleSheets extends Command
@@ -11,7 +11,7 @@ class SyncGoogleSheets extends Command
     protected $signature   = 'gsheet:sync {--mandate= : Only sync a specific mandate ID}';
     protected $description = 'Poll Google Sheets and sync stage changes back into the kanban (Sheet → DB)';
 
-    public function handle(): int
+    public function handle(GoogleSheetsService $sheets): int
     {
         $mandateId = $this->option('mandate');
 
@@ -33,8 +33,7 @@ class SyncGoogleSheets extends Command
         $this->info("Syncing {$mandates->count()} mandate(s) from Google Sheets...");
 
         foreach ($mandates as $mandate) {
-            // Dispatch inline (no queue) for immediate sync
-            SyncFromSheetJob::dispatchSync($mandate);
+            $sheets->syncFromSheet($mandate);
             $this->line("  ✓ Mandate: {$mandate->title} [{$mandate->id}]");
         }
 
