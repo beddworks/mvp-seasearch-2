@@ -1,6 +1,6 @@
 import RecruiterLayout from '@/Layouts/RecruiterLayout'
 import { Link, router } from '@inertiajs/react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const csrf = () => document.querySelector('meta[name=csrf-token]')?.content
 const STAGES = ['sourced', 'screened']
@@ -20,6 +20,7 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
     const [preview, setPreview] = useState(null)
     const [dragging, setDragging] = useState(false)
     const fileInputRef = useRef(null)
+    const previewRequestRef = useRef(0)
 
     const [form, setForm] = useState({
         first_name: '',
@@ -46,6 +47,7 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
     }
 
     async function triggerPreview(payloadBuilder) {
+        const requestId = ++previewRequestRef.current
         setPreviewLoading(true)
         setPreviewError('')
 
@@ -57,6 +59,8 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
                 body: fd,
             })
             const data = await res.json()
+
+            if (requestId !== previewRequestRef.current) return
 
             if (!res.ok || !data?.success) {
                 setPreview(null)
@@ -131,9 +135,11 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
 
             setAutoFilledFields(filled)
         } catch {
+            if (requestId !== previewRequestRef.current) return
             setPreview(null)
             setPreviewError('Network error while generating AI preview.')
         } finally {
+            if (requestId !== previewRequestRef.current) return
             setPreviewLoading(false)
         }
     }
@@ -190,15 +196,28 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
 
     function onSelectExisting(candidateId) {
         f('existing_candidate_id', candidateId)
-        setPreview(null)
-        if (!candidateId) return
+    }
 
+    useEffect(() => {
+        if (mode !== 'existing') return
+
+        const candidateId = form.existing_candidate_id
+        if (!candidateId) {
+            previewRequestRef.current += 1
+            setPreview(null)
+            setAiData(null)
+            setPreviewError('')
+            setPreviewLoading(false)
+            return
+        }
+
+        setPreview(null)
         triggerPreview(() => {
             const fd = new FormData()
             fd.append('candidate_id', candidateId)
             return fd
         })
-    }
+    }, [mode, form.existing_candidate_id])
 
     async function handleSubmit() {
         if (mode === 'new' && (!form.first_name || !form.last_name)) {
