@@ -278,12 +278,22 @@ class KanbanController extends Controller
         $submission = CddSubmission::create($submissionData);
         $submission->load(['candidate','mandate','recruiter.user']);
 
-        (new NotificationService())->candidateAdded($submission);
+        if (!empty($aiDataFromForm)) {
+            $candidate->update([
+                'ai_score' => $aiDataFromForm['ai_score'] ?? null,
+                'score_breakdown' => $aiDataFromForm['score_breakdown'] ?? null,
+                'green_flags' => $aiDataFromForm['green_flags'] ?? null,
+                'red_flags' => $aiDataFromForm['red_flags'] ?? null,
+                'ai_summary' => $aiDataFromForm['ai_summary'] ?? null,
+            ]);
+        }
 
         if ($cvUrl && empty($aiDataFromForm)) {
             $this->scoreCandidateSubmission($candidate, $mandate, $submission, $claude, $extractor);
             $submission->refresh()->load(['candidate','mandate','recruiter.user']);
         }
+
+        (new NotificationService())->candidateAdded($submission->fresh(['candidate','mandate.client.user','recruiter.user']));
 
         $this->syncSubmissionToSheets($submission->load(['candidate','mandate.client','recruiter.user']), $sheets);
 

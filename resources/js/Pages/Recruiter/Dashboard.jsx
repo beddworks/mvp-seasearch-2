@@ -170,8 +170,8 @@ function MandateRow({ claim }) {
                 <div style={{ fontSize: 10, color: 'var(--ink4)', fontFamily: 'var(--mono)', marginTop: 2 }}>
                     {claim.assigned_at ? fmtRelative(claim.assigned_at) : 'New'}
                 </div>
-                <Link href={route('recruiter.kanban.show', m?.id)} className="dcard-ghost-btn" style={{ fontSize: 10, marginTop: 4, display: 'inline-block' }}>
-                    Open kanban →
+                <Link href={route('recruiter.mandates.workspace', m?.id)} className="dcard-ghost-btn" style={{ fontSize: 10, marginTop: 4, display: 'inline-block' }}>
+                    Open workspace →
                 </Link>
             </div>
         </div>

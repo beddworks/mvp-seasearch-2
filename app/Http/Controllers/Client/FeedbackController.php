@@ -3,35 +3,135 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\CddSubmission;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Response;
+use App\Services\GoogleSheetsService;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FeedbackController extends Controller
 {
-    public function index() { return Inertia::render('Stub', ['class' => 'FeedbackController']); }
-    public function show($id) { return Inertia::render('Stub', ['class' => 'FeedbackController']); }
-    public function create() { return Inertia::render('Stub', ['class' => 'FeedbackController']); }
-    public function store(Request $request) { return back()->with('success', 'Saved.'); }
-    public function edit($id) { return Inertia::render('Stub', ['class' => 'FeedbackController']); }
-    public function update(Request $request, $id) { return back()->with('success', 'Updated.'); }
-    public function destroy($id) { return back()->with('success', 'Deleted.'); }
-    public function approve($id) { return back()->with('success', 'Approved.'); }
-    public function reject($id) { return back()->with('success', 'Rejected.'); }
-    public function pick($id) { return Inertia::render('Stub'); }
-    public function confirmPick(Request $request, $id) { return back()->with('success', 'Picked.'); }
-    public function workspace($id) { return Inertia::render('Stub'); }
-    public function uploadCv(Request $request, $id) { return response()->json(['success' => true]); }
-    public function saveNote(Request $request, $id) { return response()->json(['success' => true]); }
-    public function move(Request $request) { return response()->json(['success' => true]); }
-    public function scheduleInterview(Request $request) { return response()->json(['success' => true]); }
-    public function saveFeedback(Request $request) { return response()->json(['success' => true]); }
-    public function submitToClient(Request $request) { return response()->json(['success' => true]); }
-    public function addCandidate(Request $request) { return response()->json(['success' => true]); }
-    public function payoutRequest(Request $request) { return back()->with('success', 'Request submitted.'); }
-    public function read($id) { return response()->json(['success' => true]); }
-    public function readAll() { return back(); }
-    public function brief(Request $request) { return response()->json(['result' => 'stub']); }
-    public function outreach(Request $request) { return response()->json(['result' => 'stub']); }
-    public function questions(Request $request) { return response()->json(['result' => 'stub']); }
-    public function matching(Request $request) { return response()->json(['result' => 'stub']); }
+    public function show(string $token)
+    {
+        [$submission, $mandate, $submissions] = $this->resolveReviewContext($token);
+
+        $this->touchToken($submission);
+
+        return response()->view('feedback.review', [
+            'token' => $token,
+            'mandate' => $mandate,
+            'client' => $mandate->client,
+            'submissions' => $submissions,
+            'stageOptions' => ['sourced', 'screened', 'interview', 'offered', 'hired', 'rejected', 'on_hold'],
+            'flashMessage' => session('success'),
+        ]);
+    }
+
+    public function update(Request $request, string $token, GoogleSheetsService $sheets)
+    {
+        [$submission, $mandate] = $this->resolveReviewContext($token);
+
+        $data = $request->validate([
+            'submission_id' => 'required|string|exists:cdd_submissions,id',
+            'client_status' => 'required|in:sourced,screened,interview,offered,hired,rejected,on_hold',
+            'client_feedback' => 'nullable|string|max:2000',
+        ]);
+
+        $target = CddSubmission::where('id', $data['submission_id'])
+            ->where('mandate_id', $mandate->id)
+            ->firstOrFail();
+
+        $target->update([
+            'client_status' => $data['client_status'],
+            'client_status_updated_at' => now(),
+            'client_feedback' => $data['client_feedback'] ?: $target->client_feedback,
+        ]);
+
+        $sheets->addOrUpdateRow($target->fresh(['candidate', 'mandate.client', 'recruiter.user']));
+
+        $this->touchToken($submission);
+
+        return redirect()->route('feedback.show', $token)->with('success', 'Candidate status updated.');
+    }
+
+    public function quickUpdate(Request $request, string $token, GoogleSheetsService $sheets)
+    {
+        [$submission, $mandate] = $this->resolveReviewContext($token);
+
+        $data = $request->validate([
+            'submission_id' => 'required|string|exists:cdd_submissions,id',
+            'client_status' => 'required|in:sourced,screened,interview,offered,hired,rejected,on_hold',
+        ]);
+
+        $target = CddSubmission::where('id', $data['submission_id'])
+            ->where('mandate_id', $mandate->id)
+            ->firstOrFail();
+
+        $target->update([
+            'client_status' => $data['client_status'],
+            'client_status_updated_at' => now(),
+        ]);
+
+        $sheets->addOrUpdateRow($target->fresh(['candidate', 'mandate.client', 'recruiter.user']));
+
+        $this->touchToken($submission);
+
+        return redirect()->route('feedback.show', $token)->with('success', 'Candidate stage updated from email action.');
+    }
+
+    public function export(string $token): StreamedResponse
+    {
+        [$submission, $mandate, $submissions] = $this->resolveReviewContext($token);
+
+        $this->touchToken($submission);
+
+        $filename = 'seasearch-' . str($mandate->title)->slug('-') . '-candidates.csv';
+
+        return Response::streamDownload(function () use ($submissions) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Candidate', 'Role', 'Company', 'Email', 'LinkedIn', 'AI Score', 'Stage', 'Recruiter Note', 'AI Summary', 'Green Flags', 'Red Flags', 'Submitted At']);
+
+            foreach ($submissions as $row) {
+                fputcsv($handle, [
+                    trim(($row->candidate->first_name ?? '') . ' ' . ($row->candidate->last_name ?? '')),
+                    $row->candidate->current_role,
+                    $row->candidate->current_company,
+                    $row->candidate->email,
+                    $row->candidate->linkedin_url,
+                    $row->ai_score,
+                    $row->client_status,
+                    $row->recruiter_note,
+                    $row->ai_summary,
+                    implode(' | ', $row->green_flags ?? []),
+                    implode(' | ', $row->red_flags ?? []),
+                    optional($row->submitted_at)->toDateTimeString(),
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    private function resolveReviewContext(string $token): array
+    {
+        $submission = CddSubmission::with(['mandate.client', 'candidate', 'recruiter.user'])
+            ->where('token', $token)
+            ->firstOrFail();
+
+        $mandate = $submission->mandate;
+
+        $submissions = CddSubmission::with(['candidate', 'recruiter.user'])
+            ->where('mandate_id', $mandate->id)
+            ->orderByDesc('submitted_at')
+            ->get();
+
+        return [$submission, $mandate, $submissions];
+    }
+
+    private function touchToken(CddSubmission $submission): void
+    {
+        if (!$submission->token_used_at) {
+            $submission->forceFill(['token_used_at' => now()])->save();
+        }
+    }
 }

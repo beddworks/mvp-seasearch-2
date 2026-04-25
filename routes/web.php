@@ -122,6 +122,8 @@ Route::middleware(['auth', 'role:admin,super_admin'])->prefix('admin')->name('ad
 // ─── Client portal (tokenized feedback) ────────────────────────────────────
 Route::get('/feedback/{token}',  [\App\Http\Controllers\Client\FeedbackController::class, 'show'])->name('feedback.show');
 Route::post('/feedback/{token}', [\App\Http\Controllers\Client\FeedbackController::class, 'update'])->name('feedback.update');
+Route::get('/feedback/{token}/quick-update', [\App\Http\Controllers\Client\FeedbackController::class, 'quickUpdate'])->name('feedback.quick-update');
+Route::get('/feedback/{token}/export', [\App\Http\Controllers\Client\FeedbackController::class, 'export'])->name('feedback.export');
 
 // ─── Client dashboard ──────────────────────────────────────────────────────
 Route::middleware(['auth', 'role:client'])->prefix('client')->name('client.')->group(function () {

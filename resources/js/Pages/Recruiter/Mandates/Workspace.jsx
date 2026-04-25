@@ -168,7 +168,7 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
 
                 {tab === 'overview' && (
                     <>
-                        <div className="stat-row" style={{ marginBottom: 14 }}>
+                        <div className="stat-row" style={{ marginBottom: 14, display: 'none' }}>
                             <div className="sc"><div className="sc-num">{liveSubmissions.length}</div><div className="sc-lbl">Candidates sourced</div></div>
                             <div className="sc"><div className="sc-num">{liveSubmissions.filter(s => (s.ai_score || 0) > 0).length}</div><div className="sc-lbl">AI screened</div></div>
                             <div className="sc"><div className="sc-num">{liveSubmissions.filter(s => s.client_status === 'interview').length}</div><div className="sc-lbl">Interviews set</div></div>
@@ -179,7 +179,7 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
                             <div className="sblock-head"><div className="sblock-title">Job description</div></div>
                             <div className="sblock-body">
                                 <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink4)', marginBottom: 6 }}>Role requirements</div>
-                                <div className="req-grid">
+                                <div className="req-grid" style={{ display: 'none' }}>
                                     <div className="req-card">
                                         <div className="req-title">Must-have</div>
                                         {(mandate.must_haves || []).length > 0 ? (mandate.must_haves || []).map((item, i) => <div key={i} className="req-item">{item}</div>) : <div className="req-item">No must-have requirements listed</div>}
@@ -189,10 +189,15 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
                                         {(mandate.nice_to_haves || []).length > 0 ? (mandate.nice_to_haves || []).map((item, i) => <div key={i} className="req-item">{item}</div>) : <div className="req-item">No nice-to-have requirements listed</div>}
                                     </div>
                                 </div>
+                                <div>
+                                        <div style={{ fontSize: 12, color: 'var(--ink4)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                                            {mandate.description}
+                                        </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="sblock" style={{ marginTop: 12 }}>
+                        <div className="sblock" style={{ marginTop: 12, display: 'none' }}>
                             <div className="sblock-head"><div className="sblock-title">Candidate screening flags</div></div>
                             <div className="sblock-body">
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -208,7 +213,7 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'none', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                             <Link href={route('recruiter.mandates.add-candidate', mandate.id)} className="ai-action-btn" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>+ Add candidate</Link>
                             <button className="ai-action-btn" onClick={() => setTab('aipanel')}>Run AI candidate matching</button>
                             <button className="ai-action-btn" onClick={() => setShowSubmit(true)}>Submit to client</button>
@@ -312,10 +317,10 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
                             AI scored {ranked.filter(r => (r.ai_score || 0) > 0).length} candidates against this role. {processingCount > 0 ? `Processing ${processingCount} candidate${processingCount > 1 ? 's' : ''} now...` : 'Add a candidate and drop CV (PDF/DOC/DOCX) to trigger automated scoring.'}
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 14 }}>
-                            <div className="sc"><div className="sc-num">{ranked.length}</div><div className="sc-lbl">Candidates scored</div></div>
-                            <div className="sc" style={{ background: 'var(--jade-pale)' }}><div className="sc-num" style={{ color: 'var(--jade2)' }}>{ranked.filter(r => (r.ai_score || 0) >= 80).length}</div><div className="sc-lbl">Strong matches (80%+)</div></div>
-                            <div className="sc" style={{ background: 'var(--amber-pale)' }}><div className="sc-num" style={{ color: 'var(--amber2)' }}>{ranked.filter(r => (r.ai_score || 0) >= 60 && (r.ai_score || 0) < 80).length}</div><div className="sc-lbl">Moderate (60-79%)</div></div>
-                            <div className="sc" style={{ background: 'var(--ruby-pale)' }}><div className="sc-num" style={{ color: 'var(--ruby2)' }}>{ranked.filter(r => (r.ai_score || 0) > 0 && (r.ai_score || 0) < 60).length}</div><div className="sc-lbl">Weak (&lt;60%)</div></div>
+                            <div className="sc" style={{ background: 'var(--jade-soft)', padding: '1rem', borderRadius: 'var(--r)' }}><div className="sc-num">{ranked.length}</div><div className="sc-lbl">Candidates scored</div></div>
+                            <div className="sc" style={{ background: 'var(--jade-pale)', padding: '1rem', borderRadius: 'var(--r)' }}><div className="sc-num" style={{ color: 'var(--jade2)' }}>{ranked.filter(r => (r.ai_score || 0) >= 80).length}</div><div className="sc-lbl">Strong matches (80%+)</div></div>
+                            <div className="sc" style={{ background: 'var(--amber-pale)', padding: '1rem', borderRadius: 'var(--r)' }}><div className="sc-num" style={{ color: 'var(--amber2)' }}>{ranked.filter(r => (r.ai_score || 0) >= 60 && (r.ai_score || 0) < 80).length}</div><div className="sc-lbl">Moderate (60-79%)</div></div>
+                            <div className="sc" style={{ background: 'var(--ruby-pale)', padding: '1rem', borderRadius: 'var(--r)' }}><div className="sc-num" style={{ color: 'var(--ruby2)' }}>{ranked.filter(r => (r.ai_score || 0) > 0 && (r.ai_score || 0) < 60).length}</div><div className="sc-lbl">Weak (&lt;60%)</div></div>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -370,14 +375,14 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
                     <div style={{ background: '#fff', border: '1px solid var(--wire)', borderRadius: 'var(--r)', padding: '14px 16px' }}>
                         <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 10 }}>Recent activity</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            <div style={{ fontSize: 12, color: 'var(--ink4)' }}>Role picked and claim submitted ({new Date(claim.created_at).toLocaleDateString()})</div>
-                            {liveSubmissions.map(s => <div key={s.id} style={{ fontSize: 12, color: 'var(--ink4)' }}>Candidate {s.candidate ? `${s.candidate.first_name} ${s.candidate.last_name}` : `#${s.submission_number}`} in {STAGE_LABEL[s.client_status || 'sourced']} ({s.submitted_at ? new Date(s.submitted_at).toLocaleDateString() : 'today'})</div>)}
+                            <div style={{ fontSize: 12, color: 'var(--ink4)', borderBottom: '1px solid var(--wire)', paddingBottom: 4 }}>Role picked and claim submitted ({new Date(claim.created_at).toLocaleDateString()})</div>
+                            {liveSubmissions.map(s => <div key={s.id} style={{ fontSize: 12, color: 'var(--ink4)', borderBottom: '1px solid var(--wire)', paddingBottom: 4, marginBottom: 4 }}>Candidate {s.candidate ? `${s.candidate.first_name} ${s.candidate.last_name}` : `#${s.submission_number}`} in {STAGE_LABEL[s.client_status || 'sourced']} ({s.submitted_at ? new Date(s.submitted_at).toLocaleDateString() : 'today'})</div>)}
                             {liveSubmissions.length === 0 && <div style={{ fontSize: 12, color: 'var(--ink4)' }}>No candidate activity yet.</div>}
                         </div>
                     </div>
                 )}
 
-                <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
+                <div style={{ marginTop: 14, display: 'none', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
                     <div className="sc"><div className="sc-num">{liveSubmissions.length}</div><div className="sc-lbl">Total</div></div>
                     <div className="sc"><div className="sc-num">{topScore || '—'}</div><div className="sc-lbl">Top match</div></div>
                     <div className="sc"><div className="sc-num">{daysActive}</div><div className="sc-lbl">Days active</div></div>

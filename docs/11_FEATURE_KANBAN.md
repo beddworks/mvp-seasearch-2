@@ -8,6 +8,11 @@
 
 The Kanban board is per-mandate. One board per role the recruiter has claimed.
 
+Client review extension:
+- Adding a candidate now sends a styled client email after AI scoring is available.
+- The email links to a tokenized public review page for the mandate candidate list.
+- The public page supports per-candidate stage updates through a dropdown and CSV export.
+
 **6 columns map to `cdd_submissions.client_status`:**
 
 | Column | Status value | Color |

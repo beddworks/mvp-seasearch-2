@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\ClaimApprovedMail;
 use App\Mail\ClaimRejectedMail;
+use App\Mail\ClientCandidateReviewMail;
 use App\Mail\SubmissionApprovedMail;
 use App\Mail\SubmissionRejectedMail;
 use App\Mail\MandatePickedMail;
@@ -15,6 +16,7 @@ use App\Models\PlatformNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class NotificationService
 {
@@ -135,7 +137,7 @@ class NotificationService
         }
 
         // Notify mandate client as soon as a candidate is added.
-        $sub->loadMissing('mandate.client.user');
+        $sub->loadMissing('candidate', 'mandate.client.user', 'recruiter.user');
         /** @var Client|null $client */
         $client = optional($sub->mandate)->client;
 
@@ -143,32 +145,32 @@ class NotificationService
             return;
         }
 
+        $token = $this->ensureClientReviewToken($sub);
+        $reviewLink = route('feedback.show', $token);
+        $exportLink = route('feedback.export', $token);
         $clientTitle = 'New candidate added — ' . $cName;
         $clientBody = $recruiter . ' added ' . $cName . ' to role "' . optional($sub->mandate)->title . '".';
 
-        // In-app + email for linked client user account.
         if ($client->user) {
-            $this->notify(
-                $client->user,
-                'candidate_added_client',
-                $clientTitle,
-                $clientBody,
-                route('client.mandates.kanban', ['id' => $sub->mandate_id]),
-                [
+            PlatformNotification::create([
+                'user_id'    => $client->user->id,
+                'type'       => 'candidate_added_client',
+                'title'      => $clientTitle,
+                'body'       => $clientBody,
+                'action_url' => $reviewLink,
+                'is_read'    => false,
+                'metadata'   => [
                     'submission_id' => $sub->id,
                     'mandate_id' => $sub->mandate_id,
-                ]
-            );
+                    'review_token' => $token,
+                ],
+            ]);
+
+            $this->sendClientCandidateReviewEmail($sub, $client->user->email, $client->user->name ?: $client->company_name, $reviewLink, $exportLink);
         }
 
-        // Email fallback for contact email (avoid duplicate if same as client user email).
         if (!empty($client->contact_email) && strtolower((string) $client->contact_email) !== strtolower((string) optional($client->user)->email)) {
-            try {
-                Mail::to($client->contact_email, $client->contact_name ?: $client->company_name)
-                    ->send(new CandidateAddedMail($clientTitle, $clientBody, route('login')));
-            } catch (\Throwable $e) {
-                Log::warning('NotificationService: client contact email failed', ['error' => $e->getMessage()]);
-            }
+            $this->sendClientCandidateReviewEmail($sub, $client->contact_email, $client->contact_name ?: $client->company_name, $reviewLink, $exportLink);
         }
     }
 
@@ -223,5 +225,33 @@ class NotificationService
             'candidate_submitted' => new CandidateSubmittedMail($title, $body, $link),
             default               => null,
         };
+    }
+
+    private function ensureClientReviewToken(\App\Models\CddSubmission $sub): string
+    {
+        if (!empty($sub->token)) {
+            return $sub->token;
+        }
+
+        $token = Str::random(40);
+        $sub->forceFill([
+            'token' => $token,
+            'token_created_at' => now(),
+        ])->save();
+
+        return $token;
+    }
+
+    private function sendClientCandidateReviewEmail(\App\Models\CddSubmission $sub, string $email, string $name, string $reviewLink, string $exportLink): void
+    {
+        try {
+            Mail::to($email, $name)->send(new ClientCandidateReviewMail($sub, $reviewLink, $exportLink));
+        } catch (\Throwable $e) {
+            Log::warning('NotificationService: client candidate review email failed', [
+                'submission_id' => $sub->id,
+                'email' => $email,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
