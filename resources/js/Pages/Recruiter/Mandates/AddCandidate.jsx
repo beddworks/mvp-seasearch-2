@@ -5,6 +5,37 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 const csrf = () => document.querySelector('meta[name=csrf-token]')?.content
 const STAGES = ['sourced', 'screened']
 
+const AI_OVERLAY = {
+    backdrop: {
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1500,
+        background: 'rgba(13, 12, 10, 0.45)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+    },
+    card: {
+        width: '100%',
+        maxWidth: 420,
+        background: '#fff',
+        border: '1px solid var(--wire)',
+        borderRadius: 'var(--r)',
+        padding: '16px 18px',
+        textAlign: 'center',
+    },
+    spinner: {
+        width: 34,
+        height: 34,
+        borderRadius: '50%',
+        margin: '0 auto 10px',
+        border: '3px solid var(--wire)',
+        borderTopColor: 'var(--sea2)',
+        animation: 'spin 1s linear infinite',
+    },
+}
+
 function pct(value) {
     const n = Number(value || 0)
     if (!Number.isFinite(n)) return 0
@@ -281,6 +312,16 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
 
     return (
         <RecruiterLayout breadcrumb={[{ label: 'Job listings', href: route('recruiter.mandates.index') }, { label: mandate.title }, { label: 'Add candidate' }]}>
+            {previewLoading && (
+                <div style={AI_OVERLAY.backdrop}>
+                    <div style={AI_OVERLAY.card}>
+                        <div style={AI_OVERLAY.spinner} />
+                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>AI processing CV</div>
+                        <div style={{ fontSize: 12, color: 'var(--ink4)', lineHeight: 1.6 }}>Parsing profile and matching candidate to this job. Please wait...</div>
+                    </div>
+                </div>
+            )}
+
             <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px 20px' }}>
                 <div style={{ marginBottom: 14 }}>
                     <Link href={route('recruiter.mandates.workspace', mandate.id)} style={{ fontSize: 12, color: 'var(--ink4)', textDecoration: 'none' }}>← Back to workspace</Link>
@@ -459,6 +500,8 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
                     </div>
                 </div>
             </div>
+
+            <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
         </RecruiterLayout>
     )
 }

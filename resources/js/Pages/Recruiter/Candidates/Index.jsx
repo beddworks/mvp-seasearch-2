@@ -38,6 +38,37 @@ const FORM_STYLES = {
 
 const csrf = () => document.querySelector('meta[name=csrf-token]')?.content
 
+const AI_OVERLAY = {
+    backdrop: {
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1500,
+        background: 'rgba(13, 12, 10, 0.45)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+    },
+    card: {
+        width: '100%',
+        maxWidth: 420,
+        background: '#fff',
+        border: '1px solid var(--wire)',
+        borderRadius: 'var(--r)',
+        padding: '16px 18px',
+        textAlign: 'center',
+    },
+    spinner: {
+        width: 34,
+        height: 34,
+        borderRadius: '50%',
+        margin: '0 auto 10px',
+        border: '3px solid var(--wire)',
+        borderTopColor: 'var(--sea2)',
+        animation: 'spin 1s linear infinite',
+    },
+}
+
 function truncate(text, limit = 95) {
     if (!text) return 'No AI summary yet.'
     return text.length <= limit ? text : `${text.slice(0, limit)}...`
@@ -201,6 +232,16 @@ export default function CandidatesIndex({ candidates, filters }) {
 
     return (
         <RecruiterLayout breadcrumb="Candidates">
+            {previewLoading && (
+                <div style={AI_OVERLAY.backdrop}>
+                    <div style={AI_OVERLAY.card}>
+                        <div style={AI_OVERLAY.spinner} />
+                        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 4 }}>AI processing CV</div>
+                        <div style={{ fontSize: 12, color: 'var(--ink4)', lineHeight: 1.6 }}>Extracting profile details and preparing summary. Please wait...</div>
+                    </div>
+                </div>
+            )}
+
             {flash?.success && (
                 <div className="flash-success" style={{ margin: '0 20px 16px' }}>{flash.success}</div>
             )}
@@ -460,6 +501,8 @@ export default function CandidatesIndex({ candidates, filters }) {
                     </div>
                 )}
             </div>
+
+            <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
         </RecruiterLayout>
     )
 }
