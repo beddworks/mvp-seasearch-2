@@ -52,6 +52,7 @@ Route::middleware(['auth', 'role:recruiter'])->prefix('recruiter')->name('recrui
 
     // candidates
     Route::get('/candidates',                         [\App\Http\Controllers\Recruiter\CandidateController::class, 'index'])->name('candidates.index');
+    Route::post('/candidates/ai-preview',             [\App\Http\Controllers\Recruiter\CandidateController::class, 'aiPreview'])->name('candidates.ai-preview');
     Route::post('/candidates',                        [\App\Http\Controllers\Recruiter\CandidateController::class, 'store'])->name('candidates.store');
     Route::get('/candidates/{candidate}',             [\App\Http\Controllers\Recruiter\CandidateController::class, 'show'])->name('candidates.show');
     Route::put('/candidates/{candidate}',             [\App\Http\Controllers\Recruiter\CandidateController::class, 'update'])->name('candidates.update');
