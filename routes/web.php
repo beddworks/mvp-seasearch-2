@@ -107,6 +107,15 @@ Route::middleware(['auth', 'role:admin,super_admin'])->prefix('admin')->name('ad
     Route::post('/submissions/{submission}/approve', [\App\Http\Controllers\Admin\SubmissionController::class, 'approve'])->name('submissions.approve');
     Route::post('/submissions/{submission}/reject',  [\App\Http\Controllers\Admin\SubmissionController::class, 'reject'])->name('submissions.reject');
 
+    // candidates
+    Route::get('/candidates',                         [\App\Http\Controllers\Admin\CandidateController::class, 'index'])->name('candidates.index');
+    Route::post('/candidates/ai-preview',             [\App\Http\Controllers\Admin\CandidateController::class, 'aiPreview'])->name('candidates.ai-preview');
+    Route::post('/candidates',                        [\App\Http\Controllers\Admin\CandidateController::class, 'store'])->name('candidates.store');
+    Route::get('/candidates/{candidate}',             [\App\Http\Controllers\Admin\CandidateController::class, 'show'])->name('candidates.show');
+    Route::put('/candidates/{candidate}',             [\App\Http\Controllers\Admin\CandidateController::class, 'update'])->name('candidates.update');
+    Route::post('/candidates/{candidate}/upload-cv',  [\App\Http\Controllers\Admin\CandidateController::class, 'uploadCv'])->name('candidates.upload-cv');
+    Route::post('/candidates/{candidate}/save-note',  [\App\Http\Controllers\Admin\CandidateController::class, 'saveNote'])->name('candidates.save-note');
+
     Route::get('/mandates/{id}/kanban',              [\App\Http\Controllers\Admin\KanbanController::class, 'show'])->name('mandates.kanban');
     Route::post('/kanban/move',                      [\App\Http\Controllers\Admin\KanbanController::class, 'move'])->name('kanban.move');
     Route::post('/kanban/schedule-interview',         [\App\Http\Controllers\Admin\KanbanController::class, 'scheduleInterview'])->name('kanban.schedule-interview');

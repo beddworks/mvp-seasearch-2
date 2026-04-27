@@ -4,8 +4,9 @@ import { initials } from '@/lib/utils'
 const NAV_ITEMS = [
     { icon: '▦', label: 'Dashboard',   route: 'admin.dashboard' },
     { icon: '📋', label: 'Roles',    route: 'admin.mandates.index' },
+    { icon: '◉', label: 'Candidates', route: 'admin.candidates.index' },
     { icon: '🏢', label: 'Clients',     route: 'admin.clients.index' },
-    { icon: '◉', label: 'Recruiters', route: 'admin.recruiters.index' },
+    { icon: '◎', label: 'Recruiters', route: 'admin.recruiters.index' },
     { icon: '🔑', label: 'Claims Request',     route: 'admin.claims.index' },
     // { icon: '📥', label: 'Submissions', route: 'admin.submissions.index' },
     { icon: '⚙', label: 'Config',     route: 'admin.compensation-types.index' },
