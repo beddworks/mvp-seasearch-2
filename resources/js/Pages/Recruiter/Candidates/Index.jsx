@@ -242,9 +242,6 @@ export default function CandidatesIndex({ candidates, filters }) {
                 </div>
             )}
 
-            {flash?.success && (
-                <div className="flash-success" style={{ margin: '0 20px 16px' }}>{flash.success}</div>
-            )}
 
             <div style={{ padding: '0 20px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -252,11 +249,7 @@ export default function CandidatesIndex({ candidates, filters }) {
                         <div style={{ fontSize: 18, fontWeight: 600, fontFamily: 'var(--font-head)', color: 'var(--ink)', marginBottom: 2 }}>
                             My Candidates
                         </div>
-                        <div style={{ fontSize: 12, color: 'var(--ink4)' }}>
-                            {candidates.total} candidate{candidates.total !== 1 ? 's' : ''} in your pool
-                        </div>
                     </div>
-                    <div className="badge badge-sea">Single-page add + manage</div>
                 </div>
 
                 <div className="g21" style={{ alignItems: 'start', marginBottom: 14 }}>

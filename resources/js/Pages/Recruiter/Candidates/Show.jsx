@@ -64,9 +64,7 @@ export default function CandidateShow({ candidate }) {
             { label: 'Candidates', href: route('recruiter.candidates.index') },
             { label: name },
         ]}>
-            {flash?.success && (
-                <div className="flash-success" style={{ margin: '0 0 0 0', borderRadius: 0 }}>{flash.success}</div>
-            )}
+            
 
             {/* Profile Header */}
             <div style={{ background: '#fff', borderBottom: '1px solid var(--wire)', padding: '16px 22px', flexShrink: 0 }}>

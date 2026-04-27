@@ -8,10 +8,9 @@ export default function ClientsIndex({ clients, filters }) {
     return (
         <AdminLayout title="Clients">
             <div className="page-content">
-                <div className="page-head">
+                <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <div>
                         <div className="page-title">Clients</div>
-                        <div className="page-sub">Manage client accounts and GSheet access</div>
                     </div>
                     <Link href={route('admin.clients.create')} className="btn btn-primary">+ New Client</Link>
                 </div>

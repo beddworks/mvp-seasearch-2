@@ -19,10 +19,9 @@ export default function ClaimsIndex({ claims, filters, stats }) {
     return (
         <AdminLayout title="Claim Queue">
             <div className="page-content">
-                <div className="page-head">
+                <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <div>
                         <div className="page-title">Claim Queue</div>
-                        <div className="page-sub">Approve or reject recruiter mandate claims</div>
                     </div>
                 </div>
 
@@ -44,7 +43,6 @@ export default function ClaimsIndex({ claims, filters, stats }) {
                             <div style={{ fontSize: 26, fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--ink)' }}>{s.value}</div>
                         </div>
                     ))}
-                    <div className="dcard" style={{ padding: '14px 16px' }} />
                 </div>
 
                 <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>

@@ -37,10 +37,9 @@ export default function RecruitersIndex({ recruiters, filters, stats }) {
     return (
         <AdminLayout title="Recruiters">
             <div className="page-content">
-                <div className="page-head">
+                <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <div>
                         <div className="page-title">Recruiters</div>
-                        <div className="page-sub">Manage recruiter tiers, trust levels, and groups</div>
                     </div>
                     <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>+ Add Recruiter</button>
                 </div>

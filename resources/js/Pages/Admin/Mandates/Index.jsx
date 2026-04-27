@@ -21,10 +21,9 @@ export default function MandatesIndex({ mandates, filters, stats }) {
     return (
         <AdminLayout title="Mandates">
             <div className="page-content">
-                <div className="page-head">
+                <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <div>
                         <div className="page-title">Mandates</div>
-                        <div className="page-sub">Create and manage role mandates</div>
                     </div>
                     <Link href={route('admin.mandates.create')} className="btn btn-primary">+ New Mandate</Link>
                 </div>

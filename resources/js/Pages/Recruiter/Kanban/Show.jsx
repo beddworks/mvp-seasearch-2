@@ -92,10 +92,15 @@ export default function KanbanShow({ mandate, claim, submissions: rawSubs, stage
     const routeBase = layoutRole === 'admin' ? 'admin.kanban' : layoutRole === 'client' ? 'client.kanban' : 'recruiter.kanban'
     const Layout = layoutRole === 'admin' ? AdminLayout : layoutRole === 'client' ? ClientLayout : RecruiterLayout
     const recruiterAddCandidateUrl = route('recruiter.mandates.add-candidate', mandate.id)
+    const adminAddCandidateUrl = route('admin.mandates.add-candidate', mandate.id)
 
     function openAddCandidate() {
         if (layoutRole === 'recruiter') {
             router.visit(recruiterAddCandidateUrl)
+            return
+        }
+        if (layoutRole === 'admin') {
+            router.visit(adminAddCandidateUrl)
             return
         }
         setAddModal(true)
@@ -146,6 +151,8 @@ export default function KanbanShow({ mandate, claim, submissions: rawSubs, stage
                             <>
                                 {layoutRole === 'recruiter' ? (
                                     <Link href={recruiterAddCandidateUrl} className="btn btn-secondary btn-sm">+ Add candidate</Link>
+                                ) : layoutRole === 'admin' ? (
+                                    <Link href={adminAddCandidateUrl} className="btn btn-secondary btn-sm">+ Add candidate</Link>
                                 ) : (
                                     <button className="btn btn-secondary btn-sm" onClick={() => setAddModal(true)}>+ Add candidate</button>
                                 )}

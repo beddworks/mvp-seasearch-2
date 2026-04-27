@@ -64,10 +64,7 @@ export default function CandidateShow({ candidate }) {
             { label: 'Candidates', href: route('admin.candidates.index') },
             { label: name },
         ]}>
-            {flash?.success && (
-                <div className="flash-success" style={{ margin: '0 0 0 0', borderRadius: 0 }}>{flash.success}</div>
-            )}
-
+           
             <div style={{ background: '#fff', borderBottom: '1px solid var(--wire)', padding: '16px 22px', flexShrink: 0 }}>
                 <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', marginBottom: 12 }}>
                     <div style={{ width: 52, height: 52, borderRadius: '50%', background: AVATAR_COLORS[idx], color: AVATAR_TEXT[idx], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 500, flexShrink: 0 }}>

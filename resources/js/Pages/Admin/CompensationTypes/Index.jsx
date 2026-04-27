@@ -19,10 +19,9 @@ export default function CompensationTypesIndex({ types }) {
     return (
         <AdminLayout title="Compensation Types">
             <div className="page-content">
-                <div className="page-head">
+                <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <div>
                         <div className="page-title">Compensation Types</div>
-                        <div className="page-sub">Configure fee formulas for placement rewards</div>
                     </div>
                     <Link href={route('admin.compensation-types.create')} className="btn btn-primary">+ New Type</Link>
                 </div>

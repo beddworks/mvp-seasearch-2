@@ -155,7 +155,7 @@ export default function MandateForm({ mandate, clients, compensation_types }) {
     const inputStyle = { width: '100%' }
 
     return (
-        <AdminLayout title={isEdit ? 'Edit Mandate' : 'New Mandate'}>
+        <AdminLayout title={isEdit ? 'Edit Role' : 'New Role'}>
             {previewLoading && (
                 <div style={AI_OVERLAY.backdrop}>
                     <div style={AI_OVERLAY.card}>
@@ -167,10 +167,9 @@ export default function MandateForm({ mandate, clients, compensation_types }) {
             )}
 
             <div className="page-content" style={{ maxWidth: 700 }}>
-                <div className="page-head">
+                <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <div>
-                        <div className="page-title">{isEdit ? 'Edit Mandate' : 'New Mandate'}</div>
-                        <div className="page-sub">{isEdit ? `Editing: ${mandate.title}` : 'Create a new role mandate'}</div>
+                        <div className="page-title">{isEdit ? `Edit Role ${mandate.title}` : 'New Role'}</div>
                     </div>
                 </div>
 
@@ -289,7 +288,7 @@ export default function MandateForm({ mandate, clients, compensation_types }) {
                         )}
                     </div>
 
-                    <div className="dcard" style={{ padding: 20, marginBottom: 16 }}>
+                    <div className="dcard" style={{ padding: 20, marginBottom: 16,display: 'none' }}>
                         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', marginBottom: 12 }}>Settings</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                             {[

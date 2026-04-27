@@ -118,12 +118,9 @@ export default function MandatesIndex({ claims, tab, atCapacity }) {
                         <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-.02em' }}>
                             My roles
                         </div>
-                        <div style={{ fontSize: 13, color: 'var(--ink4)', marginTop: 3 }}>
-                            Mandates you have picked · {claims.total} role{claims.total !== 1 ? 's' : ''}
-                        </div>
+                       
                     </div>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        {atCapacity && <span className="badge badge-amber" style={{ fontSize: 12 }}>At capacity (2/2)</span>}
                         <Link href={route('public.roles')} className="btn btn-primary btn-sm">
                             Browse all roles →
                         </Link>

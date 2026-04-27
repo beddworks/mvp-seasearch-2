@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Mandate;
 use App\Models\Client;
 use App\Models\CompensationType;
+use App\Models\Candidate;
 use App\Services\ClaudeService;
 use App\Services\CvTextExtractor;
 use App\Services\GoogleSheetsService;
@@ -115,6 +116,135 @@ class MandateController extends Controller
     {
         Mandate::findOrFail($id)->delete();
         return back()->with('success', 'Mandate deleted.');
+    }
+
+    public function addCandidatePage($id)
+    {
+        $mandate = Mandate::with('client')->findOrFail($id);
+
+        $candidates = Candidate::orderByDesc('created_at')
+            ->get([
+                'id',
+                'recruiter_id',
+                'first_name',
+                'last_name',
+                'email',
+                'linkedin_url',
+                'current_role',
+                'current_company',
+                'cv_url',
+                'skills',
+                'years_experience',
+                'parsed_profile',
+            ]);
+
+        return Inertia::render('Admin/Mandates/AddCandidate', [
+            'mandate' => $mandate,
+            'candidates' => $candidates,
+        ]);
+    }
+
+    public function candidateAiPreview(Request $request, $id, ClaudeService $claude, CvTextExtractor $extractor): JsonResponse
+    {
+        $mandate = Mandate::findOrFail($id);
+
+        $request->validate([
+            'candidate_id' => 'nullable|string|exists:candidates,id',
+            'first_name' => 'nullable|string|max:100',
+            'last_name' => 'nullable|string|max:100',
+            'current_role' => 'nullable|string|max:200',
+            'current_company' => 'nullable|string|max:200',
+            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+        ]);
+
+        if (!$request->candidate_id && !$request->hasFile('cv_file')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload a CV or select an existing candidate first.',
+            ], 422);
+        }
+
+        if ($request->candidate_id) {
+            $candidate = Candidate::findOrFail($request->candidate_id);
+
+            $working = new Candidate($candidate->toArray());
+
+            if (empty($working->parsed_profile) && !empty($working->cv_url)) {
+                $cvText = $extractor->extractFromStoredUrl($working->cv_url, (string) $candidate->id);
+                if (!empty($cvText)) {
+                    $parsed = $claude->parseCV($cvText, $mandate);
+                    if (!empty($parsed)) {
+                        $working->parsed_profile = $parsed;
+                        $working->skills = $parsed['skills'] ?? $working->skills;
+                        $working->years_experience = $parsed['years_experience'] ?? $working->years_experience;
+                        $working->current_role = $parsed['current_role'] ?? $working->current_role;
+                        $working->current_company = $parsed['current_company'] ?? $working->current_company;
+                    }
+                }
+            }
+
+            $score = $claude->scoreCandidate($working, $mandate);
+
+            return response()->json([
+                'success' => true,
+                'source' => 'existing',
+                'candidate' => [
+                    'id' => $candidate->id,
+                    'first_name' => $candidate->first_name,
+                    'last_name' => $candidate->last_name,
+                    'email' => $candidate->email,
+                    'linkedin_url' => $candidate->linkedin_url,
+                    'current_role' => $working->current_role,
+                    'current_company' => $working->current_company,
+                ],
+                'parsed_profile' => $working->parsed_profile ?? [],
+                'score' => $score,
+            ]);
+        }
+
+        $working = new Candidate([
+            'first_name' => $request->first_name ?: 'New',
+            'last_name' => $request->last_name ?: 'Candidate',
+            'current_role' => $request->current_role,
+            'current_company' => $request->current_company,
+        ]);
+
+        $cvText = '';
+        $parsed = [];
+
+        if ($request->hasFile('cv_file')) {
+            $cvText = $extractor->extractFromUploadedFile($request->file('cv_file'));
+        }
+
+        if (!empty($cvText ?? '')) {
+            $parsed = $claude->parseCV($cvText, $mandate);
+            if (!empty($parsed)) {
+                $working->parsed_profile = $parsed;
+                $working->skills = $parsed['skills'] ?? [];
+                $working->years_experience = $parsed['years_experience'] ?? null;
+                if (empty($working->current_role)) $working->current_role = $parsed['current_role'] ?? null;
+                if (empty($working->current_company)) $working->current_company = $parsed['current_company'] ?? null;
+            }
+        }
+
+        $score = $claude->scoreCandidate($working, $mandate);
+
+        return response()->json([
+            'success' => true,
+            'source' => 'upload',
+            'candidate' => [
+                'first_name' => $working->first_name,
+                'last_name' => $working->last_name,
+                'email' => $parsed['email'] ?? '',
+                'linkedin_url' => $parsed['linkedin_url'] ?? '',
+                'current_role' => $working->current_role,
+                'current_company' => $working->current_company,
+                'years_experience' => $parsed['years_experience'] ?? null,
+                'skills' => $parsed['skills'] ?? [],
+            ],
+            'parsed_profile' => $parsed,
+            'score' => $score,
+        ]);
     }
 
     public function aiPreview(Request $request, ClaudeService $claude, CvTextExtractor $extractor): JsonResponse

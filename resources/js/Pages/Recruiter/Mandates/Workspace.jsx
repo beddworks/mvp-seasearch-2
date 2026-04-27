@@ -114,7 +114,6 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
     return (
         <RecruiterLayout breadcrumb={[{ label: 'Job listings', href: route('recruiter.mandates.index') }, { label: mandate.title }]}>
             <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px 20px' }}>
-                {flash?.success && <div className="flash-success" style={{ marginBottom: 16, borderRadius: 8 }}>{flash.success}</div>}
 
                 <div style={{ marginBottom: 14 }}>
                     <Link href={route('recruiter.mandates.index')} style={{ fontSize: 12, color: 'var(--ink4)', textDecoration: 'none' }}>← Back to job listings</Link>

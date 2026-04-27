@@ -244,9 +244,7 @@ export default function CandidatesIndex({ candidates, filters, recruiters = [] }
                 </div>
             )}
 
-            {flash?.success && (
-                <div className="flash-success" style={{ margin: '0 20px 16px' }}>{flash.success}</div>
-            )}
+            
 
             <div style={{ padding: '0 20px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>

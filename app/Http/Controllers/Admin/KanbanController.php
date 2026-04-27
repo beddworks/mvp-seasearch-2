@@ -9,6 +9,7 @@ use App\Models\CddSubmission;
 use App\Models\Mandate;
 use App\Models\MandateClaim;
 use App\Services\GoogleSheetsService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -65,6 +66,8 @@ class KanbanController extends Controller
         ]);
 
         $sub = CddSubmission::findOrFail($request->submission_id);
+        $oldStage = $sub->client_status;
+
         $sub->update([
             'client_status'            => $request->new_stage,
             'client_status_updated_at' => now(),
@@ -87,6 +90,13 @@ class KanbanController extends Controller
                     link:  $kanbanUrl,
                 ));
         }
+
+            // Keep admin-kanban notifications aligned with recruiter-kanban behavior.
+            (new NotificationService())->candidateMoved(
+                $sub->fresh(['candidate', 'mandate', 'recruiter.user']),
+                $oldStage ?: 'sourced',
+                $request->new_stage
+            );
 
         try {
             // $sheets->addOrUpdateRow($sub->fresh(['candidate', 'mandate.client', 'recruiter.user']));
@@ -158,6 +168,8 @@ class KanbanController extends Controller
             'exception_bypass'    => false,
         ]);
 
+        (new NotificationService())->candidateSubmitted($sub->fresh(['candidate', 'mandate', 'recruiter.user']));
+
         return response()->json([
             'success'  => true,
             'bypassed' => false,
@@ -227,7 +239,9 @@ class KanbanController extends Controller
             'submitted_at'        => now(),
         ]);
 
-        $submission->load('candidate');
+        $submission->load(['candidate', 'mandate.client.user', 'recruiter.user']);
+
+        (new NotificationService())->candidateAdded($submission);
 
         return response()->json([
             'success'    => true,
