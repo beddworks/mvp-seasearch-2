@@ -14,7 +14,7 @@ class Client extends Model
         'id', 'user_id', 'company_name', 'industry',
         'contact_name', 'contact_email', 'contact_title',
         'website', 'logo_url', 'gsheet_id', 'gsheet_url',
-        'accent_color', 'status',
+        'accent_color', 'status', 'compensation_type_id',
     ];
 
     protected static function boot(): void
@@ -25,4 +25,5 @@ class Client extends Model
 
     public function user() { return $this->belongsTo(User::class); }
     public function mandates() { return $this->hasMany(Mandate::class); }
+    public function compensationType() { return $this->belongsTo(\App\Models\CompensationType::class); }
 }

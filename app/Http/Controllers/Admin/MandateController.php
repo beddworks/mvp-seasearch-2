@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Mandate;
 use App\Models\Client;
 use App\Models\CompensationType;
+use App\Services\ClaudeService;
+use App\Services\CvTextExtractor;
 use App\Services\GoogleSheetsService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -58,7 +61,7 @@ class MandateController extends Controller
         $data['status'] = 'draft';
         $mandate = Mandate::create($data);
 
-        $sheets->createMandateTab($mandate->load('client'));
+        // $sheets->createMandateTab($mandate->load('client'));
 
         return redirect()->route('admin.mandates.index')->with('success', 'Mandate created.');
     }
@@ -112,5 +115,49 @@ class MandateController extends Controller
     {
         Mandate::findOrFail($id)->delete();
         return back()->with('success', 'Mandate deleted.');
+    }
+
+    public function aiPreview(Request $request, ClaudeService $claude, CvTextExtractor $extractor): JsonResponse
+    {
+        $request->validate([
+            'jd_file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
+        ]);
+
+        try {
+            $text = $extractor->extractFromUploadedFile($request->file('jd_file'));
+            if (!$text || trim($text) === '') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Could not extract text from document.',
+                ], 422);
+            }
+
+            $parsed = $claude->parseMandateFromDocumentText($text);
+            if (empty($parsed)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI could not parse this document. Please fill manually.',
+                ], 422);
+            }
+
+            return response()->json([
+                'success' => true,
+                'mandate' => [
+                    'title'           => $parsed['title'] ?? null,
+                    'location'        => $parsed['location'] ?? null,
+                    'seniority'       => $parsed['seniority'] ?? null,
+                    'industry'        => $parsed['industry'] ?? null,
+                    'salary_min'      => $parsed['salary_min'] ?? null,
+                    'salary_max'      => $parsed['salary_max'] ?? null,
+                    'salary_currency' => $parsed['salary_currency'] ?? null,
+                    'description'     => $parsed['description'] ?? null,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error while parsing mandate file.',
+            ], 500);
+        }
     }
 }

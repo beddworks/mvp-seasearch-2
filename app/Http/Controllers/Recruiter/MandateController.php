@@ -24,7 +24,7 @@ class MandateController extends Controller
 
         $tab = $request->get('tab', 'all');
 
-        $query = MandateClaim::with('mandate.client')
+        $query = MandateClaim::with(['mandate.client.compensationType', 'mandate.compensationType'])
             ->where('recruiter_id', $recruiter->id);
 
         if ($tab === 'pending')  $query->where('status', 'pending');

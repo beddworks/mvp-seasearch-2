@@ -89,7 +89,7 @@ class KanbanController extends Controller
         }
 
         try {
-            $sheets->addOrUpdateRow($sub->fresh(['candidate', 'mandate.client', 'recruiter.user']));
+            // $sheets->addOrUpdateRow($sub->fresh(['candidate', 'mandate.client', 'recruiter.user']));
         } catch (\Throwable $e) {
             Log::error('Inline Google Sheets sync failed', [
                 'submission_id' => $sub->id,

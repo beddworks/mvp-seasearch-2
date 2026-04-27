@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
+use App\Models\CompensationType;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -27,17 +28,20 @@ class ClientController extends Controller
 
     public function create()
     {
-        return Inertia::render('Admin/Clients/Form');
+        return Inertia::render('Admin/Clients/Form', [
+            'compensationTypes' => CompensationType::where('is_active', true)->orderBy('sort_order')->get(['id', 'name', 'formula_type']),
+        ]);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'company_name'  => ['required', 'string', 'max:255'],
-            'contact_name'  => ['required', 'string', 'max:255'],
-            'contact_email' => ['required', 'email', 'unique:users,email'],
-            'industry'      => ['nullable', 'string', 'max:100'],
-            'accent_color'  => ['nullable', 'string', 'max:7'],
+            'company_name'         => ['required', 'string', 'max:255'],
+            'contact_name'         => ['required', 'string', 'max:255'],
+            'contact_email'        => ['required', 'email', 'unique:users,email'],
+            'industry'             => ['nullable', 'string', 'max:100'],
+            'accent_color'         => ['nullable', 'string', 'max:7'],
+            'compensation_type_id' => ['nullable', 'exists:compensation_types,id'],
         ]);
         $user = User::create([
             'name'     => $data['contact_name'],
@@ -47,12 +51,13 @@ class ClientController extends Controller
             'status'   => 'active',
         ]);
         Client::create([
-            'user_id'       => $user->id,
-            'company_name'  => $data['company_name'],
-            'industry'      => $data['industry'] ?? null,
-            'contact_name'  => $data['contact_name'],
-            'contact_email' => $data['contact_email'],
-            'accent_color'  => $data['accent_color'] ?? '#1A6DB5',
+            'user_id'              => $user->id,
+            'company_name'         => $data['company_name'],
+            'industry'             => $data['industry'] ?? null,
+            'contact_name'         => $data['contact_name'],
+            'contact_email'        => $data['contact_email'],
+            'accent_color'         => $data['accent_color'] ?? '#1A6DB5',
+            'compensation_type_id' => $data['compensation_type_id'] ?? null,
         ]);
         return redirect()->route('admin.clients.index')->with('success', 'Client created.');
     }
@@ -66,23 +71,28 @@ class ClientController extends Controller
     public function edit(string $id)
     {
         $client = Client::with('user')->findOrFail($id);
-        return Inertia::render('Admin/Clients/Form', ['client' => $client]);
+        return Inertia::render('Admin/Clients/Form', [
+            'client'            => $client,
+            'compensationTypes' => CompensationType::where('is_active', true)->orderBy('sort_order')->get(['id', 'name', 'formula_type']),
+        ]);
     }
 
     public function update(Request $request, string $id)
     {
         $client = Client::with('user')->findOrFail($id);
         $data = $request->validate([
-            'company_name' => ['required', 'string', 'max:255'],
-            'contact_name' => ['required', 'string', 'max:255'],
-            'industry'     => ['nullable', 'string', 'max:100'],
-            'accent_color' => ['nullable', 'string', 'max:7'],
+            'company_name'         => ['required', 'string', 'max:255'],
+            'contact_name'         => ['required', 'string', 'max:255'],
+            'industry'             => ['nullable', 'string', 'max:100'],
+            'accent_color'         => ['nullable', 'string', 'max:7'],
+            'compensation_type_id' => ['nullable', 'exists:compensation_types,id'],
         ]);
         $client->update([
-            'company_name' => $data['company_name'],
-            'contact_name' => $data['contact_name'],
-            'industry'     => $data['industry'] ?? null,
-            'accent_color' => $data['accent_color'] ?? null,
+            'company_name'         => $data['company_name'],
+            'contact_name'         => $data['contact_name'],
+            'industry'             => $data['industry'] ?? null,
+            'accent_color'         => $data['accent_color'] ?? null,
+            'compensation_type_id' => $data['compensation_type_id'] ?? null,
         ]);
         $client->user->update(['name' => $data['contact_name']]);
         return redirect()->route('admin.clients.index')->with('success', 'Client updated.');

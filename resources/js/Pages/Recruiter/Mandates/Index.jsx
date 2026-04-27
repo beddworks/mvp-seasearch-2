@@ -62,10 +62,40 @@ function fmtK(n) {
 }
 
 function calcReward(m) {
-    if (m.reward_min && m.reward_max) return { min: Number(m.reward_min), max: Number(m.reward_max) }
+    const ct = m.compensation_type || m.client?.compensation_type
+    const cur = m.salary_currency || 'SGD'
+
+    if (ct) {
+        const ff = ct.formula_fields || {}
+        switch (ct.formula_type) {
+            case 'percentage': {
+                const pct = Number(ct.platform_fee_pct)
+                if (m.salary_min && m.salary_max) {
+                    const pctDisplay = (pct * 100).toFixed(1).replace(/\.0$/, '')
+                    return { min: Math.round(Number(m.salary_min) * pct), max: Math.round(Number(m.salary_max) * pct), type: 'percentage', subLabel: `${pctDisplay}% of first year salary`, currency: cur }
+                }
+                return null
+            }
+            case 'hourly': {
+                const rate = Number(ff.hourly_rate || 0), hours = Number(ff.hours_billed || 0)
+                return { min: Math.round(rate * hours), max: Math.round(rate * hours), type: 'hourly', subLabel: `${cur} ${rate}/hr × ${hours}h`, currency: cur }
+            }
+            case 'fixed': {
+                const amt = Number(ff.fixed_amount || 0)
+                return { min: amt, max: amt, type: 'fixed', subLabel: 'Fixed rate', currency: cur }
+            }
+            case 'milestone': {
+                const mss = Array.isArray(ff.milestones) ? ff.milestones : []
+                const total = mss.reduce((s, ms) => s + Number(ms.amount || 0), 0)
+                return { min: total, max: total, type: 'milestone', subLabel: `${mss.length} milestone${mss.length !== 1 ? 's' : ''}`, currency: cur }
+            }
+        }
+    }
+
+    if (m.reward_min && m.reward_max) return { min: Number(m.reward_min), max: Number(m.reward_max), type: 'legacy', subLabel: null, currency: cur }
     if (m.salary_min && m.salary_max && m.reward_pct) {
         const p = Number(m.reward_pct)
-        return { min: Math.round(Number(m.salary_min) * p), max: Math.round(Number(m.salary_max) * p) }
+        return { min: Math.round(Number(m.salary_min) * p), max: Math.round(Number(m.salary_max) * p), type: 'percentage', subLabel: `${(p * 100).toFixed(1).replace(/\.0$/, '')}% of first year salary`, currency: cur }
     }
     return null
 }
@@ -162,10 +192,11 @@ function ClaimCard({ claim }) {
     const bar      = IND_BAR[m.industry]  || IND_BAR._default
     const reward   = calcReward(m)
     const sen      = SENIORITY[m.seniority]
-    const pct      = m.reward_pct ? (Number(m.reward_pct) * 100).toFixed(1).replace(/\.0$/, '') : null
     const openings = m.openings_count || 1
-    const totalMin = reward ? reward.min * openings : null
-    const totalMax = reward ? reward.max * openings : null
+    const scalable  = reward && (reward.type === 'percentage' || reward.type === 'legacy')
+    const totalMin  = scalable ? reward.min * openings : (reward ? reward.min : null)
+    const totalMax  = scalable ? reward.max * openings : (reward ? reward.max : null)
+    const isSingleValue = reward && reward.min === reward.max
     const posted   = fmtPosted(m.published_at)
     const status   = CLAIM_STATUS[claim.status] || CLAIM_STATUS.pending
 
@@ -241,9 +272,12 @@ function ClaimCard({ claim }) {
                         <>
                             <div style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 1 }}>Base hire reward</div>
                             <div style={{ fontSize: 13, color: 'var(--ink)', marginBottom: 1 }}>
-                                {m.salary_currency} {fmtK(reward.min)} – {fmtK(reward.max)}
+                                {isSingleValue
+                                    ? `${reward.currency} ${fmtK(reward.min)}`
+                                    : `${reward.currency} ${fmtK(reward.min)} – ${fmtK(reward.max)}`
+                                }
                             </div>
-                            {pct && <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 8 }}>{pct}% of first year salary</div>}
+                            {reward.subLabel && <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 8 }}>{reward.subLabel}</div>}
                         </>
                     ) : (
                         <>
@@ -251,7 +285,6 @@ function ClaimCard({ claim }) {
                             <div style={{ fontSize: 13, color: 'var(--ink)', marginBottom: 8 }}>TBD</div>
                         </>
                     )}
-
                     <div style={{ height: 1, background: 'var(--wire)', margin: '6px 0' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--ink4)', padding: '1px 0' }}>
                         <span>Roles</span><span>{openings}×</span>
@@ -259,7 +292,12 @@ function ClaimCard({ claim }) {
                     <div style={{ height: 1, background: 'var(--wire)', margin: '6px 0' }} />
                     <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink4)', marginTop: 6, marginBottom: 2 }}>Total base reward</div>
                     <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-head)' }}>
-                        {totalMin ? `${m.salary_currency} ${fmtK(totalMin)}–${fmtK(totalMax)}+` : '—'}
+                        {totalMin
+                            ? (totalMin === totalMax
+                                ? `${reward.currency} ${fmtK(totalMin)}+`
+                                : `${reward.currency} ${fmtK(totalMin)}–${fmtK(totalMax)}+`)
+                            : '—'
+                        }
                     </div>
 
                     <div style={{ marginTop: 10 }}>

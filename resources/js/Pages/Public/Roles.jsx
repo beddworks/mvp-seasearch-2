@@ -62,10 +62,71 @@ function fmtK(n) {
 }
 
 function calcReward(m) {
-    if (m.reward_min && m.reward_max) return { min: Number(m.reward_min), max: Number(m.reward_max) }
+    // Priority: mandate's own compensation_type → client's compensation_type → legacy fields
+    const ct = m.compensation_type || m.client?.compensation_type
+
+    if (ct) {
+        const ff  = ct.formula_fields || {}
+        const cur = m.salary_currency || 'SGD'
+
+        switch (ct.formula_type) {
+            case 'percentage': {
+                const pct = Number(ct.platform_fee_pct)  // stored as decimal e.g. 0.19
+                if (m.salary_min && m.salary_max) {
+                    const pctDisplay = (pct * 100).toFixed(1).replace(/\.0$/, '')
+                    return {
+                        min: Math.round(Number(m.salary_min) * pct),
+                        max: Math.round(Number(m.salary_max) * pct),
+                        type: 'percentage',
+                        subLabel: `${pctDisplay}% of first year salary`,
+                        currency: cur,
+                    }
+                }
+                return null
+            }
+            case 'hourly': {
+                const rate  = Number(ff.hourly_rate  || 0)
+                const hours = Number(ff.hours_billed || 0)
+                const amt   = Math.round(rate * hours)
+                return {
+                    min: amt, max: amt,
+                    type: 'hourly',
+                    subLabel: `${cur} ${rate}/hr × ${hours}h`,
+                    currency: cur,
+                }
+            }
+            case 'fixed': {
+                const amt = Number(ff.fixed_amount || 0)
+                return { min: amt, max: amt, type: 'fixed', subLabel: 'Fixed rate', currency: cur }
+            }
+            case 'milestone': {
+                const milestones = Array.isArray(ff.milestones) ? ff.milestones : []
+                const total = milestones.reduce((s, ms) => s + Number(ms.amount || 0), 0)
+                return {
+                    min: total, max: total,
+                    type: 'milestone',
+                    subLabel: `${milestones.length} milestone${milestones.length !== 1 ? 's' : ''}`,
+                    currency: cur,
+                }
+            }
+        }
+    }
+
+    // Legacy fallback: reward_min/max or salary × reward_pct
+    const cur = m.salary_currency || 'SGD'
+    if (m.reward_min && m.reward_max) {
+        return { min: Number(m.reward_min), max: Number(m.reward_max), type: 'legacy', subLabel: null, currency: cur }
+    }
     if (m.salary_min && m.salary_max && m.reward_pct) {
-        const p = Number(m.reward_pct)
-        return { min: Math.round(Number(m.salary_min) * p), max: Math.round(Number(m.salary_max) * p) }
+        const p   = Number(m.reward_pct)
+        const pctDisplay = (p * 100).toFixed(1).replace(/\.0$/, '')
+        return {
+            min: Math.round(Number(m.salary_min) * p),
+            max: Math.round(Number(m.salary_max) * p),
+            type: 'percentage',
+            subLabel: `${pctDisplay}% of first year salary`,
+            currency: cur,
+        }
     }
     return null
 }
@@ -298,12 +359,17 @@ function JobCard({ m, claimed, atCapacity, isRecruiter }) {
     const bar      = IND_BAR[m.industry]  || IND_BAR._default
     const reward   = calcReward(m)
     const sen      = SENIORITY[m.seniority]
-    const pct      = m.reward_pct ? (Number(m.reward_pct) * 100).toFixed(1).replace(/\.0$/, '') : null
     const openings = m.openings_count || 1
-    const totalMin = reward ? reward.min * openings : null
-    const totalMax = reward ? reward.max * openings : null
     const posted   = fmtPosted(m.published_at)
     const newBadge = isNew(m.published_at)
+
+    // Total reward: multiply by openings only for per-placement types
+    const scalable  = reward && (reward.type === 'percentage' || reward.type === 'legacy')
+    const totalMin  = scalable ? reward.min * openings : (reward ? reward.min : null)
+    const totalMax  = scalable ? reward.max * openings : (reward ? reward.max : null)
+
+    // Label for the single-role reward range
+    const isSingleValue = reward && reward.min === reward.max
 
     const tags = [
         ...(Array.isArray(m.must_haves) ? m.must_haves.slice(0, 4) : []),
@@ -385,10 +451,13 @@ function JobCard({ m, claimed, atCapacity, isRecruiter }) {
                         <>
                             <div style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 1 }}>Base hire reward</div>
                             <div style={{ fontSize: 13, color: 'var(--ink)', marginBottom: 1 }}>
-                                {m.salary_currency} {fmtK(reward.min)} – {fmtK(reward.max)}
+                                {isSingleValue
+                                    ? `${reward.currency} ${fmtK(reward.min)}`
+                                    : `${reward.currency} ${fmtK(reward.min)} – ${fmtK(reward.max)}`
+                                }
                             </div>
-                            {pct && (
-                                <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 8 }}>{pct}% of first year salary</div>
+                            {reward.subLabel && (
+                                <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 8 }}>{reward.subLabel}</div>
                             )}
                         </>
                     ) : (
@@ -408,7 +477,12 @@ function JobCard({ m, claimed, atCapacity, isRecruiter }) {
 
                     <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink4)', marginTop: 6, marginBottom: 2 }}>Total base reward</div>
                     <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-head)' }}>
-                        {totalMin ? `${m.salary_currency} ${fmtK(totalMin)}–${fmtK(totalMax)}+` : '—'}
+                        {totalMin
+                            ? (totalMin === totalMax
+                                ? `${reward.currency} ${fmtK(totalMin)}+`
+                                : `${reward.currency} ${fmtK(totalMin)}–${fmtK(totalMax)}+`)
+                            : '—'
+                        }
                     </div>
 
                     {/* CTA — changes based on auth state */}

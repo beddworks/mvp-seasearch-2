@@ -159,6 +159,63 @@ CV:
     }
 
     /**
+     * Parse JD / mandate text into admin mandate form fields.
+     * Returns array with keys: title, location, seniority, industry,
+     *   salary_min, salary_max, salary_currency, description.
+     */
+    public function parseMandateFromDocumentText(string $jdText): array
+    {
+        $system = 'You are a professional executive search analyst. Extract structured mandate fields from job description text. Always respond with valid JSON only - no prose, no markdown fences.';
+
+        $user = "Parse this job description and return a JSON object with these exact keys:
+- title (string)
+- location (string)
+- seniority (one of: c_suite, vp_director, manager, ic, or null)
+- industry (string)
+- salary_min (number or null)
+- salary_max (number or null)
+- salary_currency (3-letter currency code like SGD, USD, MYR, or null)
+- description (string — a comprehensive, well-structured role overview that includes ALL of the following sections where information is available, formatted as plain text with section headers on their own lines):
+
+  The description field must follow this exact format (omit any section if no content available):
+
+  ROLE OVERVIEW
+  [2-3 sentence summary of the role, company context, and key purpose]
+
+  KEY RESPONSIBILITIES
+  • [responsibility 1]
+  • [responsibility 2]
+  • [add all responsibilities found]
+
+  REQUIRED SKILLS & EXPERIENCE
+  • [requirement 1]
+  • [requirement 2]
+  • [add all hard requirements found]
+
+  NICE TO HAVE
+  • [nice-to-have 1]
+  • [add all preferred qualifications found]
+
+  WHAT WE OFFER
+  • [benefit or perk 1]
+  • [add all benefits/compensation details found]
+
+Rules:
+- If a field is not present, return null.
+- Keep seniority strictly to the allowed values.
+- The description must be plain text only — no markdown, no asterisks, no #.
+- Output JSON object only.
+
+JOB DESCRIPTION:
+{$jdText}";
+
+        $raw = $this->chat($system, $user, 1200);
+        if (!$raw) return [];
+
+        return $this->decodeJson($raw) ?? [];
+    }
+
+    /**
      * Score a candidate against a mandate.
      * Returns: { ai_score: int, score_breakdown: array, green_flags: array, red_flags: array, ai_summary: string }
      */

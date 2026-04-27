@@ -18,7 +18,7 @@ class RolesController extends Controller
         $co   = $request->get('co', '');
         $sort = $request->get('sort', 'featured');
 
-        $query = Mandate::with('client')
+        $query = Mandate::with(['client.compensationType', 'compensationType'])
             ->where('status', 'active')
             ->withCount('submissions');
 

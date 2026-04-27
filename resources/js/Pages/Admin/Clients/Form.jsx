@@ -1,14 +1,15 @@
 import { useForm } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 
-export default function ClientForm({ client }) {
+export default function ClientForm({ client, compensationTypes = [] }) {
     const isEdit = !!client
     const { data, setData, post, put, processing, errors } = useForm({
-        company_name:  client?.company_name || '',
-        contact_name:  client?.user?.name || '',
-        contact_email: client?.user?.email || '',
-        industry:      client?.industry || '',
-        accent_color:  client?.accent_color || '#1A6DB5',
+        company_name:         client?.company_name || '',
+        contact_name:         client?.user?.name || '',
+        contact_email:        client?.user?.email || '',
+        industry:             client?.industry || '',
+        accent_color:         client?.accent_color || '#1A6DB5',
+        compensation_type_id: client?.compensation_type_id || '',
     })
 
     function submit(e) {
@@ -46,6 +47,16 @@ export default function ClientForm({ client }) {
                                 <input type="color" value={data.accent_color} onChange={e => setData('accent_color', e.target.value)} style={{ width: 40, height: 32, border: '1px solid var(--wire)', borderRadius: 4, cursor: 'pointer' }} />
                                 <input className="form-input" value={data.accent_color} onChange={e => setData('accent_color', e.target.value)} style={{ maxWidth: 120 }} />
                             </div>
+                        </div>
+                        <div className="form-group" style={{ marginTop: 14 }}>
+                            <label style={labelStyle}>Fee Agreement</label>
+                            <select className="form-input" value={data.compensation_type_id} onChange={e => setData('compensation_type_id', e.target.value)}>
+                                <option value="">— None selected —</option>
+                                {compensationTypes.map(ct => (
+                                    <option key={ct.id} value={ct.id}>{ct.name} ({ct.formula_type})</option>
+                                ))}
+                            </select>
+                            {errors.compensation_type_id && <div className="form-error">{errors.compensation_type_id}</div>}
                         </div>
                     </div>
 
