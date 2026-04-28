@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\CompensationType;
 use App\Models\User;
+use App\Services\ClaudeService;
+use App\Services\CvTextExtractor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -29,8 +31,40 @@ class ClientController extends Controller
     public function create()
     {
         return Inertia::render('Admin/Clients/Form', [
-            'compensationTypes' => CompensationType::where('is_active', true)->orderBy('sort_order')->get(['id', 'name', 'formula_type']),
+            'compensationTypes' => CompensationType::where('is_active', true)->orderBy('sort_order')->get(['id', 'name', 'formula_type', 'platform_fee_pct', 'formula_fields']),
         ]);
+    }
+
+    /**
+     * AI preview: parse an uploaded document and return extracted client + fee data.
+     */
+    public function aiPreview(Request $request)
+    {
+        $request->validate(['document' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240']]);
+
+        $extractor   = app(CvTextExtractor::class);
+        $claude      = app(ClaudeService::class);
+
+        $text = $extractor->extractFromUploadedFile($request->file('document'));
+
+        if (empty(trim($text))) {
+            return response()->json(['error' => 'Could not extract text from this document. Please try a different file.'], 422);
+        }
+
+        $existingTypes = CompensationType::where('is_active', true)
+            ->get(['id', 'name', 'formula_type', 'platform_fee_pct', 'formula_fields'])
+            ->map(fn($ct) => [
+                'id'               => $ct->id,
+                'name'             => $ct->name,
+                'formula_type'     => $ct->formula_type,
+                'platform_fee_pct' => $ct->platform_fee_pct,
+                'formula_fields'   => $ct->formula_fields,
+            ])
+            ->toArray();
+
+        $parsed = $claude->parseClientFromDocument($text, $existingTypes);
+
+        return response()->json($parsed);
     }
 
     public function store(Request $request)
@@ -42,14 +76,38 @@ class ClientController extends Controller
             'industry'             => ['nullable', 'string', 'max:100'],
             'accent_color'         => ['nullable', 'string', 'max:7'],
             'compensation_type_id' => ['nullable', 'exists:compensation_types,id'],
+            'website'              => ['nullable', 'url', 'max:255'],
+            'notes'                => ['nullable', 'string', 'max:1000'],
+            // Inline new fee agreement
+            'fee_mode'             => ['nullable', 'in:existing,new'],
+            'fee_name'             => ['nullable', 'required_if:fee_mode,new', 'string', 'max:255'],
+            'fee_formula_type'     => ['nullable', 'required_if:fee_mode,new', 'in:percentage,hourly,fixed,milestone'],
+            'fee_pct'              => ['nullable', 'numeric', 'min:0', 'max:1'],
+            'fee_formula_fields'   => ['nullable', 'array'],
         ]);
+
+        // Create inline fee agreement if requested
+        $compensationTypeId = $data['compensation_type_id'] ?? null;
+        if (($data['fee_mode'] ?? 'existing') === 'new' && !empty($data['fee_name'])) {
+            $ct = CompensationType::create([
+                'name'             => $data['fee_name'],
+                'formula_type'     => $data['fee_formula_type'] ?? 'percentage',
+                'platform_fee_pct' => $data['fee_pct'] ?? 0.20,
+                'formula_fields'   => $data['fee_formula_fields'] ?? [],
+                'is_active'        => true,
+                'sort_order'       => 99,
+            ]);
+            $compensationTypeId = $ct->id;
+        }
+
         $user = User::create([
             'name'     => $data['contact_name'],
             'email'    => $data['contact_email'],
-            'password' => Hash::make('password'),
+            'password' => Hash::make(Str::random(24)),
             'role'     => 'client',
             'status'   => 'active',
         ]);
+
         Client::create([
             'user_id'              => $user->id,
             'company_name'         => $data['company_name'],
@@ -57,8 +115,10 @@ class ClientController extends Controller
             'contact_name'         => $data['contact_name'],
             'contact_email'        => $data['contact_email'],
             'accent_color'         => $data['accent_color'] ?? '#1A6DB5',
-            'compensation_type_id' => $data['compensation_type_id'] ?? null,
+            'compensation_type_id' => $compensationTypeId,
+            'website'              => $data['website'] ?? null,
         ]);
+
         return redirect()->route('admin.clients.index')->with('success', 'Client created.');
     }
 
@@ -73,7 +133,7 @@ class ClientController extends Controller
         $client = Client::with('user')->findOrFail($id);
         return Inertia::render('Admin/Clients/Form', [
             'client'            => $client,
-            'compensationTypes' => CompensationType::where('is_active', true)->orderBy('sort_order')->get(['id', 'name', 'formula_type']),
+            'compensationTypes' => CompensationType::where('is_active', true)->orderBy('sort_order')->get(['id', 'name', 'formula_type', 'platform_fee_pct', 'formula_fields']),
         ]);
     }
 
@@ -86,15 +146,39 @@ class ClientController extends Controller
             'industry'             => ['nullable', 'string', 'max:100'],
             'accent_color'         => ['nullable', 'string', 'max:7'],
             'compensation_type_id' => ['nullable', 'exists:compensation_types,id'],
+            'website'              => ['nullable', 'url', 'max:255'],
+            'notes'                => ['nullable', 'string', 'max:1000'],
+            // Inline new fee agreement
+            'fee_mode'             => ['nullable', 'in:existing,new'],
+            'fee_name'             => ['nullable', 'required_if:fee_mode,new', 'string', 'max:255'],
+            'fee_formula_type'     => ['nullable', 'required_if:fee_mode,new', 'in:percentage,hourly,fixed,milestone'],
+            'fee_pct'              => ['nullable', 'numeric', 'min:0', 'max:1'],
+            'fee_formula_fields'   => ['nullable', 'array'],
         ]);
+
+        $compensationTypeId = $data['compensation_type_id'] ?? null;
+        if (($data['fee_mode'] ?? 'existing') === 'new' && !empty($data['fee_name'])) {
+            $ct = CompensationType::create([
+                'name'             => $data['fee_name'],
+                'formula_type'     => $data['fee_formula_type'] ?? 'percentage',
+                'platform_fee_pct' => $data['fee_pct'] ?? 0.20,
+                'formula_fields'   => $data['fee_formula_fields'] ?? [],
+                'is_active'        => true,
+                'sort_order'       => 99,
+            ]);
+            $compensationTypeId = $ct->id;
+        }
+
         $client->update([
             'company_name'         => $data['company_name'],
             'contact_name'         => $data['contact_name'],
             'industry'             => $data['industry'] ?? null,
             'accent_color'         => $data['accent_color'] ?? null,
-            'compensation_type_id' => $data['compensation_type_id'] ?? null,
+            'compensation_type_id' => $compensationTypeId,
+            'website'              => $data['website'] ?? null,
         ]);
         $client->user->update(['name' => $data['contact_name']]);
+
         return redirect()->route('admin.clients.index')->with('success', 'Client updated.');
     }
 
@@ -106,3 +190,4 @@ class ClientController extends Controller
         return back()->with('success', 'Client deleted.');
     }
 }
+

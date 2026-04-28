@@ -323,6 +323,90 @@ Keep it professional, personalised, and concise. Do not name the client company.
     }
 
     /**
+     * Parse a client document (fee agreement, company profile, LOE, proposal, etc.)
+     * into structured client form fields + a fee agreement recommendation.
+     *
+     * @param  string  $docText         Full extracted text from the PDF/DOC
+     * @param  array   $existingTypes   Existing compensation types [{id, name, formula_type, platform_fee_pct, formula_fields}]
+     * @return array
+     */
+    public function parseClientFromDocument(string $docText, array $existingTypes = []): array
+    {
+        $typesJson = json_encode($existingTypes, JSON_UNESCAPED_SLASHES);
+
+        $system = 'You are a senior executive search analyst specialising in fee agreements and client onboarding. Extract structured client data from documents (fee agreements, LOEs, proposals, company briefs, contracts). Always respond with valid JSON only — no prose, no markdown fences.';
+
+        $user = "Analyse the following document and return a JSON object with these exact keys:
+
+CLIENT INFO:
+- company_name (string or null)
+- industry (string or null — e.g. Finance, Technology, Healthcare, FMCG, Consulting)
+- contact_name (string or null — primary contact person)
+- contact_email (string or null)
+- website (string or null)
+- notes (string or null — any important onboarding notes, special terms, or context)
+- ai_summary (string — 2-3 sentence executive summary of this document and what it implies about the client)
+- confidence (\"high\"|\"medium\"|\"low\" — overall confidence in extracted data)
+
+FEE AGREEMENT:
+- fee_agreement (object with these keys):
+  - reasoning (string — explain exactly what fee terms were found in the document and why you recommend this structure)
+  - recommended_formula_type (\"percentage\"|\"hourly\"|\"fixed\"|\"milestone\" — which formula type best matches the document)
+  - platform_fee_pct (number 0-1 or null — e.g. 0.20 for 20%; only if percentage type)
+  - formula_fields (object — for hourly: {hourly_rate, hours_billed}; for fixed: {fixed_amount}; for milestone: {milestones: [{name, amount}]})
+  - suggested_name (string — a short name for this fee agreement, e.g. \"Standard 20% Contingency\")
+  - key_terms (array of strings — 3-5 key fee terms extracted from the document, e.g. \"20% of first year salary\", \"30-day replacement guarantee\")
+  - confidence (\"high\"|\"medium\"|\"low\")
+  - matched_type_id (string or null — if one of the existing types below is a close match, return its id; otherwise null)
+  - matched_type_name (string or null — name of matched type if matched_type_id is set)
+
+EXISTING FEE STRUCTURES TO MATCH AGAINST:
+{$typesJson}
+
+If the document doesn't contain fee terms, set fee_agreement.confidence to \"low\" and still recommend the most suitable formula type based on the industry/context.
+
+DOCUMENT:
+{$docText}";
+
+        $defaults = [
+            'company_name'  => null,
+            'industry'      => null,
+            'contact_name'  => null,
+            'contact_email' => null,
+            'website'       => null,
+            'notes'         => null,
+            'ai_summary'    => '',
+            'confidence'    => 'medium',
+            'fee_agreement' => [
+                'reasoning'                => 'Unable to determine fee terms from document.',
+                'recommended_formula_type' => 'percentage',
+                'platform_fee_pct'         => 0.20,
+                'formula_fields'           => [],
+                'suggested_name'           => 'Standard 20% Contingency',
+                'key_terms'                => [],
+                'confidence'               => 'low',
+                'matched_type_id'          => null,
+                'matched_type_name'        => null,
+            ],
+        ];
+
+        $raw = $this->chat($system, $user, 1800);
+        if (!$raw) return $defaults;
+
+        $data = $this->decodeJson($raw);
+        if (!$data) return $defaults;
+
+        // Deep merge fee_agreement
+        if (isset($data['fee_agreement']) && is_array($data['fee_agreement'])) {
+            $data['fee_agreement'] = array_merge($defaults['fee_agreement'], $data['fee_agreement']);
+        } else {
+            $data['fee_agreement'] = $defaults['fee_agreement'];
+        }
+
+        return array_merge($defaults, $data);
+    }
+
+    /**
      * Generate interview questions tailored to the candidate + mandate.
      * Returns an array of question strings.
      */

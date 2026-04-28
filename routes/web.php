@@ -96,6 +96,7 @@ Route::middleware(['auth', 'role:admin,super_admin'])->prefix('admin')->name('ad
     Route::get('/mandates/{id}/workspace/add-candidate', [\App\Http\Controllers\Admin\MandateController::class, 'addCandidatePage'])->name('mandates.add-candidate');
     Route::post('/mandates/{id}/candidate/ai-preview', [\App\Http\Controllers\Admin\MandateController::class, 'candidateAiPreview'])->name('mandates.candidate-ai-preview');
     Route::resource('mandates',           \App\Http\Controllers\Admin\MandateController::class);
+    Route::post('/clients/ai-preview',    \App\Http\Controllers\Admin\ClientController::class . '@aiPreview')->name('clients.ai-preview');
     Route::resource('clients',            \App\Http\Controllers\Admin\ClientController::class);
     Route::resource('recruiters',         \App\Http\Controllers\Admin\RecruiterController::class);
     Route::resource('compensation-types', \App\Http\Controllers\Admin\CompensationTypeController::class);
