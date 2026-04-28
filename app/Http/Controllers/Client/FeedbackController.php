@@ -37,6 +37,12 @@ class FeedbackController extends Controller
             'client_feedback' => 'nullable|string|max:2000',
         ]);
 
+        if ($data['client_status'] === 'rejected' && blank($data['client_feedback'] ?? null)) {
+            return redirect()->route('feedback.show', $token)->withErrors([
+                'client_feedback' => 'Please provide a reason when marking a candidate as rejected.',
+            ]);
+        }
+
         $target = CddSubmission::where('id', $data['submission_id'])
             ->where('mandate_id', $mandate->id)
             ->firstOrFail();
@@ -61,7 +67,14 @@ class FeedbackController extends Controller
         $data = $request->validate([
             'submission_id' => 'required|string|exists:cdd_submissions,id',
             'client_status' => 'required|in:sourced,screened,interview,offered,hired,rejected,on_hold',
+            'client_feedback' => 'nullable|string|max:2000',
         ]);
+
+        if ($data['client_status'] === 'rejected' && blank($data['client_feedback'] ?? null)) {
+            return redirect()->route('feedback.show', $token)->withErrors([
+                'client_feedback' => 'Please provide a reason when marking a candidate as rejected.',
+            ]);
+        }
 
         $target = CddSubmission::where('id', $data['submission_id'])
             ->where('mandate_id', $mandate->id)
@@ -70,6 +83,7 @@ class FeedbackController extends Controller
         $target->update([
             'client_status' => $data['client_status'],
             'client_status_updated_at' => now(),
+            'client_feedback' => $data['client_feedback'] ?: $target->client_feedback,
         ]);
 
         $sheets->addOrUpdateRow($target->fresh(['candidate', 'mandate.client', 'recruiter.user']));

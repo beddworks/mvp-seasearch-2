@@ -30,6 +30,9 @@
   .quick-title { margin:0 0 8px; font-size:12px; color:#6B6860; text-transform:uppercase; letter-spacing:.06em; }
   .quick-form { display:flex; gap:8px; align-items:center; }
   .quick-select { flex:1; border:1px solid #E0DDD6; border-radius:7px; padding:10px; font-size:13px; color:#0D0C0A; background:#fff; }
+  .quick-reason-wrap { display:none; width:100%; margin-top:8px; }
+  .quick-reason-wrap.open { display:block; }
+  .quick-reason { width:100%; border:1px solid #E0DDD6; border-radius:7px; padding:10px; font-size:13px; color:#0D0C0A; background:#fff; min-height:66px; resize:vertical; }
   .quick-btn { border:none; border-radius:7px; padding:10px 14px; font-size:13px; font-weight:600; color:#fff; background:#1A6DB5; cursor:pointer; }
   .note { margin-top:18px; padding:12px 14px; border-left:3px solid #1A6DB5; background:#F9F8F5; font-size:12px; line-height:1.6; color:#2A2926; }
   .footer { padding:16px 32px; border-top:1px solid #E0DDD6; font-size:12px; color:#6B6860; }
@@ -88,11 +91,14 @@
       <p class="quick-title">Change pipeline status directly</p>
       <form class="quick-form" method="GET" action="{{ $quickUpdateLink }}">
         <input type="hidden" name="submission_id" value="{{ $submission->id }}">
-        <select class="quick-select" name="client_status">
+        <select class="quick-select" id="email-client-status" name="client_status">
           @foreach(['sourced','screened','interview','offered','hired','rejected','on_hold'] as $stage)
             <option value="{{ $stage }}" @selected(($submission->client_status ?? 'sourced') === $stage)>{{ ucfirst(str_replace('_', ' ', $stage)) }}</option>
           @endforeach
         </select>
+        <div id="email-reason-wrap" class="quick-reason-wrap {{ ($submission->client_status ?? 'sourced') === 'rejected' ? 'open' : '' }}">
+          <textarea id="email-reason" class="quick-reason" name="client_feedback" placeholder="Reason for rejection">{{ $submission->client_feedback }}</textarea>
+        </div>
         <button class="quick-btn" type="submit">Update</button>
       </form>
     </div>
@@ -105,5 +111,22 @@
     You received this because you are listed as the client contact for this mandate.
   </div>
 </div>
+<script>
+  (function () {
+    const statusSelect = document.getElementById('email-client-status');
+    const reasonWrap = document.getElementById('email-reason-wrap');
+    const reasonInput = document.getElementById('email-reason');
+    if (!statusSelect || !reasonWrap || !reasonInput) return;
+
+    function toggleReason() {
+      const isRejected = statusSelect.value === 'rejected';
+      reasonWrap.classList.toggle('open', isRejected);
+      reasonInput.required = isRejected;
+    }
+
+    statusSelect.addEventListener('change', toggleReason);
+    toggleReason();
+  })();
+</script>
 </body>
 </html>
