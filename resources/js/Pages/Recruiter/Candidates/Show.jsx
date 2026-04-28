@@ -140,7 +140,7 @@ export default function CandidateShow({ candidate }) {
             </div>
 
             {/* Tab Panels */}
-            <div style={{ padding: 22, overflowY: 'auto' }}>
+            <div style={{ padding: 22, overflowY: 'auto', background: '#fff', flex: 1 }}>
 
                 {/* Profile Tab */}
                 {activeTab === 'Profile' && (
@@ -154,7 +154,7 @@ export default function CandidateShow({ candidate }) {
                                 ['Company', candidate.current_company || '—'],
                                 ['Experience', candidate.years_experience ? `${candidate.years_experience} years` : '—'],
                             ].map(([lbl, val]) => (
-                                <div key={lbl} style={{ background: 'var(--mist2)', borderRadius: 'var(--rsm)', padding: '9px 11px' }}>
+                                <div key={lbl} style={{ border: '1px solid var(--wire)', borderRadius: 'var(--rsm)', padding: '9px 11px' }}>
                                     <div style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 2 }}>{lbl}</div>
                                     <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink)' }}>{val}</div>
                                 </div>

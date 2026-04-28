@@ -7,6 +7,8 @@ use App\Models\Mandate;
 use App\Models\Client;
 use App\Models\CompensationType;
 use App\Models\Candidate;
+use App\Models\MandateClaim;
+use App\Models\Recruiter;
 use App\Services\ClaudeService;
 use App\Services\CvTextExtractor;
 use App\Services\GoogleSheetsService;
@@ -121,6 +123,10 @@ class MandateController extends Controller
     public function addCandidatePage($id)
     {
         $mandate = Mandate::with('client')->findOrFail($id);
+        $approvedClaim = MandateClaim::with('recruiter.user')
+            ->where('mandate_id', $id)
+            ->where('status', 'approved')
+            ->first();
 
         $candidates = Candidate::orderByDesc('created_at')
             ->get([
@@ -138,9 +144,27 @@ class MandateController extends Controller
                 'parsed_profile',
             ]);
 
+        $recruiters = Recruiter::with('user')
+            ->orderByDesc('active_mandates_count')
+            ->get()
+            ->map(fn($recruiter) => [
+                'id' => $recruiter->id,
+                'name' => $recruiter->user?->name ?? 'Unknown recruiter',
+                'email' => $recruiter->user?->email,
+                'tier' => $recruiter->tier,
+                'active_mandates_count' => $recruiter->active_mandates_count,
+            ])
+            ->values();
+
         return Inertia::render('Admin/Mandates/AddCandidate', [
             'mandate' => $mandate,
             'candidates' => $candidates,
+            'approvedClaim' => $approvedClaim ? [
+                'id' => $approvedClaim->id,
+                'recruiter_id' => $approvedClaim->recruiter_id,
+                'recruiter_name' => $approvedClaim->recruiter?->user?->name,
+            ] : null,
+            'recruiters' => $recruiters,
         ]);
     }
 

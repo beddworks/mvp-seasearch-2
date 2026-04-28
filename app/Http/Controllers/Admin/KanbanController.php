@@ -8,11 +8,15 @@ use App\Models\Candidate;
 use App\Models\CddSubmission;
 use App\Models\Mandate;
 use App\Models\MandateClaim;
+use App\Models\Recruiter;
+use App\Services\ClaudeService;
+use App\Services\CvTextExtractor;
 use App\Services\GoogleSheetsService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class KanbanController extends Controller
@@ -195,49 +199,141 @@ class KanbanController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function addCandidate(Request $request)
+    public function addCandidate(Request $request, CvTextExtractor $extractor, ClaudeService $claude)
     {
         $request->validate([
             'mandate_id'      => 'required|string|exists:mandates,id',
-            'first_name'      => 'required|string|max:100',
-            'last_name'       => 'required|string|max:100',
+            'existing_candidate_id' => 'nullable|string|exists:candidates,id',
+            'recruiter_id'    => 'nullable|string|exists:recruiters,id',
+            'first_name'      => 'required_without:existing_candidate_id|string|max:100',
+            'last_name'       => 'required_without:existing_candidate_id|string|max:100',
             'email'           => 'nullable|email',
             'linkedin_url'    => 'nullable|url',
             'current_role'    => 'nullable|string|max:200',
             'current_company' => 'nullable|string|max:200',
             'initial_stage'   => 'required|in:sourced,screened',
+            'cv_file'         => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'ai_data'         => 'nullable|json',
         ]);
 
-        // Use the approved claim's recruiter, or null if no claim yet
+        $mandate = Mandate::findOrFail($request->mandate_id);
         $claim = MandateClaim::where('mandate_id', $request->mandate_id)
             ->where('status', 'approved')
             ->first();
 
-        abort_unless($claim, 422, 'No approved recruiter assigned to this mandate yet.');
+        if (!$claim) {
+            if (!$request->filled('recruiter_id')) {
+                return response()->json([
+                    'success' => false,
+                    'needs_recruiter_selection' => true,
+                    'message' => 'No approved recruiter assigned to this mandate yet.',
+                ], 422);
+            }
 
-        $candidate = Candidate::create([
-            'recruiter_id'    => $claim->recruiter_id,
-            'first_name'      => $request->first_name,
-            'last_name'       => $request->last_name,
-            'email'           => $request->email,
-            'linkedin_url'    => $request->linkedin_url,
-            'current_role'    => $request->current_role,
-            'current_company' => $request->current_company,
-        ]);
+            $recruiter = Recruiter::findOrFail($request->recruiter_id);
+            $claim = MandateClaim::firstOrNew([
+                'mandate_id' => $request->mandate_id,
+                'recruiter_id' => $recruiter->id,
+            ]);
+
+            $wasApproved = $claim->status === 'approved';
+
+            $claim->status = 'approved';
+            $claim->assigned_at = $claim->assigned_at ?? now();
+            $claim->save();
+
+            if (!$wasApproved) {
+                $recruiter->increment('active_mandates_count');
+                $mandate->increment('assignment_count');
+                (new NotificationService())->claimApproved($claim->fresh(['mandate', 'recruiter.user']));
+            }
+        }
+
+        $candidate = null;
+        $cvUrl = null;
+        $parsedProfile = [];
+        $aiDataFromForm = [];
+        $submissionRecruiterId = $claim->recruiter_id;
+
+        if ($request->filled('ai_data')) {
+            $aiDataFromForm = json_decode($request->ai_data, true) ?? [];
+        }
+
+        if ($request->filled('existing_candidate_id')) {
+            $candidate = Candidate::findOrFail($request->existing_candidate_id);
+            $cvUrl = $candidate->cv_url;
+            $parsedProfile = $candidate->parsed_profile ?? [];
+            $submissionRecruiterId = $candidate->recruiter_id ?: $claim->recruiter_id;
+        } else {
+            $cvOriginalName = null;
+
+            if ($request->hasFile('cv_file')) {
+                $file = $request->file('cv_file');
+                $cvOriginalName = $file->getClientOriginalName();
+                $path = $file->store('cvs', 'public');
+                $cvUrl = Storage::url($path);
+
+                $cvText = $extractor->extractFromUploadedFile($file);
+                if (!empty($cvText)) {
+                    $parsedProfile = $claude->parseCV($cvText, $mandate);
+                }
+            }
+
+            $candidate = Candidate::create([
+                'recruiter_id'     => $claim->recruiter_id,
+                'first_name'       => $request->first_name,
+                'last_name'        => $request->last_name,
+                'email'            => $request->email,
+                'linkedin_url'     => $request->linkedin_url,
+                'current_role'     => $request->current_role,
+                'current_company'  => $request->current_company,
+                'cv_url'           => $cvUrl,
+                'cv_original_name' => $cvOriginalName,
+                'cv_uploaded_at'   => $cvUrl ? now() : null,
+                'parsed_profile'   => !empty($parsedProfile) ? $parsedProfile : null,
+                'skills'           => $parsedProfile['skills'] ?? null,
+                'years_experience' => $parsedProfile['years_experience'] ?? null,
+            ]);
+        }
 
         $count = CddSubmission::where('mandate_id', $request->mandate_id)
-            ->where('recruiter_id', $claim->recruiter_id)
+            ->where('recruiter_id', $submissionRecruiterId)
             ->count() + 1;
 
-        $submission = CddSubmission::create([
+        $submissionData = [
             'mandate_id'          => $request->mandate_id,
-            'recruiter_id'        => $claim->recruiter_id,
+            'recruiter_id'        => $submissionRecruiterId,
             'candidate_id'        => $candidate->id,
             'submission_number'   => $count,
             'client_status'       => $request->initial_stage,
             'admin_review_status' => 'pending',
             'submitted_at'        => now(),
-        ]);
+        ];
+
+        if (!empty($aiDataFromForm)) {
+            $submissionData['ai_score'] = $aiDataFromForm['ai_score'] ?? null;
+            $submissionData['score_breakdown'] = $aiDataFromForm['score_breakdown'] ?? null;
+            $submissionData['green_flags'] = $aiDataFromForm['green_flags'] ?? null;
+            $submissionData['red_flags'] = $aiDataFromForm['red_flags'] ?? null;
+            $submissionData['ai_summary'] = $aiDataFromForm['ai_summary'] ?? null;
+        }
+
+        $submission = CddSubmission::create($submissionData);
+
+        if (!empty($aiDataFromForm)) {
+            $candidate->update([
+                'ai_score' => $aiDataFromForm['ai_score'] ?? null,
+                'score_breakdown' => $aiDataFromForm['score_breakdown'] ?? null,
+                'green_flags' => $aiDataFromForm['green_flags'] ?? null,
+                'red_flags' => $aiDataFromForm['red_flags'] ?? null,
+                'ai_summary' => $aiDataFromForm['ai_summary'] ?? null,
+            ]);
+        }
+
+        if ($cvUrl && empty($aiDataFromForm)) {
+            $this->scoreCandidateSubmission($candidate, $mandate, $submission, $claude, $extractor);
+            $submission->refresh();
+        }
 
         $submission->load(['candidate', 'mandate.client.user', 'recruiter.user']);
 
@@ -247,6 +343,59 @@ class KanbanController extends Controller
             'success'    => true,
             'submission' => $this->formatSubmission($submission),
         ]);
+    }
+
+    private function scoreCandidateSubmission(Candidate $candidate, Mandate $mandate, CddSubmission $submission, ClaudeService $claude, CvTextExtractor $extractor): void
+    {
+        try {
+            $cvText = $extractor->extractFromStoredUrl($candidate->cv_url, (string) $candidate->id);
+
+            if (empty($cvText)) {
+                Log::warning('Inline CV scoring skipped: no CV text', ['candidate_id' => $candidate->id]);
+                return;
+            }
+
+            $parsed = $claude->parseCV($cvText, $mandate);
+
+            if (!empty($parsed)) {
+                $candidate->update([
+                    'parsed_profile'   => $parsed,
+                    'skills'           => $parsed['skills'] ?? $candidate->skills,
+                    'years_experience' => $parsed['years_experience'] ?? $candidate->years_experience,
+                    'cv_parsed_at'     => now(),
+                ]);
+            }
+
+            $candidate->refresh();
+            $scoring = $claude->scoreCandidate($candidate, $mandate);
+
+            if (empty($scoring['ai_score'])) {
+                return;
+            }
+
+            $candidate->update([
+                'ai_score'        => $scoring['ai_score'],
+                'score_breakdown' => $scoring['score_breakdown'],
+                'green_flags'     => $scoring['green_flags'],
+                'red_flags'       => $scoring['red_flags'],
+                'ai_summary'      => $scoring['ai_summary'],
+            ]);
+
+            $submission->update([
+                'ai_score'        => $scoring['ai_score'],
+                'score_breakdown' => $scoring['score_breakdown'],
+                'green_flags'     => $scoring['green_flags'],
+                'red_flags'       => $scoring['red_flags'],
+                'ai_summary'      => $scoring['ai_summary'],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Inline CV scoring failed', [
+                'candidate_id' => $candidate->id,
+                'mandate_id' => $mandate->id,
+                'submission_id' => $submission->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function formatSubmission(CddSubmission $s): array

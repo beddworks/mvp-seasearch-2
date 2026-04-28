@@ -42,7 +42,7 @@ function pct(value) {
     return Math.max(0, Math.min(100, n))
 }
 
-export default function AddCandidatePage({ mandate, candidates = [] }) {
+export default function AddCandidatePage({ mandate, candidates = [], recruiters = [], approvedClaim = null }) {
     const [mode, setMode] = useState('new')
     const [loading, setLoading] = useState(false)
     const [previewLoading, setPreviewLoading] = useState(false)
@@ -50,6 +50,8 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
     const [previewError, setPreviewError] = useState('')
     const [preview, setPreview] = useState(null)
     const [dragging, setDragging] = useState(false)
+    const [showRecruiterModal, setShowRecruiterModal] = useState(false)
+    const [selectedRecruiterId, setSelectedRecruiterId] = useState('')
     const fileInputRef = useRef(null)
     const previewRequestRef = useRef(0)
 
@@ -71,6 +73,11 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
     const selectedCandidate = useMemo(
         () => candidates.find(c => c.id === form.existing_candidate_id) || null,
         [candidates, form.existing_candidate_id]
+    )
+
+    const selectedRecruiter = useMemo(
+        () => recruiters.find(r => r.id === selectedRecruiterId) || null,
+        [recruiters, selectedRecruiterId]
     )
 
     function f(key, value) {
@@ -229,6 +236,45 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
         f('existing_candidate_id', candidateId)
     }
 
+    function buildSubmissionFormData(recruiterId = '') {
+        const fd = new FormData()
+        fd.append('mandate_id', mandate.id)
+        fd.append('initial_stage', form.initial_stage)
+
+        if (recruiterId) {
+            fd.append('recruiter_id', recruiterId)
+        }
+
+        if (mode === 'existing') {
+            fd.append('existing_candidate_id', form.existing_candidate_id)
+        } else {
+            fd.append('first_name', form.first_name)
+            fd.append('last_name', form.last_name)
+            if (form.email) fd.append('email', form.email)
+            if (form.linkedin_url) fd.append('linkedin_url', form.linkedin_url)
+            if (form.current_role) fd.append('current_role', form.current_role)
+            if (form.current_company) fd.append('current_company', form.current_company)
+            if (cvFile) fd.append('cv_file', cvFile)
+        }
+
+        if (aiData) {
+            fd.append('ai_data', JSON.stringify(aiData))
+        }
+
+        return fd
+    }
+
+    async function submitCandidate(recruiterId = '') {
+        const res = await fetch(route('admin.kanban.add-candidate'), {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrf(), Accept: 'application/json' },
+            body: buildSubmissionFormData(recruiterId),
+        })
+        const data = await res.json()
+
+        return { res, data }
+    }
+
     useEffect(() => {
         if (mode !== 'existing') return
 
@@ -264,39 +310,47 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
         setError('')
 
         try {
-            const fd = new FormData()
-            fd.append('mandate_id', mandate.id)
-            fd.append('initial_stage', form.initial_stage)
-
-            if (mode === 'existing') {
-                fd.append('existing_candidate_id', form.existing_candidate_id)
-            } else {
-                fd.append('first_name', form.first_name)
-                fd.append('last_name', form.last_name)
-                if (form.email) fd.append('email', form.email)
-                if (form.linkedin_url) fd.append('linkedin_url', form.linkedin_url)
-                if (form.current_role) fd.append('current_role', form.current_role)
-                if (form.current_company) fd.append('current_company', form.current_company)
-                if (cvFile) fd.append('cv_file', cvFile)
-            }
-
-            // Include AI data from preview
-            if (aiData) {
-                fd.append('ai_data', JSON.stringify(aiData))
-            }
-
-            const res = await fetch(route('admin.kanban.add-candidate'), {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrf(), Accept: 'application/json' },
-                body: fd,
-            })
-            const data = await res.json()
+            const { res, data } = await submitCandidate(selectedRecruiterId)
 
             if (!res.ok || !data?.success) {
+                if (data?.needs_recruiter_selection) {
+                    setSelectedRecruiterId(selectedCandidate?.recruiter_id || approvedClaim?.recruiter_id || recruiters[0]?.id || '')
+                    setShowRecruiterModal(true)
+                    setError('')
+                    return
+                }
                 setError(data?.message || 'Failed to add candidate.')
                 return
             }
 
+            router.visit(route('admin.mandates.kanban', mandate.id), {
+                preserveScroll: false,
+            })
+        } catch {
+            setError('Network error. Please try again.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    async function confirmRecruiterSelection() {
+        if (!selectedRecruiterId) {
+            setError('Please select a recruiter to continue.')
+            return
+        }
+
+        setLoading(true)
+        setError('')
+
+        try {
+            const { res, data } = await submitCandidate(selectedRecruiterId)
+
+            if (!res.ok || !data?.success) {
+                setError(data?.message || 'Failed to assign recruiter and add candidate.')
+                return
+            }
+
+            setShowRecruiterModal(false)
             router.visit(route('admin.mandates.kanban', mandate.id), {
                 preserveScroll: false,
             })
@@ -312,6 +366,42 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
 
     return (
         <AdminLayout breadcrumb={[{ label: 'Mandates', href: route('admin.mandates.index') }, { label: mandate.title }, { label: 'Add candidate' }]}>
+            {showRecruiterModal && (
+                <div style={AI_OVERLAY.backdrop}>
+                    <div style={{ ...AI_OVERLAY.card, maxWidth: 520, textAlign: 'left' }}>
+                        <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>Assign recruiter first</div>
+                        <div style={{ fontSize: 12, color: 'var(--ink4)', lineHeight: 1.6, marginBottom: 14 }}>
+                            This mandate has no approved recruiter yet. Select one below and the claim will be auto-approved before the candidate is added.
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: 14 }}>
+                            <label className="form-label">Recruiter</label>
+                            <select className="form-input" value={selectedRecruiterId} onChange={e => setSelectedRecruiterId(e.target.value)}>
+                                <option value="">Choose recruiter</option>
+                                {recruiters.map(recruiter => (
+                                    <option key={recruiter.id} value={recruiter.id}>
+                                        {recruiter.name}{recruiter.tier ? ` - ${recruiter.tier}` : ''} ({recruiter.active_mandates_count ?? 0} active)
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {selectedRecruiter && (
+                            <div style={{ fontSize: 11, color: 'var(--ink4)', marginBottom: 14 }}>
+                                {selectedRecruiter.email || 'No email'}
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                            <button className="btn btn-secondary" onClick={() => setShowRecruiterModal(false)} disabled={loading}>Cancel</button>
+                            <button className="btn btn-primary" onClick={confirmRecruiterSelection} disabled={loading || !selectedRecruiterId}>
+                                {loading ? 'Assigning...' : 'Assign and add candidate'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {previewLoading && (
                 <div style={AI_OVERLAY.backdrop}>
                     <div style={AI_OVERLAY.card}>
@@ -331,6 +421,9 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
                     <div>
                         <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-head)' }}>Add candidate to pipeline</div>
                         <div style={{ fontSize: 12, color: 'var(--ink4)', marginTop: 2 }}>Upload CV at the top or choose an existing candidate to instantly run AI match against this role.</div>
+                        {approvedClaim?.recruiter_name && (
+                            <div style={{ fontSize: 11, color: 'var(--jade2)', marginTop: 5 }}>Assigned recruiter: {approvedClaim.recruiter_name}</div>
+                        )}
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{mandate.title}</div>
                 </div>

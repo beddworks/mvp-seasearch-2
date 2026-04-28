@@ -58,6 +58,7 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
         last_name: '',
         email: '',
         linkedin_url: '',
+        note: '',
         current_role: '',
         current_company: '',
         initial_stage: 'sourced',
@@ -275,6 +276,7 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
                 fd.append('last_name', form.last_name)
                 if (form.email) fd.append('email', form.email)
                 if (form.linkedin_url) fd.append('linkedin_url', form.linkedin_url)
+                if (form.note) fd.append('note', form.note)
                 if (form.current_role) fd.append('current_role', form.current_role)
                 if (form.current_company) fd.append('current_company', form.current_company)
                 if (cvFile) fd.append('cv_file', cvFile)
@@ -417,6 +419,17 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
                                 <div className="form-group" style={{ marginBottom: 14 }}>
                                     <label className="form-label">LinkedIn URL</label>
                                     <input className="form-input" value={form.linkedin_url} onChange={e => f('linkedin_url', e.target.value)} placeholder="linkedin.com/in/..." />
+                                </div>
+
+                                <div className="form-group" style={{ marginBottom: 14 }}>
+                                    <label className="form-label">Note</label>
+                                    <textarea
+                                        className="form-input"
+                                        value={form.note}
+                                        onChange={e => f('note', e.target.value)}
+                                        placeholder="Optional note for admin/client"
+                                        rows={3}
+                                    />
                                 </div>
                             </>
                         )}

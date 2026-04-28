@@ -125,8 +125,10 @@ class NotificationService
         $admins    = User::whereIn('role', ['admin', 'super_admin'])->get();
         $cName     = trim(optional($sub->candidate)->first_name . ' ' . optional($sub->candidate)->last_name);
         $recruiter = $sub->recruiter->user->name ?? 'A recruiter';
+        $candidateNote = trim((string) optional($sub->candidate)->notes);
+        $noteSuffix = $candidateNote !== '' ? ' Note: "' . $candidateNote . '"' : '';
         $title     = 'Candidate added — ' . $cName;
-        $body      = $recruiter . ' added ' . $cName . ' to "' . optional($sub->mandate)->title . '".';
+        $body      = $recruiter . ' added ' . $cName . ' to "' . optional($sub->mandate)->title . '".' . $noteSuffix;
         $link      = route('admin.mandates.kanban', ['id' => $sub->mandate_id]);
 
         foreach ($admins as $admin) {
@@ -149,7 +151,7 @@ class NotificationService
         $reviewLink = route('feedback.show', $token);
         $exportLink = route('feedback.export', $token);
         $clientTitle = 'New candidate added — ' . $cName;
-        $clientBody = $recruiter . ' added ' . $cName . ' to role "' . optional($sub->mandate)->title . '".';
+        $clientBody = $recruiter . ' added ' . $cName . ' to role "' . optional($sub->mandate)->title . '".' . $noteSuffix;
 
         if ($client->user) {
             PlatformNotification::create([
