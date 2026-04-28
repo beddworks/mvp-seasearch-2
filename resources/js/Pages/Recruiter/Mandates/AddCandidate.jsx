@@ -1,6 +1,6 @@
 import RecruiterLayout from '@/Layouts/RecruiterLayout'
 import { Link, router } from '@inertiajs/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
 const csrf = () => document.querySelector('meta[name=csrf-token]')?.content
 const STAGES = ['sourced', 'screened']
@@ -42,8 +42,7 @@ function pct(value) {
     return Math.max(0, Math.min(100, n))
 }
 
-export default function AddCandidatePage({ mandate, candidates = [] }) {
-    const [mode, setMode] = useState('new')
+export default function AddCandidatePage({ mandate }) {
     const [loading, setLoading] = useState(false)
     const [previewLoading, setPreviewLoading] = useState(false)
     const [error, setError] = useState('')
@@ -62,17 +61,11 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
         current_role: '',
         current_company: '',
         initial_stage: 'sourced',
-        existing_candidate_id: '',
     })
 
     const [cvFile, setCvFile] = useState(null)
     const [aiData, setAiData] = useState(null) // Store AI results for submission
     const [autoFilledFields, setAutoFilledFields] = useState({}) // Track which fields were auto-filled
-
-    const selectedCandidate = useMemo(
-        () => candidates.find(c => c.id === form.existing_candidate_id) || null,
-        [candidates, form.existing_candidate_id]
-    )
 
     function f(key, value) {
         setForm(prev => ({ ...prev, [key]: value }))
@@ -226,38 +219,9 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
         fileInputRef.current?.click()
     }
 
-    function onSelectExisting(candidateId) {
-        f('existing_candidate_id', candidateId)
-    }
-
-    useEffect(() => {
-        if (mode !== 'existing') return
-
-        const candidateId = form.existing_candidate_id
-        if (!candidateId) {
-            previewRequestRef.current += 1
-            setPreview(null)
-            setAiData(null)
-            setPreviewError('')
-            setPreviewLoading(false)
-            return
-        }
-
-        setPreview(null)
-        triggerPreview(() => {
-            const fd = new FormData()
-            fd.append('candidate_id', candidateId)
-            return fd
-        })
-    }, [mode, form.existing_candidate_id])
-
     async function handleSubmit() {
-        if (mode === 'new' && (!form.first_name || !form.last_name)) {
-            setError('First and last name are required for a new candidate.')
-            return
-        }
-        if (mode === 'existing' && !form.existing_candidate_id) {
-            setError('Please select an existing candidate.')
+        if (!form.first_name || !form.last_name) {
+            setError('First and last name are required.')
             return
         }
 
@@ -268,19 +232,14 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
             const fd = new FormData()
             fd.append('mandate_id', mandate.id)
             fd.append('initial_stage', form.initial_stage)
-
-            if (mode === 'existing') {
-                fd.append('existing_candidate_id', form.existing_candidate_id)
-            } else {
-                fd.append('first_name', form.first_name)
-                fd.append('last_name', form.last_name)
-                if (form.email) fd.append('email', form.email)
-                if (form.linkedin_url) fd.append('linkedin_url', form.linkedin_url)
-                if (form.note) fd.append('note', form.note)
-                if (form.current_role) fd.append('current_role', form.current_role)
-                if (form.current_company) fd.append('current_company', form.current_company)
-                if (cvFile) fd.append('cv_file', cvFile)
-            }
+            fd.append('first_name', form.first_name)
+            fd.append('last_name', form.last_name)
+            if (form.email) fd.append('email', form.email)
+            if (form.linkedin_url) fd.append('linkedin_url', form.linkedin_url)
+            if (form.note) fd.append('note', form.note)
+            if (form.current_role) fd.append('current_role', form.current_role)
+            if (form.current_company) fd.append('current_company', form.current_company)
+            if (cvFile) fd.append('cv_file', cvFile)
 
             // Include AI data from preview
             if (aiData) {
@@ -332,7 +291,7 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
                 <div style={{ background: '#fff', border: '1px solid var(--wire)', borderRadius: 'var(--r)', padding: '14px 16px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)', fontFamily: 'var(--font-head)' }}>Add candidate to pipeline</div>
-                        <div style={{ fontSize: 12, color: 'var(--ink4)', marginTop: 2 }}>Upload CV at the top or choose an existing candidate to instantly run AI match against this role.</div>
+                        <div style={{ fontSize: 12, color: 'var(--ink4)', marginTop: 2 }}>Create a new candidate and run AI match against this role.</div>
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{mandate.title}</div>
                 </div>
@@ -341,13 +300,7 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
                     <div style={{ background: '#fff', border: '1px solid var(--wire)', borderRadius: 'var(--r)', padding: 16 }}>
                         {error && <div className="flash-error" style={{ marginBottom: 12 }}>{error}</div>}
 
-                        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                            <button className={mode === 'new' ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm'} onClick={() => { setMode('new'); setPreview(null); setPreviewError('') }}>New candidate</button>
-                            <button className={mode === 'existing' ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm'} onClick={() => { setMode('existing'); setPreview(null); setPreviewError('') }}>Existing candidate</button>
-                        </div>
-
-                        {mode === 'new' && (
-                            <>
+                        <>
                                 <div style={{ marginBottom: 14 }}>
                                     <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>CV / Resume (top priority)</label>
                                     {cvFile ? (
@@ -431,27 +384,7 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
                                         rows={3}
                                     />
                                 </div>
-                            </>
-                        )}
-
-                        {mode === 'existing' && (
-                            <div className="form-group" style={{ marginBottom: 14 }}>
-                                <label className="form-label">Select existing candidate</label>
-                                <select className="form-input" value={form.existing_candidate_id} onChange={e => onSelectExisting(e.target.value)}>
-                                    <option value="">Choose from database</option>
-                                    {candidates.map(c => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.first_name} {c.last_name}{c.current_role ? ` - ${c.current_role}` : ''}{c.current_company ? `, ${c.current_company}` : ''}
-                                        </option>
-                                    ))}
-                                </select>
-                                {selectedCandidate && (
-                                    <div style={{ fontSize: 11, color: 'var(--ink4)', marginTop: 5 }}>
-                                        {selectedCandidate.cv_url ? 'CV found. AI preview is running against job requirements.' : 'No CV found. AI preview will use candidate profile fields.'}
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                        </>
 
                         <div className="form-group" style={{ marginBottom: 18 }}>
                             <label className="form-label">Initial stage</label>
@@ -508,7 +441,7 @@ export default function AddCandidatePage({ mandate, candidates = [] }) {
                         </div>
 
                         <div style={{ fontSize: 11, color: 'var(--ink4)', lineHeight: 1.6, background: 'var(--mist2)', border: '1px solid var(--wire)', borderRadius: 'var(--rsm)', padding: '8px 10px' }}>
-                            {preview?.score?.ai_summary || 'Upload CV or select existing candidate to generate live AI matching summary.'}
+                            {preview?.score?.ai_summary || 'Upload CV to generate live AI matching summary.'}
                         </div>
                     </div>
                 </div>

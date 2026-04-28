@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Recruiter;
 
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
+use App\Models\CddSubmission;
+use App\Models\MandateClaim;
 use App\Services\ClaudeService;
 use App\Services\CvTextExtractor;
 use Illuminate\Http\JsonResponse;
@@ -40,8 +42,40 @@ class CandidateController extends Controller
         $recruiter = Auth::user()->recruiter;
         $candidate = Candidate::where('recruiter_id', $recruiter->id)->findOrFail($id);
 
+        $approvedMandates = MandateClaim::with('mandate')
+            ->where('recruiter_id', $recruiter->id)
+            ->where('status', 'approved')
+            ->orderByDesc('assigned_at')
+            ->get()
+            ->map(fn($claim) => [
+                'id' => $claim->mandate?->id,
+                'title' => $claim->mandate?->title,
+                'assigned_at' => $claim->assigned_at,
+            ])
+            ->filter(fn($m) => !empty($m['id']) && !empty($m['title']))
+            ->values();
+
+        $submissions = CddSubmission::with('mandate')
+            ->where('candidate_id', $candidate->id)
+            ->where('recruiter_id', $recruiter->id)
+            ->orderByDesc('submitted_at')
+            ->get()
+            ->map(fn($submission) => [
+                'id' => $submission->id,
+                'mandate_id' => $submission->mandate_id,
+                'mandate_title' => $submission->mandate?->title,
+                'submission_number' => $submission->submission_number,
+                'client_status' => $submission->client_status,
+                'admin_review_status' => $submission->admin_review_status,
+                'ai_score' => $submission->ai_score,
+                'submitted_at' => $submission->submitted_at,
+            ])
+            ->values();
+
         return Inertia::render('Recruiter/Candidates/Show', [
             'candidate' => $candidate,
+            'approvedMandates' => $approvedMandates,
+            'submissions' => $submissions,
         ]);
     }
 

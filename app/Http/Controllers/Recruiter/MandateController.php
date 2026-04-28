@@ -145,26 +145,9 @@ class MandateController extends Controller
             ->where('mandate_id', $id)
             ->firstOrFail();
 
-        $candidates = Candidate::where('recruiter_id', $recruiter->id)
-            ->orderByDesc('created_at')
-            ->get([
-                'id',
-                'first_name',
-                'last_name',
-                'email',
-                'linkedin_url',
-                'current_role',
-                'current_company',
-                'cv_url',
-                'skills',
-                'years_experience',
-                'parsed_profile',
-            ]);
-
         return Inertia::render('Recruiter/Mandates/AddCandidate', [
             'mandate' => $claim->mandate,
             'claim' => $claim,
-            'candidates' => $candidates,
         ]);
     }
 
