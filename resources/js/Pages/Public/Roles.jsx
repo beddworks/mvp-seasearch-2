@@ -377,13 +377,19 @@ function JobCard({ m, claimed, atCapacity, isRecruiter }) {
     ].filter(Boolean)
 
     return (
-        <div style={{
-            background: '#fff',
-            border: `${m.is_featured ? '1.5px' : '1px'} solid ${m.is_featured ? 'var(--sea3)' : 'var(--wire)'}`,
-            borderRadius: 10, padding: '16px 18px',
-            position: 'relative', overflow: 'hidden',
-            transition: 'border-color .15s',
-        }}>
+        <div
+            onClick={() => router.visit(route('public.roles.show', m.id))}
+            style={{
+                background: '#fff',
+                border: `${m.is_featured ? '1.5px' : '1px'} solid ${m.is_featured ? 'var(--sea3)' : 'var(--wire)'}`,
+                borderRadius: 10, padding: '16px 18px',
+                position: 'relative', overflow: 'hidden',
+                transition: 'border-color .15s, box-shadow .15s',
+                cursor: 'pointer',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--sea3)'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(26,109,181,.08)' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = m.is_featured ? 'var(--sea3)' : 'var(--wire)'; e.currentTarget.style.boxShadow = 'none' }}
+        >
             {/* accent bar — featured only */}
             {m.is_featured && (
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: bar }} />
@@ -486,7 +492,7 @@ function JobCard({ m, claimed, atCapacity, isRecruiter }) {
                     </div>
 
                     {/* CTA — changes based on auth state */}
-                    <div style={{ marginTop: 10 }}>
+                    <div style={{ marginTop: 10 }} onClick={e => e.stopPropagation()}>
                         {isRecruiter ? (
                             claimed ? (
                                 <Link href={route('recruiter.mandates.workspace', m.id)} style={{ display: 'block', width: '100%', padding: '6px 0', fontSize: 11, fontWeight: 500, border: '1px solid var(--jade3)', borderRadius: 6, background: 'var(--jade-pale)', color: 'var(--jade2)', textAlign: 'center', textDecoration: 'none' }}>

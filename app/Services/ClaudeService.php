@@ -175,41 +175,39 @@ CV:
 - salary_min (number or null)
 - salary_max (number or null)
 - salary_currency (3-letter currency code like SGD, USD, MYR, or null)
-- description (string — a comprehensive, well-structured role overview that includes ALL of the following sections where information is available, formatted as plain text with section headers on their own lines):
-
-  The description field must follow this exact format (omit any section if no content available):
+- contract_type (one of: full_time, contract, part_time, or null)
+- openings_count (integer, default 1, or null)
+- description (string — a comprehensive, well-structured role overview formatted as plain text with section headers):
 
   ROLE OVERVIEW
   [2-3 sentence summary of the role, company context, and key purpose]
 
   KEY RESPONSIBILITIES
   • [responsibility 1]
-  • [responsibility 2]
   • [add all responsibilities found]
 
-  REQUIRED SKILLS & EXPERIENCE
-  • [requirement 1]
-  • [requirement 2]
-  • [add all hard requirements found]
+  COMPENSATION
+  [Salary range and benefits details]
 
-  NICE TO HAVE
-  • [nice-to-have 1]
-  • [add all preferred qualifications found]
+  Rules for description: plain text only, no markdown, no asterisks, no #.
 
-  WHAT WE OFFER
-  • [benefit or perk 1]
-  • [add all benefits/compensation details found]
+- must_haves (array of strings — hard must-have requirements, max 8 items, each a concise bullet like \"20+ years HR leadership\")
+- nice_to_haves (array of strings — preferred but not required qualifications, max 6 items)
+- green_flags (array of strings — positive candidate signals to look for, max 6 items, starting with the positive trait e.g. \"Regional SEA experience across 5+ markets\")
+- red_flags (array of strings — disqualifying candidate signals, max 6 items, e.g. \"No board-level stakeholder exposure\")
+- screening_questions (array of strings — questions recruiters must ask candidates before submission, max 8 items, e.g. \"Confirm your right to work in Singapore\")
+- ideal_candidates (array of objects with keys \"name\" and \"title\" — reference benchmark candidates mentioned or strongly implied in the JD, max 5; use empty array [] if none mentioned or implied)
+- ideal_source_companies (array of strings — companies to source candidates from based on the role requirements, max 10 items)
 
 Rules:
-- If a field is not present, return null.
+- If a field is not present or cannot be inferred, return null for scalars or [] for arrays.
 - Keep seniority strictly to the allowed values.
-- The description must be plain text only — no markdown, no asterisks, no #.
 - Output JSON object only.
 
 JOB DESCRIPTION:
 {$jdText}";
 
-        $raw = $this->chat($system, $user, 1200);
+        $raw = $this->chat($system, $user, 2000);
         if (!$raw) return [];
 
         return $this->decodeJson($raw) ?? [];

@@ -16,6 +16,7 @@ Route::post('/webhooks/gsheet', [\App\Http\Controllers\GSheetWebhookController::
 // ─── Public ────────────────────────────────────────────────────────────────
 Route::get('/', fn() => redirect()->route('login'))->name('home');
 Route::get('/roles', [\App\Http\Controllers\Public\RolesController::class, 'index'])->name('public.roles');
+Route::get('/roles/{id}', [\App\Http\Controllers\Public\RolesController::class, 'show'])->name('public.roles.show');
 
 // ─── Auth ──────────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {

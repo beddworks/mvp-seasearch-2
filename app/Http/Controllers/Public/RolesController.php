@@ -92,4 +92,32 @@ class RolesController extends Controller
             'atCapacity'     => $atCapacity,
         ]);
     }
+
+    public function show(string $id)
+    {
+        $mandate = Mandate::with(['client.compensationType', 'compensationType'])
+            ->where('status', 'active')
+            ->findOrFail($id);
+
+        $myClaimIds = [];
+        $atCapacity = false;
+        $claimed    = false;
+
+        $user = Auth::user();
+        if ($user && $user->role === 'recruiter') {
+            $recruiter = $user->recruiter;
+            if ($recruiter) {
+                $myClaimIds = MandateClaim::where('recruiter_id', $recruiter->id)
+                    ->pluck('mandate_id')->all();
+                $atCapacity = $recruiter->active_mandates_count >= 2;
+                $claimed    = in_array($id, $myClaimIds);
+            }
+        }
+
+        return Inertia::render('Public/RoleDetail', [
+            'mandate'    => $mandate,
+            'claimed'    => $claimed,
+            'atCapacity' => $atCapacity,
+        ]);
+    }
 }

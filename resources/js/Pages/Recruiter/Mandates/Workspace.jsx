@@ -167,54 +167,152 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
 
                 {tab === 'overview' && (
                     <>
-                        <div className="stat-row" style={{ marginBottom: 14, display: 'none' }}>
+                        {/* Stats grid */}
+                        <div className="stat-row" style={{ marginBottom: 14 }}>
                             <div className="sc"><div className="sc-num">{liveSubmissions.length}</div><div className="sc-lbl">Candidates sourced</div></div>
                             <div className="sc"><div className="sc-num">{liveSubmissions.filter(s => (s.ai_score || 0) > 0).length}</div><div className="sc-lbl">AI screened</div></div>
                             <div className="sc"><div className="sc-num">{liveSubmissions.filter(s => s.client_status === 'interview').length}</div><div className="sc-lbl">Interviews set</div></div>
-                            <div className="sc"><div className="sc-num">{topScore}%</div><div className="sc-lbl">Top match score</div></div>
+                            <div className="sc"><div className="sc-num">{topScore > 0 ? `${topScore}%` : '—'}</div><div className="sc-lbl">Top match score</div></div>
                         </div>
 
+                        {/* Job description */}
                         <div className="sblock">
-                            <div className="sblock-head"><div className="sblock-title">Job description</div></div>
+                            <div className="sblock-head"><div className="sblock-title">📄 Job description</div></div>
                             <div className="sblock-body">
-                                <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '.05em', color: 'var(--ink4)', marginBottom: 6 }}>Role requirements</div>
-                                <div className="req-grid" style={{ display: 'none' }}>
-                                    <div className="req-card">
-                                        <div className="req-title">Must-have</div>
-                                        {(mandate.must_haves || []).length > 0 ? (mandate.must_haves || []).map((item, i) => <div key={i} className="req-item">{item}</div>) : <div className="req-item">No must-have requirements listed</div>}
+                                {mandate.description ? (
+                                    <div style={{ fontSize: 12, color: 'var(--ink4)', lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>
+                                        {mandate.description}
                                     </div>
-                                    <div className="req-card">
-                                        <div className="req-title">Nice to have</div>
-                                        {(mandate.nice_to_haves || []).length > 0 ? (mandate.nice_to_haves || []).map((item, i) => <div key={i} className="req-item">{item}</div>) : <div className="req-item">No nice-to-have requirements listed</div>}
-                                    </div>
-                                </div>
-                                <div>
-                                        <div style={{ fontSize: 12, color: 'var(--ink4)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                                            {mandate.description}
+                                ) : (
+                                    <div style={{ fontSize: 12, color: 'var(--ink4)', fontStyle: 'italic' }}>No description provided for this role yet.</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Candidate screening flags */}
+                        {((mandate.green_flags || []).length > 0 || (mandate.red_flags || []).length > 0) && (
+                            <div className="sblock" style={{ marginTop: 10 }}>
+                                <div className="sblock-head"><div className="sblock-title">🎯 Candidate screening flags</div></div>
+                                <div className="sblock-body">
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                                                <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--jade-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>✓</div>
+                                                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--jade2)' }}>Green flags</span>
+                                            </div>
+                                            {(mandate.green_flags || []).length > 0
+                                                ? (mandate.green_flags || []).map((f, i) => <div key={i} style={{ fontSize: 11, padding: '5px 10px', borderRadius: 'var(--rsm)', background: 'var(--jade-pale)', color: 'var(--jade2)', marginBottom: 5 }}>✓ {f}</div>)
+                                                : <div style={{ fontSize: 11, color: 'var(--ink4)', fontStyle: 'italic' }}>No green flags set</div>}
                                         </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="sblock" style={{ marginTop: 12, display: 'none' }}>
-                            <div className="sblock-head"><div className="sblock-title">Candidate screening flags</div></div>
-                            <div className="sblock-body">
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                    <div>
-                                        <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 8, color: 'var(--jade2)' }}>Green flags</div>
-                                        {(mandate.green_flags || []).length > 0 ? (mandate.green_flags || []).map((f, i) => <div key={i} style={{ fontSize: 11, padding: '5px 10px', borderRadius: 'var(--rsm)', background: 'var(--jade-pale)', color: 'var(--jade2)', marginBottom: 5 }}>✓ {f}</div>) : <div style={{ fontSize: 11, color: 'var(--ink4)' }}>No green flags set</div>}
-                                    </div>
-                                    <div>
-                                        <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 8, color: 'var(--ruby2)' }}>Red flags</div>
-                                        {(mandate.red_flags || []).length > 0 ? (mandate.red_flags || []).map((f, i) => <div key={i} style={{ fontSize: 11, padding: '5px 10px', borderRadius: 'var(--rsm)', background: 'var(--ruby-pale)', color: 'var(--ruby2)', marginBottom: 5 }}>⚠ {f}</div>) : <div style={{ fontSize: 11, color: 'var(--ink4)' }}>No red flags set</div>}
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                                                <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--ruby-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>✕</div>
+                                                <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--ruby2)' }}>Red flags</span>
+                                            </div>
+                                            {(mandate.red_flags || []).length > 0
+                                                ? (mandate.red_flags || []).map((f, i) => <div key={i} style={{ fontSize: 11, padding: '5px 10px', borderRadius: 'var(--rsm)', background: 'var(--ruby-pale)', color: 'var(--ruby2)', marginBottom: 5 }}>✕ {f}</div>)
+                                                : <div style={{ fontSize: 11, color: 'var(--ink4)', fontStyle: 'italic' }}>No red flags set</div>}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
-                        <div style={{ display: 'none', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                        {/* Role requirements */}
+                        {((mandate.must_haves || []).length > 0 || (mandate.nice_to_haves || []).length > 0) && (
+                            <div className="sblock" style={{ marginTop: 10 }}>
+                                <div className="sblock-head"><div className="sblock-title">✅ Role requirements</div></div>
+                                <div className="sblock-body">
+                                    <div className="req-grid">
+                                        {(mandate.must_haves || []).length > 0 && (
+                                            <div className="req-card">
+                                                <div className="req-title">Must-have</div>
+                                                {(mandate.must_haves || []).map((item, i) => <div key={i} className="req-item">{item}</div>)}
+                                            </div>
+                                        )}
+                                        {(mandate.nice_to_haves || []).length > 0 && (
+                                            <div className="req-card">
+                                                <div className="req-title">Nice to have</div>
+                                                {(mandate.nice_to_haves || []).map((item, i) => <div key={i} className="req-item">{item}</div>)}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Required candidate Q&A */}
+                        {(mandate.screening_questions || []).length > 0 && (
+                            <div className="sblock" style={{ marginTop: 10 }}>
+                                <div className="sblock-head"><div className="sblock-title">💬 Required candidate Q&A</div></div>
+                                <div className="sblock-body">
+                                    {(mandate.screening_questions || []).map((q, i) => (
+                                        <div key={i} style={{ background: 'var(--mist2)', borderRadius: 'var(--rsm)', padding: '9px 12px', marginBottom: 6, border: '1px solid var(--wire)' }}>
+                                            <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--ink4)', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '.04em' }}>Question {i + 1}</div>
+                                            <div style={{ fontSize: 12, color: 'var(--ink)' }}>{q}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Ideal candidates */}
+                        {(mandate.ideal_candidates || []).filter(ic => ic?.name).length > 0 && (
+                            <div className="sblock" style={{ marginTop: 10 }}>
+                                <div className="sblock-head">
+                                    <div className="sblock-title">
+                                        👤 Ideal candidates
+                                        <span style={{ fontSize: 10, background: 'var(--ruby-pale)', color: 'var(--ruby2)', border: '1px solid #F7C1C1', borderRadius: 4, padding: '1px 6px', fontWeight: 500, marginLeft: 8 }}>DO NOT CONTACT</span>
+                                    </div>
+                                </div>
+                                <div className="sblock-body">
+                                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                                        {(mandate.ideal_candidates || []).filter(ic => ic?.name).map((ic, i) => (
+                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--mist2)', borderRadius: 'var(--rsm)', padding: '10px 14px', flex: 1, minWidth: 180, position: 'relative', border: '1px solid var(--wire)' }}>
+                                                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--sea-pale)', color: 'var(--sea2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 500, flexShrink: 0 }}>
+                                                    {(ic.name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                                                </div>
+                                                <div style={{ minWidth: 0 }}>
+                                                    <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink)' }}>{ic.name}</div>
+                                                    {ic.title && <div style={{ fontSize: 11, color: 'var(--ink4)' }}>{ic.title}</div>}
+                                                </div>
+                                                {ic.linkedin_url && (
+                                                    <a href={ic.linkedin_url} target="_blank" rel="noreferrer" style={{ position: 'absolute', top: 8, right: 10, fontSize: 13, cursor: 'pointer', textDecoration: 'none' }} title="LinkedIn">🔗</a>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div style={{ fontSize: 11, color: 'var(--ink4)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ fontSize: 10, background: 'var(--ruby-pale)', color: 'var(--ruby2)', border: '1px solid #F7C1C1', borderRadius: 4, padding: '1px 6px', fontWeight: 500 }}>DO NOT CONTACT</span>
+                                        Reference profiles only — use as benchmarks for sourcing similar talent.
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Ideal source companies */}
+                        {(mandate.ideal_source_companies || []).length > 0 && (
+                            <div className="sblock" style={{ marginTop: 10 }}>
+                                <div className="sblock-head"><div className="sblock-title">🏢 Ideal source companies</div></div>
+                                <div className="sblock-body">
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 7 }}>
+                                        {(mandate.ideal_source_companies || []).map((co, i) => (
+                                            <div key={i} style={{ background: 'var(--mist2)', borderRadius: 'var(--rsm)', padding: '12px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, border: '1px solid var(--wire)', cursor: 'default' }}>
+                                                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--sea-pale)', color: 'var(--sea2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 500 }}>
+                                                    {(co || '').split(/\s+/).map(w => w[0]).join('').slice(0, 3).toUpperCase()}
+                                                </div>
+                                                <div style={{ fontSize: 10, color: 'var(--ink)', textAlign: 'center' }}>{co}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Action buttons */}
+                        <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
                             <Link href={route('recruiter.mandates.add-candidate', mandate.id)} className="ai-action-btn" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>+ Add candidate</Link>
-                            <button className="ai-action-btn" onClick={() => setTab('aipanel')}>Run AI candidate matching</button>
+                            <button className="ai-action-btn" onClick={() => setTab('aipanel')}>⚙ Run AI candidate matching →</button>
                             <button className="ai-action-btn" onClick={() => setShowSubmit(true)}>Submit to client</button>
                             <a href={route('recruiter.kanban.show', mandate.id)} className="ai-action-btn" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>Open Kanban</a>
                         </div>
