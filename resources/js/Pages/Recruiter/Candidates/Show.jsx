@@ -196,11 +196,7 @@ export default function CandidateShow({ candidate, approvedMandates = [], submis
                             {candidate.linkedin_url && <a href={`https://${candidate.linkedin_url.replace(/^https?:\/\//, '')}`} target="_blank" rel="noreferrer" style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'var(--sea-pale)', color: 'var(--sea2)', border: '1px solid var(--sea-soft)', textDecoration: 'none' }}>in LinkedIn</a>}
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                        {candidate.email && (
-                            <a href={`mailto:${candidate.email}`} className="btn btn-secondary btn-sm">✉ Email</a>
-                        )}
-                    </div>
+                    
                 </div>
             </div>
 
@@ -376,7 +372,6 @@ export default function CandidateShow({ candidate, approvedMandates = [], submis
                                             <tr>
                                                 <th style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid var(--wire)' }}>Role</th>
                                                 <th style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid var(--wire)' }}>Stage</th>
-                                                <th style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid var(--wire)' }}>Status</th>
                                                 <th style={{ fontSize: 10, color: 'var(--ink4)', textTransform: 'uppercase', textAlign: 'left', padding: '8px 10px', borderBottom: '1px solid var(--wire)' }}>Date</th>
                                             </tr>
                                         </thead>
@@ -385,7 +380,6 @@ export default function CandidateShow({ candidate, approvedMandates = [], submis
                                                 <tr key={sub.id}>
                                                     <td style={{ padding: '8px 10px', borderBottom: '1px solid var(--wire)', fontSize: 12 }}>{sub.mandate_title || '—'}</td>
                                                     <td style={{ padding: '8px 10px', borderBottom: '1px solid var(--wire)', fontSize: 12 }}>{(sub.client_status || 'sourced').replace('_', ' ')}</td>
-                                                    <td style={{ padding: '8px 10px', borderBottom: '1px solid var(--wire)', fontSize: 12 }}>{sub.admin_review_status || 'pending'}</td>
                                                     <td style={{ padding: '8px 10px', borderBottom: '1px solid var(--wire)', fontSize: 12 }}>{sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString() : '—'}</td>
                                                 </tr>
                                             ))}

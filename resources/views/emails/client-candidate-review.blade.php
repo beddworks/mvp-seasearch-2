@@ -26,14 +26,14 @@
   .cta-row { margin-top:22px; }
   .cta { display:inline-block; padding:11px 18px; border-radius:7px; font-size:14px; font-weight:600; color:#fff !important; text-decoration:none; background:#1A6DB5; margin-right:8px; }
   .cta-secondary { background:#0D0C0A; }
-  .quick-box { margin-top:16px; border:1px solid #E0DDD6; border-radius:10px; background:#fff; padding:12px; }
-  .quick-title { margin:0 0 8px; font-size:12px; color:#6B6860; text-transform:uppercase; letter-spacing:.06em; }
-  .quick-form { display:flex; gap:8px; align-items:center; }
-  .quick-select { flex:1; border:1px solid #E0DDD6; border-radius:7px; padding:10px; font-size:13px; color:#0D0C0A; background:#fff; }
-  .quick-reason-wrap { display:none; width:100%; margin-top:8px; }
+  .quick-box { margin-top:16px; border:1px solid #E0DDD6; border-radius:10px; background:#fff; padding:10px 12px; }
+  .quick-title { margin:0 0 6px; font-size:11px; color:#6B6860; text-transform:uppercase; letter-spacing:.06em; }
+  .quick-row { display:flex; gap:6px; align-items:center; }
+  .quick-select { flex:1; border:1px solid #E0DDD6; border-radius:6px; padding:7px 8px; font-size:12px; color:#0D0C0A; background:#fff; }
+  .quick-reason-wrap { display:none; width:100%; margin-top:6px; }
   .quick-reason-wrap.open { display:block; }
-  .quick-reason { width:100%; border:1px solid #E0DDD6; border-radius:7px; padding:10px; font-size:13px; color:#0D0C0A; background:#fff; min-height:66px; resize:vertical; }
-  .quick-btn { border:none; border-radius:7px; padding:10px 14px; font-size:13px; font-weight:600; color:#fff; background:#1A6DB5; cursor:pointer; }
+  .quick-reason { width:100%; border:1px solid #E0DDD6; border-radius:6px; padding:7px 8px; font-size:12px; color:#0D0C0A; background:#fff; min-height:56px; resize:vertical; box-sizing:border-box; }
+  .quick-btn { flex-shrink:0; border:none; border-radius:6px; padding:7px 12px; font-size:12px; font-weight:600; color:#fff; background:#1A6DB5; cursor:pointer; white-space:nowrap; }
   .note { margin-top:18px; padding:12px 14px; border-left:3px solid #1A6DB5; background:#F9F8F5; font-size:12px; line-height:1.6; color:#2A2926; }
   .footer { padding:16px 32px; border-top:1px solid #E0DDD6; font-size:12px; color:#6B6860; }
 </style>
@@ -88,18 +88,20 @@
     </div>
 
     <div class="quick-box">
-      <p class="quick-title">Change pipeline status directly</p>
-      <form class="quick-form" method="GET" action="{{ $quickUpdateLink }}">
+      <p class="quick-title">Change pipeline status</p>
+      <form method="GET" action="{{ $quickUpdateLink }}">
         <input type="hidden" name="submission_id" value="{{ $submission->id }}">
-        <select class="quick-select" id="email-client-status" name="client_status">
-          @foreach(['sourced','screened','interview','offered','hired','rejected','on_hold'] as $stage)
-            <option value="{{ $stage }}" @selected(($submission->client_status ?? 'sourced') === $stage)>{{ ucfirst(str_replace('_', ' ', $stage)) }}</option>
-          @endforeach
-        </select>
+        <div class="quick-row">
+          <select class="quick-select" id="email-client-status" name="client_status">
+            @foreach(['sourced','screened','interview','offered','hired','rejected','on_hold'] as $stage)
+              <option value="{{ $stage }}" @selected(($submission->client_status ?? 'sourced') === $stage)>{{ ucfirst(str_replace('_', ' ', $stage)) }}</option>
+            @endforeach
+          </select>
+          <button class="quick-btn" type="submit">Update</button>
+        </div>
         <div id="email-reason-wrap" class="quick-reason-wrap {{ ($submission->client_status ?? 'sourced') === 'rejected' ? 'open' : '' }}">
           <textarea id="email-reason" class="quick-reason" name="client_feedback" placeholder="Reason for rejection">{{ $submission->client_feedback }}</textarea>
         </div>
-        <button class="quick-btn" type="submit">Update</button>
       </form>
     </div>
 

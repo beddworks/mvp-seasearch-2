@@ -129,11 +129,18 @@ class MandateController extends Controller
             ->orderByDesc('submitted_at')
             ->get();
 
+        // All submissions across all recruiters — for the shared pipeline view
+        $allSubmissions = CddSubmission::with(['candidate', 'recruiter.user'])
+            ->where('mandate_id', $id)
+            ->orderByDesc('submitted_at')
+            ->get();
+
         return Inertia::render('Recruiter/Mandates/Workspace', [
-            'mandate'     => $claim->mandate,
-            'claim'       => $claim,
-            'candidates'  => $candidates,
-            'submissions' => $submissions,
+            'mandate'         => $claim->mandate,
+            'claim'           => $claim,
+            'candidates'      => $candidates,
+            'submissions'     => $submissions,
+            'all_submissions' => $allSubmissions,
         ]);
     }
 

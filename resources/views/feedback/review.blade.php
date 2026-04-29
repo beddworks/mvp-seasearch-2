@@ -55,12 +55,14 @@
         .act-btn { font-size: 10px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--wire); background: transparent; color: var(--ink4); cursor: pointer; }
         .act-btn:hover { border-color: var(--sea2); color: var(--sea2); }
 
-        .inline-update { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
-        .select { border: 1px solid var(--wire); border-radius: var(--rsm); padding: 4px 8px; background: #fff; color: var(--ink); font-size: 10px; }
-        .save-btn { border: 1px solid var(--sea2); background: var(--sea2); color: #fff; border-radius: var(--rsm); padding: 4px 8px; font-size: 10px; cursor: pointer; }
-        .reason-wrap { display: none; width: 100%; margin-top: 6px; }
+        .act-col { display: flex; flex-direction: column; gap: 5px; }
+        .inline-update { display: flex; flex-direction: column; gap: 4px; }
+        .inline-row { display: flex; gap: 5px; align-items: center; }
+        .select { flex: 1; border: 1px solid var(--wire); border-radius: var(--rsm); padding: 4px 7px; background: #fff; color: var(--ink); font-size: 11px; min-width: 0; }
+        .save-btn { flex-shrink: 0; border: 1px solid var(--sea2); background: var(--sea2); color: #fff; border-radius: var(--rsm); padding: 4px 10px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .reason-wrap { display: none; }
         .reason-wrap.open { display: block; }
-        .reason-input { width: 100%; border: 1px solid var(--wire); border-radius: var(--rsm); padding: 7px 8px; background: #fff; color: var(--ink); font-size: 11px; min-height: 56px; resize: vertical; }
+        .reason-input { width: 100%; border: 1px solid var(--wire); border-radius: var(--rsm); padding: 5px 7px; background: #fff; color: var(--ink); font-size: 11px; min-height: 48px; resize: vertical; box-sizing: border-box; }
         .small { color: var(--ink4); font-size: 11px; margin-top: 4px; }
 
         .modal {
@@ -170,20 +172,24 @@
                                 {{ $activity ? \Carbon\Carbon::parse($activity)->isToday() ? 'Today' : \Carbon\Carbon::parse($activity)->diffForHumans() : '—' }}
                             </td>
                             <td>
-                                <button type="button" class="act-btn open-detail" data-submission-id="{{ $submission->id }}">AI summary →</button>
-                                <form method="POST" action="{{ route('feedback.update', $token) }}" class="inline-update">
-                                    @csrf
-                                    <input type="hidden" name="submission_id" value="{{ $submission->id }}">
-                                    <select class="select feedback-status" name="client_status" data-submission-id="{{ $submission->id }}">
-                                        @foreach($stageOptions as $opt)
-                                            <option value="{{ $opt }}" @selected($stage === $opt)>{{ ucfirst(str_replace('_', ' ', $opt)) }}</option>
-                                        @endforeach
-                                    </select>
-                                    <div class="reason-wrap {{ $stage === 'rejected' ? 'open' : '' }}" id="reason-wrap-{{ $submission->id }}">
-                                        <textarea class="reason-input" name="client_feedback" id="reason-input-{{ $submission->id }}" placeholder="Reason for rejection">{{ $submission->client_feedback }}</textarea>
-                                    </div>
-                                    <button type="submit" class="save-btn">Save</button>
-                                </form>
+                                <div class="act-col">
+                                    <button type="button" class="act-btn open-detail" data-submission-id="{{ $submission->id }}">AI summary →</button>
+                                    <form method="POST" action="{{ route('feedback.update', $token) }}" class="inline-update">
+                                        @csrf
+                                        <input type="hidden" name="submission_id" value="{{ $submission->id }}">
+                                        <div class="inline-row">
+                                            <select class="select feedback-status" name="client_status" data-submission-id="{{ $submission->id }}">
+                                                @foreach($stageOptions as $opt)
+                                                    <option value="{{ $opt }}" @selected($stage === $opt)>{{ ucfirst(str_replace('_', ' ', $opt)) }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button type="submit" class="save-btn">Save</button>
+                                        </div>
+                                        <div class="reason-wrap {{ $stage === 'rejected' ? 'open' : '' }}" id="reason-wrap-{{ $submission->id }}">
+                                            <textarea class="reason-input" name="client_feedback" id="reason-input-{{ $submission->id }}" placeholder="Reason for rejection">{{ $submission->client_feedback }}</textarea>
+                                        </div>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

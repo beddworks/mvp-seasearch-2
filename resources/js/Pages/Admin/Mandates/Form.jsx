@@ -82,7 +82,7 @@ export default function MandateForm({ mandate, clients, compensation_types }) {
     const [activeTab,  setActiveTab]  = useState('overview')
     const fileInputRef = useRef(null)
 
-    const { data, setData, post, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         title:                   mandate?.title                   || '',
         client_id:               mandate?.client_id               || '',
         compensation_type_id:    mandate?.compensation_type_id    || '',
@@ -107,8 +107,7 @@ export default function MandateForm({ mandate, clients, compensation_types }) {
         is_fast_track:           mandate?.is_fast_track           || false,
         timer_b_active:          mandate?.timer_b_active          || false,
         timer_c_active:          mandate?.timer_c_active          || false,
-        jd_file:                 null,
-    })
+        jd_file:                 null,        ...(mandate ? { _method: 'PUT' } : {}),    })
 
     // ── AI auto-fill ────────────────────────────────────────────────────────
     const applyAiData = (parsed) => {
@@ -198,7 +197,7 @@ export default function MandateForm({ mandate, clients, compensation_types }) {
     function submit(e) {
         e.preventDefault()
         if (isEdit) {
-            post(route('admin.mandates.update', mandate.id), { forceFormData: true, _method: 'put' })
+            post(route('admin.mandates.update', mandate.id), { forceFormData: true })
         } else {
             post(route('admin.mandates.store'))
         }

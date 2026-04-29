@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
             'id'                => $adminId,
             'name'              => 'Sea Search Admin',
             'email'             => 'admin@seasearch.asia',
-            'password'          => Hash::make('change-me-now'),
+            'password'          => Hash::make('password'),
             'role'              => 'super_admin',
             'status'            => 'active',
             'email_verified_at' => now(),

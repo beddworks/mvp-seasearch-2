@@ -85,11 +85,7 @@ export default function CandidateShow({ candidate }) {
                             {candidate.recruiter?.user?.name && <span className="badge badge-ruby">Recruiter: {candidate.recruiter.user.name}</span>}
                         </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                        {candidate.email && (
-                            <a href={`mailto:${candidate.email}`} className="btn btn-secondary btn-sm">✉ Email</a>
-                        )}
-                    </div>
+                    
                 </div>
             </div>
 

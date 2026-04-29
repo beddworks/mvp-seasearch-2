@@ -62,7 +62,7 @@ function isAiProcessing(submission) {
     return submission?.ai_processing === true
 }
 
-export default function MandateWorkspace({ mandate, claim, candidates = [], submissions = [] }) {
+export default function MandateWorkspace({ mandate, claim, candidates = [], submissions = [], all_submissions = [] }) {
     const { flash } = usePage().props
     const co = mandate.client?.company_name || '—'
 
@@ -71,6 +71,7 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
     const [selectedSubmission, setSelectedSubmission] = useState(null)
     const [liveCandidates, setLiveCandidates] = useState(candidates)
     const [liveSubmissions, setLiveSubmissions] = useState(submissions)
+    const [liveAllSubmissions] = useState(all_submissions)
 
     const statusStyle = STATUS_COLORS[claim.status] || STATUS_COLORS.pending
     const topScore = Math.max(...liveSubmissions.map(s => s.ai_score || 0), 0)
@@ -79,10 +80,10 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
 
     const grouped = useMemo(() => {
         return STAGES.reduce((acc, stage) => {
-            acc[stage] = liveSubmissions.filter(s => (s.client_status || 'sourced') === stage)
+            acc[stage] = liveAllSubmissions.filter(s => (s.client_status || 'sourced') === stage)
             return acc
         }, {})
-    }, [liveSubmissions])
+    }, [liveAllSubmissions])
 
     const processingCount = useMemo(() => liveSubmissions.filter(isAiProcessing).length, [liveSubmissions])
 
@@ -168,7 +169,7 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
                 {tab === 'overview' && (
                     <>
                         {/* Stats grid */}
-                        <div className="stat-row" style={{ marginBottom: 14 }}>
+                        <div className="stat-row" style={{ marginBottom: 14, display: 'none' }}>
                             <div className="sc"><div className="sc-num">{liveSubmissions.length}</div><div className="sc-lbl">Candidates sourced</div></div>
                             <div className="sc"><div className="sc-num">{liveSubmissions.filter(s => (s.ai_score || 0) > 0).length}</div><div className="sc-lbl">AI screened</div></div>
                             <div className="sc"><div className="sc-num">{liveSubmissions.filter(s => s.client_status === 'interview').length}</div><div className="sc-lbl">Interviews set</div></div>
@@ -310,7 +311,7 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
                         )}
 
                         {/* Action buttons */}
-                        <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
+                        <div style={{ display: 'none', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
                             <Link href={route('recruiter.mandates.add-candidate', mandate.id)} className="ai-action-btn" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>+ Add candidate</Link>
                             <button className="ai-action-btn" onClick={() => setTab('aipanel')}>⚙ Run AI candidate matching →</button>
                             <button className="ai-action-btn" onClick={() => setShowSubmit(true)}>Submit to client</button>
@@ -320,7 +321,13 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
                 )}
 
                 {tab === 'pipeline' && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
+                    <>
+                        {liveAllSubmissions.length > liveSubmissions.length && (
+                            <div style={{ marginBottom: 10, padding: '7px 12px', background: 'var(--sea-pale)', border: '1px solid var(--sea3)', borderRadius: 'var(--rsm)', fontSize: 11, color: 'var(--sea)' }}>
+                                Showing all {liveAllSubmissions.length} candidates across all recruiters on this role.
+                            </div>
+                        )}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
                         {STAGES.map(stage => (
                             <div key={stage}>
                                 <div style={{ fontSize: 10, fontWeight: 500, color: 'var(--ink4)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
@@ -330,10 +337,15 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
                                 {grouped[stage].map(sub => {
                                     const c = sub.candidate
                                     const score = sub.ai_score || 0
+                                    const isOwn = sub.recruiter_id === claim.recruiter_id
+                                    const recruiterName = sub.recruiter?.user?.name
                                     return (
-                                        <div key={sub.id} style={{ background: '#fff', border: '1px solid var(--wire)', borderRadius: 'var(--rsm)', padding: '8px 10px', marginBottom: 6 }}>
+                                        <div key={sub.id} style={{ background: '#fff', border: `1px solid ${isOwn ? 'var(--sea3)' : 'var(--wire)'}`, borderRadius: 'var(--rsm)', padding: '8px 10px', marginBottom: 6 }}>
                                             <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--ink)', marginBottom: 2 }}>{c ? `${c.first_name} ${c.last_name}` : `#${sub.submission_number}`}</div>
-                                            <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 5 }}>{c ? [c.current_role, c.current_company].filter(Boolean).join(', ') : 'No candidate profile'}</div>
+                                            <div style={{ fontSize: 10, color: 'var(--ink4)', marginBottom: 4 }}>{c ? [c.current_role, c.current_company].filter(Boolean).join(', ') : 'No candidate profile'}</div>
+                                            {!isOwn && recruiterName && (
+                                                <div style={{ fontSize: 9, color: 'var(--sea2)', marginBottom: 4, fontStyle: 'italic' }}>by {recruiterName}</div>
+                                            )}
                                             <div style={{ height: 3, background: 'var(--mist2)', borderRadius: 2, marginBottom: 2 }}><div style={{ width: `${Math.max(score, 5)}%`, height: 3, borderRadius: 2, background: score >= 80 ? 'var(--jade2)' : (score >= 60 ? 'var(--amber2)' : 'var(--ruby2)') }} /></div>
                                             <div style={{ fontSize: 9, color: 'var(--ink4)', fontFamily: 'var(--mono)' }}>{score ? `${score}% match` : 'Scoring pending'}</div>
                                         </div>
@@ -346,7 +358,8 @@ export default function MandateWorkspace({ mandate, claim, candidates = [], subm
                                 )}
                             </div>
                         ))}
-                    </div>
+                        </div>
+                    </>
                 )}
 
                 {tab === 'candidates' && (

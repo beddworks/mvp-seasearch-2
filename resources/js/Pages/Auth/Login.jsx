@@ -3,7 +3,7 @@ import { useForm, usePage } from '@inertiajs/react'
 export default function Login() {
     const { errors } = usePage().props
     const { data, setData, post, processing } = useForm({
-        email: 'admin@seasearch.asia',
+        email: '',
         password: '',
         remember: false,
     })
@@ -40,7 +40,7 @@ export default function Login() {
                     borderRadius: 'var(--r)', padding: '28px 28px',
                 }}>
                     <div style={{ fontSize: 15, fontWeight: 500, color: '#fff', marginBottom: 6 }}>Welcome back</div>
-                    <div style={{ fontSize: 12, color: '#888780', marginBottom: 20 }}>Admin login · email & password</div>
+                    <div style={{ fontSize: 12, color: '#888780', marginBottom: 20 }}></div>
 
                     {errors?.email && (
                         <div style={{ background: '#3D1A1A', border: '1px solid var(--ruby2)', borderRadius: 'var(--rsm)', padding: '8px 12px', fontSize: 12, color: '#F88', marginBottom: 14 }}>
@@ -56,7 +56,7 @@ export default function Login() {
                                 type="email"
                                 value={data.email}
                                 onChange={e => setData('email', e.target.value)}
-                                placeholder="admin@seasearch.asia"
+                                placeholder="your@email.com"
                                 autoComplete="email"
                                 style={{ background: 'var(--ink)', borderColor: 'var(--ink3)', color: '#fff' }}
                             />

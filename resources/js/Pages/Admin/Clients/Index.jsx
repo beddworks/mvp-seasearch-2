@@ -15,12 +15,6 @@ export default function ClientsIndex({ clients, filters }) {
                     <Link href={route('admin.clients.create')} className="btn btn-primary">+ New Client</Link>
                 </div>
 
-                {flash?.success && (
-                    <div style={{ background: 'var(--jade-pale)', border: '1px solid var(--jade3)', borderRadius: 'var(--rsm)', padding: '10px 14px', fontSize: 12, color: 'var(--jade)', marginBottom: 16 }}>
-                        {flash.success}
-                    </div>
-                )}
-
                 <div style={{ marginBottom: 14 }}>
                     <input
                         className="form-input"

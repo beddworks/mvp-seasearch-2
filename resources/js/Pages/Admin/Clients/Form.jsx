@@ -16,7 +16,7 @@ const CONFIDENCE_META = {
 export default function ClientForm({ client, compensationTypes = [] }) {
     const isEdit = !!client
 
-    const { data, setData, post, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         company_name:         client?.company_name         || '',
         contact_name:         client?.user?.name           || '',
         contact_email:        client?.user?.email          || '',
@@ -32,6 +32,7 @@ export default function ClientForm({ client, compensationTypes = [] }) {
         fee_pct:              '0.20',
         fee_formula_fields:   {},
         agreement_file:       null,
+        ...(client ? { _method: 'PUT' } : {}),
     })
 
     // AI state
@@ -126,7 +127,7 @@ export default function ClientForm({ client, compensationTypes = [] }) {
     function submit(e) {
         e.preventDefault()
         if (isEdit) {
-            post(route('admin.clients.update', client.id), { forceFormData: true, _method: 'put' })
+            post(route('admin.clients.update', client.id), { forceFormData: true })
         } else {
             post(route('admin.clients.store'))
         }
