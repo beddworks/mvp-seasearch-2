@@ -107,6 +107,7 @@ export default function MandateForm({ mandate, clients, compensation_types }) {
         is_fast_track:           mandate?.is_fast_track           || false,
         timer_b_active:          mandate?.timer_b_active          || false,
         timer_c_active:          mandate?.timer_c_active          || false,
+        jd_file:                 null,
     })
 
     // ── AI auto-fill ────────────────────────────────────────────────────────
@@ -185,6 +186,8 @@ export default function MandateForm({ mandate, clients, compensation_types }) {
         if (file.size > 10 * 1024 * 1024) { setAiError('File must be under 10 MB.'); return }
         setJdFile(file)
         setAutoFilled({})
+        // Store file in form data so it is uploaded on submit
+        setData(d => ({ ...d, jd_file: file }))
         runAiPreview(file)
     }
 
@@ -194,8 +197,11 @@ export default function MandateForm({ mandate, clients, compensation_types }) {
 
     function submit(e) {
         e.preventDefault()
-        if (isEdit) put(route('admin.mandates.update', mandate.id))
-        else post(route('admin.mandates.store'))
+        if (isEdit) {
+            post(route('admin.mandates.update', mandate.id), { forceFormData: true, _method: 'put' })
+        } else {
+            post(route('admin.mandates.store'))
+        }
     }
 
     // ── shorthand styles ──────────────────────────────────────────────────
@@ -266,7 +272,26 @@ export default function MandateForm({ mandate, clients, compensation_types }) {
                                             <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{jdFile.name}</div>
                                             <div style={{ fontSize: 10, color: 'var(--ink4)' }}>{Math.round(jdFile.size / 1024)} KB · AI fields filled</div>
                                         </div>
-                                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setJdFile(null); setAiError(''); setAutoFilled({}) }}>Remove</button>
+                                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setJdFile(null); setAiError(''); setAutoFilled({}); setData(d => ({ ...d, jd_file: null })) }}>Remove</button>
+                                    </div>
+                                ) : isEdit && mandate?.jd_file_url ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', border: '1px solid var(--wire)', borderRadius: 'var(--rsm)', background: 'var(--mist2)' }}>
+                                        <div style={{ width: 32, height: 32, borderRadius: 6, background: 'var(--sea-pale)', border: '1px solid var(--wire)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--sea2)' }}>JD</div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                {mandate.jd_file_name || 'Job description'}
+                                            </div>
+                                            <div style={{ fontSize: 10, color: 'var(--ink4)' }}>Uploaded during creation</div>
+                                        </div>
+                                        <a
+                                            href={route('admin.mandates.download-jd', mandate.id)}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            style={{ fontSize: 11, color: 'var(--sea2)', textDecoration: 'none', fontWeight: 500, flexShrink: 0, padding: '4px 10px', border: '1px solid var(--sea3)', borderRadius: 6, background: '#fff' }}
+                                        >
+                                            Download
+                                        </a>
+                                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => fileInputRef.current?.click()}>Replace</button>
                                     </div>
                                 ) : (
                                     <div

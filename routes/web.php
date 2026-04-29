@@ -58,6 +58,7 @@ Route::middleware(['auth', 'role:recruiter'])->prefix('recruiter')->name('recrui
     Route::get('/candidates/{candidate}',             [\App\Http\Controllers\Recruiter\CandidateController::class, 'show'])->name('candidates.show');
     Route::put('/candidates/{candidate}',             [\App\Http\Controllers\Recruiter\CandidateController::class, 'update'])->name('candidates.update');
     Route::post('/candidates/{candidate}/upload-cv',  [\App\Http\Controllers\Recruiter\CandidateController::class, 'uploadCv'])->name('candidates.upload-cv');
+    Route::get('/candidates/{candidate}/download-cv', [\App\Http\Controllers\Recruiter\CandidateController::class, 'downloadCv'])->name('candidates.download-cv');
     Route::post('/candidates/{candidate}/save-note',  [\App\Http\Controllers\Recruiter\CandidateController::class, 'saveNote'])->name('candidates.save-note');
 
     // submissions
@@ -97,7 +98,9 @@ Route::middleware(['auth', 'role:admin,super_admin'])->prefix('admin')->name('ad
     Route::post('/mandates/{id}/candidate/ai-preview', [\App\Http\Controllers\Admin\MandateController::class, 'candidateAiPreview'])->name('mandates.candidate-ai-preview');
     Route::resource('mandates',           \App\Http\Controllers\Admin\MandateController::class);
     Route::post('/clients/ai-preview',    \App\Http\Controllers\Admin\ClientController::class . '@aiPreview')->name('clients.ai-preview');
+    Route::get('/clients/{id}/agreement', [\App\Http\Controllers\Admin\ClientController::class, 'downloadAgreement'])->name('clients.download-agreement');
     Route::resource('clients',            \App\Http\Controllers\Admin\ClientController::class);
+    Route::get('/mandates/{id}/jd-download', [\App\Http\Controllers\Admin\MandateController::class, 'downloadJd'])->name('mandates.download-jd');
     Route::resource('recruiters',         \App\Http\Controllers\Admin\RecruiterController::class);
     Route::resource('compensation-types', \App\Http\Controllers\Admin\CompensationTypeController::class);
     Route::resource('exception-rules',    \App\Http\Controllers\Admin\ExceptionRuleController::class);
@@ -118,6 +121,7 @@ Route::middleware(['auth', 'role:admin,super_admin'])->prefix('admin')->name('ad
     Route::get('/candidates/{candidate}',             [\App\Http\Controllers\Admin\CandidateController::class, 'show'])->name('candidates.show');
     Route::put('/candidates/{candidate}',             [\App\Http\Controllers\Admin\CandidateController::class, 'update'])->name('candidates.update');
     Route::post('/candidates/{candidate}/upload-cv',  [\App\Http\Controllers\Admin\CandidateController::class, 'uploadCv'])->name('candidates.upload-cv');
+    Route::get('/candidates/{candidate}/download-cv', [\App\Http\Controllers\Admin\CandidateController::class, 'downloadCv'])->name('candidates.download-cv');
     Route::post('/candidates/{candidate}/save-note',  [\App\Http\Controllers\Admin\CandidateController::class, 'saveNote'])->name('candidates.save-note');
 
     Route::get('/mandates/{id}/kanban',              [\App\Http\Controllers\Admin\KanbanController::class, 'show'])->name('mandates.kanban');

@@ -9,6 +9,7 @@ use App\Services\ClaudeService;
 use App\Services\CvTextExtractor;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class CandidateController extends Controller
@@ -206,6 +207,13 @@ class CandidateController extends Controller
             'cv_original_name' => $candidate->cv_original_name,
             'cv_uploaded_at' => $candidate->cv_uploaded_at,
         ]);
+    }
+
+    public function downloadCv(string $id)
+    {
+        $candidate = Candidate::findOrFail($id);
+        abort_unless($candidate->cv_url && Storage::disk('local')->exists($candidate->cv_url), 404);
+        return Storage::disk('local')->download($candidate->cv_url, $candidate->cv_original_name ?: 'cv');
     }
 
     public function saveNote(Request $request, string $id)

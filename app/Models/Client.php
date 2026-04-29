@@ -15,6 +15,8 @@ class Client extends Model
         'contact_name', 'contact_email', 'contact_title',
         'website', 'logo_url', 'gsheet_id', 'gsheet_url',
         'accent_color', 'status', 'compensation_type_id',
+        'agreement_file_url', 'agreement_file_name',
+        'notes',
     ];
 
     protected static function boot(): void

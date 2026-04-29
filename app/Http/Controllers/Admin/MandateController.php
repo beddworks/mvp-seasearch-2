@@ -14,6 +14,7 @@ use App\Services\CvTextExtractor;
 use App\Services\GoogleSheetsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class MandateController extends Controller
@@ -79,9 +80,19 @@ class MandateController extends Controller
             'is_fast_track'              => ['boolean'],
             'timer_b_active'             => ['boolean'],
             'timer_c_active'             => ['boolean'],
+            'jd_file'                    => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
         $data['status'] = 'draft';
         $mandate = Mandate::create($data);
+
+        if ($request->hasFile('jd_file')) {
+            $file = $request->file('jd_file');
+            $path = $file->store("jd_files/{$mandate->id}", 'local');
+            $mandate->update([
+                'jd_file_url'  => $path,
+                'jd_file_name' => $file->getClientOriginalName(),
+            ]);
+        }
 
         // $sheets->createMandateTab($mandate->load('client'));
 
@@ -146,8 +157,21 @@ class MandateController extends Controller
             'is_fast_track'              => ['boolean'],
             'timer_b_active'             => ['boolean'],
             'timer_c_active'             => ['boolean'],
+            'jd_file'                    => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
         $mandate->update($data);
+
+        if ($request->hasFile('jd_file')) {
+            if ($mandate->jd_file_url) {
+                Storage::disk('local')->delete($mandate->jd_file_url);
+            }
+            $file = $request->file('jd_file');
+            $mandate->update([
+                'jd_file_url'  => $file->store("jd_files/{$mandate->id}", 'local'),
+                'jd_file_name' => $file->getClientOriginalName(),
+            ]);
+        }
+
         return redirect()->route('admin.mandates.index')->with('success', 'Mandate updated.');
     }
 
@@ -155,6 +179,13 @@ class MandateController extends Controller
     {
         Mandate::findOrFail($id)->delete();
         return back()->with('success', 'Mandate deleted.');
+    }
+
+    public function downloadJd(string $id)
+    {
+        $mandate = Mandate::findOrFail($id);
+        abort_unless($mandate->jd_file_url && Storage::disk('local')->exists($mandate->jd_file_url), 404);
+        return Storage::disk('local')->download($mandate->jd_file_url, $mandate->jd_file_name ?: 'job-description');
     }
 
     public function addCandidatePage($id)

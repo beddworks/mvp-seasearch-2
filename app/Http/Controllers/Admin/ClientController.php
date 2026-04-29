@@ -10,6 +10,7 @@ use App\Services\ClaudeService;
 use App\Services\CvTextExtractor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -84,6 +85,7 @@ class ClientController extends Controller
             'fee_formula_type'     => ['nullable', 'required_if:fee_mode,new', 'in:percentage,hourly,fixed,milestone'],
             'fee_pct'              => ['nullable', 'numeric', 'min:0', 'max:1'],
             'fee_formula_fields'   => ['nullable', 'array'],
+            'agreement_file'       => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
 
         // Create inline fee agreement if requested
@@ -108,7 +110,7 @@ class ClientController extends Controller
             'status'   => 'active',
         ]);
 
-        Client::create([
+        $client = Client::create([
             'user_id'              => $user->id,
             'company_name'         => $data['company_name'],
             'industry'             => $data['industry'] ?? null,
@@ -117,7 +119,17 @@ class ClientController extends Controller
             'accent_color'         => $data['accent_color'] ?? '#1A6DB5',
             'compensation_type_id' => $compensationTypeId,
             'website'              => $data['website'] ?? null,
+            'notes'                => $data['notes'] ?? null,
         ]);
+
+        if ($request->hasFile('agreement_file')) {
+            $file = $request->file('agreement_file');
+            $path = $file->store("agreements/{$client->id}", 'local');
+            $client->update([
+                'agreement_file_url'  => $path,
+                'agreement_file_name' => $file->getClientOriginalName(),
+            ]);
+        }
 
         return redirect()->route('admin.clients.index')->with('success', 'Client created.');
     }
@@ -154,6 +166,7 @@ class ClientController extends Controller
             'fee_formula_type'     => ['nullable', 'required_if:fee_mode,new', 'in:percentage,hourly,fixed,milestone'],
             'fee_pct'              => ['nullable', 'numeric', 'min:0', 'max:1'],
             'fee_formula_fields'   => ['nullable', 'array'],
+            'agreement_file'       => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
 
         $compensationTypeId = $data['compensation_type_id'] ?? null;
@@ -169,14 +182,26 @@ class ClientController extends Controller
             $compensationTypeId = $ct->id;
         }
 
-        $client->update([
+        $updatePayload = [
             'company_name'         => $data['company_name'],
             'contact_name'         => $data['contact_name'],
             'industry'             => $data['industry'] ?? null,
             'accent_color'         => $data['accent_color'] ?? null,
             'compensation_type_id' => $compensationTypeId,
             'website'              => $data['website'] ?? null,
-        ]);
+            'notes'                => $data['notes'] ?? null,
+        ];
+
+        if ($request->hasFile('agreement_file')) {
+            if ($client->agreement_file_url) {
+                Storage::disk('local')->delete($client->agreement_file_url);
+            }
+            $file = $request->file('agreement_file');
+            $updatePayload['agreement_file_url']  = $file->store("agreements/{$client->id}", 'local');
+            $updatePayload['agreement_file_name'] = $file->getClientOriginalName();
+        }
+
+        $client->update($updatePayload);
         $client->user->update(['name' => $data['contact_name']]);
 
         return redirect()->route('admin.clients.index')->with('success', 'Client updated.');
@@ -188,6 +213,13 @@ class ClientController extends Controller
         $client->user?->delete();
         $client->delete();
         return back()->with('success', 'Client deleted.');
+    }
+
+    public function downloadAgreement(string $id)
+    {
+        $client = Client::findOrFail($id);
+        abort_unless($client->agreement_file_url && Storage::disk('local')->exists($client->agreement_file_url), 404);
+        return Storage::disk('local')->download($client->agreement_file_url, $client->agreement_file_name ?: 'agreement');
     }
 }
 

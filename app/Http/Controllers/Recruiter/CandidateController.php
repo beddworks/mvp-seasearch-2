@@ -236,6 +236,14 @@ class CandidateController extends Controller
         ]);
     }
 
+    public function downloadCv($id)
+    {
+        $recruiter = Auth::user()->recruiter;
+        $candidate = Candidate::where('recruiter_id', $recruiter->id)->findOrFail($id);
+        abort_unless($candidate->cv_url && \Illuminate\Support\Facades\Storage::disk('local')->exists($candidate->cv_url), 404);
+        return \Illuminate\Support\Facades\Storage::disk('local')->download($candidate->cv_url, $candidate->cv_original_name ?: 'cv');
+    }
+
     private function handleCvUpload(Request $request, Candidate $candidate): void
     {
         $file = $request->file('cv_file');

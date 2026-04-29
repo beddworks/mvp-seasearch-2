@@ -215,6 +215,14 @@ export default function CandidateShow({ candidate, approvedMandates = [], submis
                                 {candidate.cv_parsed_at && ' · AI parsed'}
                             </div>
                         </div>
+                        <a
+                            href={route('recruiter.candidates.download-cv', candidate.id)}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ fontSize: 11, color: 'var(--sea2)', textDecoration: 'none', fontWeight: 500, padding: '4px 10px', border: '1px solid var(--sea3)', borderRadius: 6, background: '#fff', flexShrink: 0 }}
+                        >
+                            Download
+                        </a>
                         <button className="btn btn-secondary btn-sm" onClick={() => fileRef.current?.click()}>↑ Replace CV</button>
                     </>
                 ) : (

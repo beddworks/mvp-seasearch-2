@@ -21,6 +21,7 @@ class Mandate extends Model
         'timer_a_days', 'timer_b_active', 'timer_b_days',
         'timer_c_active', 'timer_c_sla_days',
         'gsheet_tab_name', 'published_at', 'original_post_date', 'assignment_count',
+        'jd_file_url', 'jd_file_name',
     ];
 
     protected $casts = [
