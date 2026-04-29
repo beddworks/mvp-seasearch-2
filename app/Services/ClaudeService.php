@@ -139,6 +139,8 @@ class ClaudeService
 
         $user = "Parse the following CV and return a JSON object with these keys:
 - name (string)
+- email (string or null — the candidate's email address if present in the CV)
+- linkedin_url (string or null — the candidate's LinkedIn profile URL if present in the CV)
 - current_role (string)
 - current_company (string)
 - years_experience (integer)
