@@ -28,12 +28,9 @@
   .cta-secondary { background:#0D0C0A; }
   .quick-box { margin-top:16px; border:1px solid #E0DDD6; border-radius:10px; background:#fff; padding:10px 12px; }
   .quick-title { margin:0 0 6px; font-size:11px; color:#6B6860; text-transform:uppercase; letter-spacing:.06em; }
-  .quick-row { display:flex; gap:6px; align-items:center; }
-  .quick-select { flex:1; border:1px solid #E0DDD6; border-radius:6px; padding:7px 8px; font-size:12px; color:#0D0C0A; background:#fff; }
-  .quick-reason-wrap { display:none; width:100%; margin-top:6px; }
-  .quick-reason-wrap.open { display:block; }
-  .quick-reason { width:100%; border:1px solid #E0DDD6; border-radius:6px; padding:7px 8px; font-size:12px; color:#0D0C0A; background:#fff; min-height:56px; resize:vertical; box-sizing:border-box; }
-  .quick-btn { flex-shrink:0; border:none; border-radius:6px; padding:7px 12px; font-size:12px; font-weight:600; color:#fff; background:#1A6DB5; cursor:pointer; white-space:nowrap; }
+  .quick-select { width:100%; border:1px solid #E0DDD6; border-radius:6px; padding:7px 8px; font-size:12px; color:#0D0C0A; background:#fff; }
+  .quick-reason { width:100%; border:1px solid #E0DDD6; border-radius:6px; padding:7px 8px; font-size:12px; color:#0D0C0A; background:#fff; min-height:56px; resize:vertical; box-sizing:border-box; margin-top:6px; }
+  .quick-btn { border:none; border-radius:6px; padding:7px 14px; font-size:12px; font-weight:600; color:#fff; background:#1A6DB5; cursor:pointer; white-space:nowrap; }
   .note { margin-top:18px; padding:12px 14px; border-left:3px solid #1A6DB5; background:#F9F8F5; font-size:12px; line-height:1.6; color:#2A2926; }
   .footer { padding:16px 32px; border-top:1px solid #E0DDD6; font-size:12px; color:#6B6860; }
 </style>
@@ -91,17 +88,21 @@
       <p class="quick-title">Change pipeline status</p>
       <form method="GET" action="{{ $quickUpdateLink }}">
         <input type="hidden" name="submission_id" value="{{ $submission->id }}">
-        <div class="quick-row">
-          <select class="quick-select" id="email-client-status" name="client_status">
-            @foreach(['sourced','screened','interview','offered','hired','rejected','on_hold'] as $stage)
-              <option value="{{ $stage }}" @selected(($submission->client_status ?? 'sourced') === $stage)>{{ ucfirst(str_replace('_', ' ', $stage)) }}</option>
-            @endforeach
-          </select>
-          <button class="quick-btn" type="submit">Update</button>
-        </div>
-        <div id="email-reason-wrap" class="quick-reason-wrap {{ ($submission->client_status ?? 'sourced') === 'rejected' ? 'open' : '' }}">
-          <textarea id="email-reason" class="quick-reason" name="client_feedback" placeholder="Reason for rejection">{{ $submission->client_feedback }}</textarea>
-        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate; border-spacing:0;">
+          <tr>
+            <td style="width:100%; padding-right:6px;">
+              <select class="quick-select" name="client_status">
+                @foreach(['sourced','screened','interview','offered','hired','rejected','on_hold'] as $stage)
+                  <option value="{{ $stage }}" @selected(($submission->client_status ?? 'sourced') === $stage)>{{ ucfirst(str_replace('_', ' ', $stage)) }}</option>
+                @endforeach
+              </select>
+            </td>
+            <td style="white-space:nowrap; vertical-align:middle;">
+              <button class="quick-btn" type="submit">Update</button>
+            </td>
+          </tr>
+        </table>
+        <textarea class="quick-reason" name="client_feedback" placeholder="Optional feedback / reason for rejection">{{ $submission->client_feedback }}</textarea>
       </form>
     </div>
 
@@ -113,22 +114,6 @@
     You received this because you are listed as the client contact for this mandate.
   </div>
 </div>
-<script>
-  (function () {
-    const statusSelect = document.getElementById('email-client-status');
-    const reasonWrap = document.getElementById('email-reason-wrap');
-    const reasonInput = document.getElementById('email-reason');
-    if (!statusSelect || !reasonWrap || !reasonInput) return;
 
-    function toggleReason() {
-      const isRejected = statusSelect.value === 'rejected';
-      reasonWrap.classList.toggle('open', isRejected);
-      reasonInput.required = isRejected;
-    }
-
-    statusSelect.addEventListener('change', toggleReason);
-    toggleReason();
-  })();
-</script>
 </body>
 </html>
