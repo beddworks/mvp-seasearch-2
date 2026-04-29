@@ -26,11 +26,7 @@ export default function CompensationTypesIndex({ types }) {
                     <Link href={route('admin.compensation-types.create')} className="btn btn-primary">+ New Type</Link>
                 </div>
 
-                {flash?.success && (
-                    <div style={{ background: 'var(--jade-pale)', border: '1px solid var(--jade3)', borderRadius: 'var(--rsm)', padding: '10px 14px', fontSize: 12, color: 'var(--jade)', marginBottom: 16 }}>
-                        {flash.success}
-                    </div>
-                )}
+               
 
                 <div className="table-wrap">
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>

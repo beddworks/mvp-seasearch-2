@@ -80,7 +80,7 @@ export default function MandatesIndex({ mandates, filters, stats }) {
                             ) : mandates.data.map(m => (
                                 <tr key={m.id} style={{ borderBottom: '1px solid var(--mist3)' }}>
                                     <td style={{ padding: '10px 14px', fontSize: 13, fontWeight: 500, color: 'var(--ink)' }}>
-                                        <Link href={route('admin.mandates.show', m.id)} style={{ color: 'var(--sea2)', textDecoration: 'none' }}>{m.title}</Link>
+                                        {m.title}
                                     </td>
                                     <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--ink3)' }}>{m.client?.company_name || '—'}</td>
                                     <td style={{ padding: '10px 14px' }}>

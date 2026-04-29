@@ -137,7 +137,7 @@ function isNew(iso) {
 
 // ─── main page ─────────────────────────────────────────────────────────────────
 
-export default function PublicRoles({ mandates, tab, q, co, sort, filters, totalActive, totalExclusive, myClaimIds, atCapacity }) {
+export default function PublicRoles({ mandates, tab, q, co, sort, filters, totalActive, totalExclusive, myClaims, atCapacity }) {
     const { auth } = usePage().props
     const isRecruiter = auth?.user?.role === 'recruiter'
     const [search,  setSearch]  = useState(q  || '')
@@ -293,7 +293,7 @@ export default function PublicRoles({ mandates, tab, q, co, sort, filters, total
                             No mandates found.
                         </div>
                     )}
-                    {mandates.data.map(m => <JobCard key={m.id} m={m} claimed={myClaimIds?.includes(m.id)} atCapacity={atCapacity} isRecruiter={isRecruiter} />)}
+                    {mandates.data.map(m => <JobCard key={m.id} m={m} claimStatus={myClaims?.[m.id] ?? null} atCapacity={atCapacity} isRecruiter={isRecruiter} />)}
                 </div>
 
                 {/* ── pagination ── */}
@@ -353,7 +353,7 @@ export default function PublicRoles({ mandates, tab, q, co, sort, filters, total
 
 // ─── JobCard ─────────────────────────────────────────────────────────────────
 
-function JobCard({ m, claimed, atCapacity, isRecruiter }) {
+function JobCard({ m, claimStatus, atCapacity, isRecruiter }) {
     const co       = m.client?.company_name || '—'
     const logo     = IND_LOGO[m.industry] || IND_LOGO._default
     const bar      = IND_BAR[m.industry]  || IND_BAR._default
@@ -494,10 +494,18 @@ function JobCard({ m, claimed, atCapacity, isRecruiter }) {
                     {/* CTA — changes based on auth state */}
                     <div style={{ marginTop: 10 }} onClick={e => e.stopPropagation()}>
                         {isRecruiter ? (
-                            claimed ? (
+                            claimStatus === 'approved' ? (
                                 <Link href={route('recruiter.mandates.workspace', m.id)} style={{ display: 'block', width: '100%', padding: '6px 0', fontSize: 11, fontWeight: 500, border: '1px solid var(--jade3)', borderRadius: 6, background: 'var(--jade-pale)', color: 'var(--jade2)', textAlign: 'center', textDecoration: 'none' }}>
                                     Open workspace →
                                 </Link>
+                            ) : claimStatus === 'rejected' ? (
+                                <div style={{ fontSize: 11, color: 'var(--ruby2)', padding: '6px 0', textAlign: 'center' }}>
+                                    Claim rejected
+                                </div>
+                            ) : claimStatus === 'pending' ? (
+                                <div style={{ fontSize: 11, color: 'var(--amber2)', padding: '6px 0', textAlign: 'center' }}>
+                                    ⏳ Awaiting admin approval
+                                </div>
                             ) : atCapacity ? (
                                 <button disabled style={{ width: '100%', padding: '6px 0', fontSize: 11, border: '1px solid var(--wire2)', borderRadius: 6, background: 'var(--mist2)', color: 'var(--ink4)', cursor: 'not-allowed', fontFamily: 'var(--font)' }}>
                                     At capacity

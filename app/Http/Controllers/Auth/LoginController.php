@@ -54,7 +54,7 @@ class LoginController extends Controller
             'super_admin', 'admin' => route('admin.dashboard'),
             'recruiter'            => route('recruiter.dashboard'),
             'client'               => route('client.dashboard'),
-            default                => '/',
+            default                => route('login'),
         };
     }
 }

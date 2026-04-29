@@ -72,7 +72,7 @@ export default function RecruitersIndex({ recruiters, filters, stats }) {
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--wire)' }}>
-                                {['Recruiter', 'Email', 'Tier', 'Trust', 'Group', 'Active Roles', 'Status', 'Actions'].map(h => (
+                                {['Recruiter', 'Email',  'Status', 'Actions'].map(h => (
                                     <th key={h} style={{ padding: '10px 14px', fontSize: 11, fontWeight: 500, color: 'var(--ink3)', textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.4px' }}>{h}</th>
                                 ))}
                             </tr>
@@ -91,14 +91,6 @@ export default function RecruitersIndex({ recruiters, filters, stats }) {
                                         </div>
                                     </td>
                                     <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--ink3)' }}>{r.user?.email || '—'}</td>
-                                    <td style={{ padding: '10px 14px' }}>
-                                        <span style={{ fontSize: 11, fontWeight: 600, color: TIER_COLORS[r.tier], background: 'rgba(0,0,0,0.04)', borderRadius: 'var(--rxs)', padding: '2px 8px' }}>{r.tier}</span>
-                                    </td>
-                                    <td style={{ padding: '10px 14px' }}>
-                                        {r.trust_level === 'trusted' ? <span className="badge badge-jade">trusted</span> : <span className="badge">standard</span>}
-                                    </td>
-                                    <td style={{ padding: '10px 14px', fontSize: 12, color: 'var(--ink3)' }}>{r.recruiter_group || '—'}</td>
-                                    <td style={{ padding: '10px 14px', fontSize: 13, color: 'var(--ink)' }}>{r.active_mandates_count}/2</td>
                                     <td style={{ padding: '10px 14px' }}>
                                         <span style={{ fontSize: 11, color: r.user?.status === 'active' ? 'var(--jade2)' : 'var(--ruby2)', fontWeight: 500 }}>{r.user?.status || '—'}</span>
                                     </td>

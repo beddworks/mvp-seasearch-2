@@ -73,7 +73,7 @@ export default function Dashboard({ recruiter, activeClaims, recentPlacements, t
                         <span className="dcard-title">Active mandates</span>
                         <div style={{ display: 'flex', gap: 6 }}>
                             <span className="cbadge cb-sea">{activeClaims?.length ?? 0} active</span>
-                            <Link href={route('recruiter.mandates.index')} className="dcard-ghost-btn">Browse all</Link>
+                            <Link href={route('public.roles')} className="dcard-ghost-btn">Browse all</Link>
                         </div>
                     </div>
                     {activeClaims?.length === 0 && (
@@ -81,7 +81,7 @@ export default function Dashboard({ recruiter, activeClaims, recentPlacements, t
                             <div style={{ fontSize: 22, marginBottom: 8 }}>◫</div>
                             <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>No active mandates</div>
                             <div style={{ fontSize: 12, marginBottom: 12 }}>Pick a role from the job board to get started</div>
-                            <Link href={route('recruiter.mandates.index')} className="btn btn-primary btn-sm">Browse open roles</Link>
+                            <Link href={route('public.roles')} className="btn btn-primary btn-sm">Browse open roles</Link>
                         </div>
                     )}
                     {activeClaims?.map(claim => (

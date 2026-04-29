@@ -6,7 +6,7 @@ export default function ClientShow({ client }) {
     return (
         <AdminLayout title={client.company_name}>
             <div className="page-content">
-                <div className="page-head">
+                <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <div>
                         <div className="page-title">{client.company_name}</div>
                         <div className="page-sub">Contact: {client.user?.name} · {client.user?.email}</div>

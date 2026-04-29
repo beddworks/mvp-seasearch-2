@@ -22,8 +22,8 @@ export default function RecruiterShow({ recruiter }) {
     return (
         <AdminLayout title={recruiter.user?.name || 'Recruiter'}>
             <div className="page-content">
-                <div className="page-head">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div className="page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 , }}>
                         <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--sea)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700 }}>
                             {initials(recruiter.user?.name || '?')}
                         </div>
@@ -42,7 +42,7 @@ export default function RecruiterShow({ recruiter }) {
                     <div>
                         {/* Claims history */}
                         <div className="dcard" style={{ padding: 20, marginBottom: 16 }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>Active Mandates ({recruiter.active_mandates_count}/2)</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 14 }}>Active Mandates </div>
                             {!recruiter.claims?.length ? (
                                 <div style={{ fontSize: 12, color: 'var(--ink3)' }}>No claims yet.</div>
                             ) : recruiter.claims.map(c => (

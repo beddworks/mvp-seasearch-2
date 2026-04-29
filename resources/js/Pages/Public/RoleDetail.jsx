@@ -24,6 +24,15 @@ const IND_BAR = {
     FMCG: '#4CAF52', Consulting: '#4B3AA8', _default: '#1A6DB5',
 }
 
+const MANDATE_STATUS_DOT = {
+    active:  'var(--jade3)',
+    paused:  'var(--amber2)',
+    closed:  'var(--ruby2)',
+    filled:  'var(--sea2)',
+    dropped: 'var(--ruby2)',
+    draft:   'var(--ink4)',
+}
+
 function coInitials(name) {
     return (name || '').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??'
 }
@@ -73,7 +82,7 @@ function calcReward(m) {
 
 // ─── main page ────────────────────────────────────────────────────────────────
 
-export default function RoleDetail({ mandate: m, claimed, atCapacity }) {
+export default function RoleDetail({ mandate: m, claimStatus, atCapacity }) {
     const { auth }     = usePage().props
     const isRecruiter  = auth?.user?.role === 'recruiter'
     const co           = m.client?.company_name || '—'
@@ -87,6 +96,7 @@ export default function RoleDetail({ mandate: m, claimed, atCapacity }) {
     const totalMin     = scalable ? reward.min * openings : (reward ? reward.min : null)
     const totalMax     = scalable ? reward.max * openings : (reward ? reward.max : null)
 
+    const dotColor          = MANDATE_STATUS_DOT[m.status] || 'var(--ink4)'
     const hasIdealCandidates = (m.ideal_candidates || []).filter(ic => ic?.name).length > 0
     const hasIdeaCompanies   = (m.ideal_source_companies || []).length > 0
     const hasFlags           = (m.green_flags || []).length > 0 || (m.red_flags || []).length > 0
@@ -158,7 +168,7 @@ export default function RoleDetail({ mandate: m, claimed, atCapacity }) {
 
                             {/* title row */}
                             <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--ink)', marginBottom: 8, fontFamily: 'var(--font-head)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4CAF52', flexShrink: 0, display: 'inline-block' }} />
+                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor, flexShrink: 0, display: 'inline-block' }} />
                                 {m.title}
                                 {m.is_featured  && <span className="badge badge-sea"  style={{ fontSize: 10 }}>Featured</span>}
                                 {m.is_exclusive && <span className="badge badge-gold" style={{ fontSize: 10 }}>⭐ Exclusive</span>}
@@ -213,7 +223,7 @@ export default function RoleDetail({ mandate: m, claimed, atCapacity }) {
 
                             {/* CTA */}
                             {isRecruiter ? (
-                                claimed ? (
+                                claimStatus === 'approved' ? (
                                     <Link href={route('recruiter.mandates.workspace', m.id)} style={{
                                         display: 'block', padding: '8px 0', fontSize: 12, fontWeight: 500,
                                         border: '1px solid var(--jade3)', borderRadius: 7, background: 'var(--jade-pale)',
@@ -221,6 +231,14 @@ export default function RoleDetail({ mandate: m, claimed, atCapacity }) {
                                     }}>
                                         Open workspace →
                                     </Link>
+                                ) : claimStatus === 'rejected' ? (
+                                    <div style={{ fontSize: 12, color: 'var(--ruby2)', padding: '8px 0', textAlign: 'center' }}>
+                                        Claim rejected
+                                    </div>
+                                ) : claimStatus === 'pending' ? (
+                                    <div style={{ fontSize: 12, color: 'var(--amber2)', padding: '8px 0', textAlign: 'center' }}>
+                                        ⏳ Awaiting admin approval
+                                    </div>
                                 ) : atCapacity ? (
                                     <button disabled style={{
                                         width: '100%', padding: '8px 0', fontSize: 12,

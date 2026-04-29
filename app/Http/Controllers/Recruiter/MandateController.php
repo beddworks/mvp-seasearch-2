@@ -99,8 +99,6 @@ class MandateController extends Controller
             'status'       => 'pending',
         ]);
 
-        $recruiter->increment('active_mandates_count');
-
         $claim = MandateClaim::with(['mandate','recruiter.user'])
             ->where('recruiter_id', $recruiter->id)
             ->where('mandate_id', $id)

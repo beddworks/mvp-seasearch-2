@@ -10,7 +10,7 @@ const NAV_ITEMS = [
     { icon: '🔑', label: 'Claims Request',     route: 'admin.claims.index' },
     // { icon: '📥', label: 'Submissions', route: 'admin.submissions.index' },
     { icon: '⚙', label: 'Config',     route: 'admin.compensation-types.index' },
-    { icon: '⏱', label: 'Timers',     route: 'admin.timer-config' },
+    // { icon: '⏱', label: 'Timers',     route: 'admin.timer-config' },
     // { icon: '📊', label: 'Analytics',  route: 'admin.analytics.index' },
 ]
 

@@ -74,7 +74,7 @@ class RolesController extends Controller
             $recruiter  = $user->recruiter;
             if ($recruiter) {
                 $myClaimIds = MandateClaim::where('recruiter_id', $recruiter->id)
-                    ->pluck('mandate_id')->all();
+                    ->pluck('status', 'mandate_id')->all(); // ['mandate_id' => 'status']
                 $atCapacity = $recruiter->active_mandates_count >= 2;
             }
         }
@@ -88,7 +88,7 @@ class RolesController extends Controller
             'filters'        => $request->only('industry', 'location', 'contract_type', 'seniority', 'openings'),
             'totalActive'    => $totalActive,
             'totalExclusive' => $totalExclusive,
-            'myClaimIds'     => $myClaimIds,
+            'myClaims'       => $myClaimIds,
             'atCapacity'     => $atCapacity,
         ]);
     }
@@ -99,25 +99,24 @@ class RolesController extends Controller
             ->where('status', 'active')
             ->findOrFail($id);
 
-        $myClaimIds = [];
-        $atCapacity = false;
-        $claimed    = false;
+        $atCapacity  = false;
+        $claimStatus = null;
 
         $user = Auth::user();
         if ($user && $user->role === 'recruiter') {
             $recruiter = $user->recruiter;
             if ($recruiter) {
-                $myClaimIds = MandateClaim::where('recruiter_id', $recruiter->id)
-                    ->pluck('mandate_id')->all();
-                $atCapacity = $recruiter->active_mandates_count >= 2;
-                $claimed    = in_array($id, $myClaimIds);
+                $atCapacity  = $recruiter->active_mandates_count >= 2;
+                $claimStatus = MandateClaim::where('recruiter_id', $recruiter->id)
+                    ->where('mandate_id', $id)
+                    ->value('status'); // null | 'pending' | 'approved' | 'rejected'
             }
         }
 
         return Inertia::render('Public/RoleDetail', [
-            'mandate'    => $mandate,
-            'claimed'    => $claimed,
-            'atCapacity' => $atCapacity,
+            'mandate'     => $mandate,
+            'claimStatus' => $claimStatus,
+            'atCapacity'  => $atCapacity,
         ]);
     }
 }

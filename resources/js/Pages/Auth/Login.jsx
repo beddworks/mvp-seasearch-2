@@ -82,7 +82,7 @@ export default function Login() {
                         </button>
                     </form>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                    <div style={{ display: 'none', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                         <div style={{ flex: 1, height: 1, background: 'var(--ink3)' }} />
                         <span style={{ fontSize: 11, color: '#888780' }}>or</span>
                         <div style={{ flex: 1, height: 1, background: 'var(--ink3)' }} />
@@ -91,7 +91,7 @@ export default function Login() {
                     <a
                         href={route('auth.google')}
                         style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                            display: 'none', alignItems: 'center', justifyContent: 'center', gap: 8,
                             width: '100%', padding: '9px 16px', borderRadius: 'var(--rsm)',
                             border: '1px solid var(--ink3)', background: 'transparent', color: '#C8C4BC',
                             fontSize: 13, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font)',
@@ -108,7 +108,7 @@ export default function Login() {
                     </a>
                 </div>
 
-                <div style={{ textAlign: 'center', marginTop: 16, fontSize: 11, color: '#555350' }}>
+                <div style={{ textAlign: 'center', marginTop: 16, fontSize: 11, color: '#555350',display: 'none' }}>
                     SeaSearch v2 · Executive Recruitment Platform · SE Asia
                 </div>
             </div>

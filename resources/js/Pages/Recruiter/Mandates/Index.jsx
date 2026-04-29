@@ -109,8 +109,7 @@ export default function MandatesIndex({ claims, tab, atCapacity }) {
         <RecruiterLayout>
             <div style={{ padding: 24 }}>
 
-                {flash?.success && <Flash color="jade">{flash.success}</Flash>}
-                {flash?.error   && <Flash color="ruby">{flash.error}</Flash>}
+              
 
                 {/* header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>

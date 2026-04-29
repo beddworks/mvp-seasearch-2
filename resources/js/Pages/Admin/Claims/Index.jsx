@@ -25,11 +25,6 @@ export default function ClaimsIndex({ claims, filters, stats }) {
                     </div>
                 </div>
 
-                {flash?.success && (
-                    <div style={{ background: 'var(--jade-pale)', border: '1px solid var(--jade3)', borderRadius: 'var(--rsm)', padding: '10px 14px', fontSize: 12, color: 'var(--jade)', marginBottom: 16 }}>
-                        {flash.success}
-                    </div>
-                )}
 
                 <div className="stat-row" style={{ marginBottom: 20 }}>
                     {[

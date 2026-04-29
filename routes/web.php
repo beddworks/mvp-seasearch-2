@@ -14,7 +14,18 @@ Route::post('/webhooks/gsheet', [\App\Http\Controllers\GSheetWebhookController::
     ->name('webhooks.gsheet');
 
 // ─── Public ────────────────────────────────────────────────────────────────
-Route::get('/', fn() => redirect()->route('login'))->name('home');
+Route::get('/', function () {
+    if (\Illuminate\Support\Facades\Auth::check()) {
+        $role = \Illuminate\Support\Facades\Auth::user()->role;
+        return match ($role) {
+            'super_admin', 'admin' => redirect()->route('admin.dashboard'),
+            'recruiter'            => redirect()->route('recruiter.dashboard'),
+            'client'               => redirect()->route('client.dashboard'),
+            default                => redirect()->route('login'),
+        };
+    }
+    return redirect()->route('login');
+})->name('home');
 Route::get('/roles', [\App\Http\Controllers\Public\RolesController::class, 'index'])->name('public.roles');
 Route::get('/roles/{id}', [\App\Http\Controllers\Public\RolesController::class, 'show'])->name('public.roles.show');
 

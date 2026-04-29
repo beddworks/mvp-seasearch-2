@@ -16,24 +16,7 @@ export default function TimerConfigIndex({ timerRows, stats }) {
     return (
         <AdminLayout breadcrumb="Timer Config">
             {/* Flash */}
-            {flash?.success && (
-                <div style={{
-                    background: 'var(--jade-pale)', border: '1px solid var(--jade3)',
-                    color: 'var(--jade2)', padding: '10px 16px', borderRadius: 'var(--rsm)',
-                    marginBottom: 16, fontSize: 13,
-                }}>
-                    {flash.success}
-                </div>
-            )}
-            {flash?.error && (
-                <div style={{
-                    background: '#fff0f0', border: '1px solid var(--ruby2)',
-                    color: 'var(--ruby2)', padding: '10px 16px', borderRadius: 'var(--rsm)',
-                    marginBottom: 16, fontSize: 13,
-                }}>
-                    {flash.error}
-                </div>
-            )}
+            
 
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
