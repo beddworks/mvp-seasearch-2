@@ -54,8 +54,27 @@ class CandidateController extends Controller
     {
         $candidate = Candidate::with('recruiter.user')->findOrFail($id);
 
+        $submissions = \App\Models\CddSubmission::with('mandate')
+            ->where('candidate_id', $id)
+            ->orderByDesc('submitted_at')
+            ->get()
+            ->map(fn($s) => [
+                'id'           => $s->id,
+                'mandate_title'=> $s->mandate?->title,
+                'mandate_id'   => $s->mandate_id,
+                'client_status'=> $s->client_status,
+                'admin_review_status' => $s->admin_review_status,
+                'submitted_at' => $s->submitted_at,
+            ]);
+
+        $mandates = \App\Models\Mandate::where('status', 'active')
+            ->orderBy('title')
+            ->get(['id', 'title', 'industry', 'location']);
+
         return Inertia::render('Admin/Candidates/Show', [
-            'candidate' => $candidate,
+            'candidate'   => $candidate,
+            'submissions' => $submissions,
+            'mandates'    => $mandates,
         ]);
     }
 

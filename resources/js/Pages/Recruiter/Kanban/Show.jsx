@@ -156,13 +156,7 @@ export default function KanbanShow({ mandate, claim, submissions: rawSubs, stage
                                 ) : (
                                     <button className="btn btn-secondary btn-sm" onClick={() => setAddModal(true)}>+ Add candidate</button>
                                 )}
-                                <button className="btn btn-primary btn-sm"
-                                    onClick={() => {
-                                        const unsubmitted = allCards().find(c => !['approved', 'bypassed'].includes(c.admin_review_status))
-                                        if (unsubmitted) setSubmitModal(unsubmitted)
-                                    }}>
-                                    Submit to client
-                                </button>
+                               
                             </>
                         )}
                     </div>

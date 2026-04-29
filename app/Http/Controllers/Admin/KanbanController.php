@@ -211,6 +211,9 @@ class KanbanController extends Controller
             'linkedin_url'    => 'nullable|url',
             'current_role'    => 'nullable|string|max:200',
             'current_company' => 'nullable|string|max:200',
+            'location'        => 'nullable|string|max:200',
+            'years_experience'=> 'nullable|integer|min:0|max:60',
+            'notes'           => 'nullable|string',
             'initial_stage'   => 'required|in:sourced,screened',
             'cv_file'         => 'nullable|file|mimes:pdf,doc,docx|max:10240',
             'ai_data'         => 'nullable|json',
@@ -287,12 +290,14 @@ class KanbanController extends Controller
                 'linkedin_url'     => $request->linkedin_url,
                 'current_role'     => $request->current_role,
                 'current_company'  => $request->current_company,
+                'location'         => $request->location,
+                'years_experience' => $request->years_experience ?? ($parsedProfile['years_experience'] ?? null),
+                'notes'            => $request->notes,
                 'cv_url'           => $cvUrl,
                 'cv_original_name' => $cvOriginalName,
                 'cv_uploaded_at'   => $cvUrl ? now() : null,
                 'parsed_profile'   => !empty($parsedProfile) ? $parsedProfile : null,
                 'skills'           => $parsedProfile['skills'] ?? null,
-                'years_experience' => $parsedProfile['years_experience'] ?? null,
             ]);
         }
 

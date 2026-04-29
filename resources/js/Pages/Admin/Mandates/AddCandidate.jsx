@@ -1,6 +1,6 @@
 import AdminLayout from '@/Layouts/AdminLayout'
 import { Link, router } from '@inertiajs/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
 const csrf = () => document.querySelector('meta[name=csrf-token]')?.content
 const STAGES = ['sourced', 'screened']
@@ -42,8 +42,7 @@ function pct(value) {
     return Math.max(0, Math.min(100, n))
 }
 
-export default function AddCandidatePage({ mandate, candidates = [], recruiters = [], approvedClaim = null }) {
-    const [mode, setMode] = useState('new')
+export default function AddCandidatePage({ mandate, recruiters = [], approvedClaim = null }) {
     const [loading, setLoading] = useState(false)
     const [previewLoading, setPreviewLoading] = useState(false)
     const [error, setError] = useState('')
@@ -62,18 +61,15 @@ export default function AddCandidatePage({ mandate, candidates = [], recruiters 
         linkedin_url: '',
         current_role: '',
         current_company: '',
+        location: '',
+        years_experience: '',
+        notes: '',
         initial_stage: 'sourced',
-        existing_candidate_id: '',
     })
 
     const [cvFile, setCvFile] = useState(null)
-    const [aiData, setAiData] = useState(null) // Store AI results for submission
-    const [autoFilledFields, setAutoFilledFields] = useState({}) // Track which fields were auto-filled
-
-    const selectedCandidate = useMemo(
-        () => candidates.find(c => c.id === form.existing_candidate_id) || null,
-        [candidates, form.existing_candidate_id]
-    )
+    const [aiData, setAiData] = useState(null)
+    const [autoFilledFields, setAutoFilledFields] = useState({})
 
     const selectedRecruiter = useMemo(
         () => recruiters.find(r => r.id === selectedRecruiterId) || null,
@@ -171,6 +167,16 @@ export default function AddCandidatePage({ mandate, candidates = [], recruiters 
                 filled.current_company = true
             }
 
+            if (!form.location && parsed.location) {
+                f('location', parsed.location)
+                filled.location = true
+            }
+
+            if (!form.years_experience && parsed.years_experience) {
+                f('years_experience', parsed.years_experience)
+                filled.years_experience = true
+            }
+
             setAutoFilledFields(filled)
         } catch {
             if (requestId !== previewRequestRef.current) return
@@ -232,10 +238,6 @@ export default function AddCandidatePage({ mandate, candidates = [], recruiters 
         fileInputRef.current?.click()
     }
 
-    function onSelectExisting(candidateId) {
-        f('existing_candidate_id', candidateId)
-    }
-
     function buildSubmissionFormData(recruiterId = '') {
         const fd = new FormData()
         fd.append('mandate_id', mandate.id)
@@ -245,17 +247,16 @@ export default function AddCandidatePage({ mandate, candidates = [], recruiters 
             fd.append('recruiter_id', recruiterId)
         }
 
-        if (mode === 'existing') {
-            fd.append('existing_candidate_id', form.existing_candidate_id)
-        } else {
-            fd.append('first_name', form.first_name)
-            fd.append('last_name', form.last_name)
-            if (form.email) fd.append('email', form.email)
-            if (form.linkedin_url) fd.append('linkedin_url', form.linkedin_url)
-            if (form.current_role) fd.append('current_role', form.current_role)
-            if (form.current_company) fd.append('current_company', form.current_company)
-            if (cvFile) fd.append('cv_file', cvFile)
-        }
+        fd.append('first_name', form.first_name)
+        fd.append('last_name', form.last_name)
+        if (form.email) fd.append('email', form.email)
+        if (form.linkedin_url) fd.append('linkedin_url', form.linkedin_url)
+        if (form.current_role) fd.append('current_role', form.current_role)
+        if (form.current_company) fd.append('current_company', form.current_company)
+        if (form.location) fd.append('location', form.location)
+        if (form.years_experience) fd.append('years_experience', form.years_experience)
+        if (form.notes) fd.append('notes', form.notes)
+        if (cvFile) fd.append('cv_file', cvFile)
 
         if (aiData) {
             fd.append('ai_data', JSON.stringify(aiData))
@@ -275,34 +276,9 @@ export default function AddCandidatePage({ mandate, candidates = [], recruiters 
         return { res, data }
     }
 
-    useEffect(() => {
-        if (mode !== 'existing') return
-
-        const candidateId = form.existing_candidate_id
-        if (!candidateId) {
-            previewRequestRef.current += 1
-            setPreview(null)
-            setAiData(null)
-            setPreviewError('')
-            setPreviewLoading(false)
-            return
-        }
-
-        setPreview(null)
-        triggerPreview(() => {
-            const fd = new FormData()
-            fd.append('candidate_id', candidateId)
-            return fd
-        })
-    }, [mode, form.existing_candidate_id])
-
     async function handleSubmit() {
-        if (mode === 'new' && (!form.first_name || !form.last_name)) {
-            setError('First and last name are required for a new candidate.')
-            return
-        }
-        if (mode === 'existing' && !form.existing_candidate_id) {
-            setError('Please select an existing candidate.')
+        if (!form.first_name || !form.last_name) {
+            setError('First and last name are required.')
             return
         }
 
@@ -432,106 +408,92 @@ export default function AddCandidatePage({ mandate, candidates = [], recruiters 
                     <div style={{ background: '#fff', border: '1px solid var(--wire)', borderRadius: 'var(--r)', padding: 16 }}>
                         {error && <div className="flash-error" style={{ marginBottom: 12 }}>{error}</div>}
 
-                        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                            <button className={mode === 'new' ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm'} onClick={() => { setMode('new'); setPreview(null); setPreviewError('') }}>New candidate</button>
-                            <button className={mode === 'existing' ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm'} onClick={() => { setMode('existing'); setPreview(null); setPreviewError('') }}>Existing candidate</button>
+                        <div style={{ marginBottom: 14 }}>
+                            <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>CV / Resume</label>
+                            {cvFile ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--jade-pale)', border: '1px solid var(--jade-soft)', borderRadius: 'var(--rsm)' }}>
+                                    <div style={{ width: 28, height: 28, borderRadius: 6, background: '#fff', border: '1px solid var(--wire)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>CV</div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--jade2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cvFile.name}</div>
+                                        <div style={{ fontSize: 10, color: 'var(--ink4)' }}>{(cvFile.size / 1024).toFixed(0)} KB</div>
+                                    </div>
+                                    <button className="btn btn-secondary btn-sm" onClick={() => setCvFile(null)}>Remove</button>
+                                </div>
+                            ) : (
+                                <div
+                                    onDrop={onDrop}
+                                    onDragEnter={onDragOver}
+                                    onDragOver={onDragOver}
+                                    onDragLeave={onDragLeave}
+                                    onClick={browseFile}
+                                    style={{
+                                        border: `2px dashed ${dragging ? 'var(--sea3)' : 'var(--wire2)'}`,
+                                        borderRadius: 'var(--rsm)',
+                                        padding: '18px 14px',
+                                        textAlign: 'center',
+                                        background: dragging ? 'var(--sea-pale)' : 'var(--mist2)',
+                                        cursor: 'pointer',
+                                        transition: 'all .15s ease',
+                                    }}
+                                >
+                                    <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink)' }}>Drop file here or browse</div>
+                                    <div style={{ fontSize: 11, color: 'var(--ink4)', marginTop: 3 }}>PDF, DOC, DOCX · max 10 MB</div>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept=".pdf,.doc,.docx"
+                                        style={{ display: 'none' }}
+                                        onChange={e => handleFile(e.target.files?.[0])}
+                                    />
+                                </div>
+                            )}
                         </div>
 
-                        {mode === 'new' && (
-                            <>
-                                <div style={{ marginBottom: 14 }}>
-                                    <label className="form-label" style={{ marginBottom: 6, display: 'block' }}>CV / Resume (top priority)</label>
-                                    {cvFile ? (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--jade-pale)', border: '1px solid var(--jade-soft)', borderRadius: 'var(--rsm)' }}>
-                                            <div style={{ width: 28, height: 28, borderRadius: 6, background: '#fff', border: '1px solid var(--wire)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>CV</div>
-                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--jade2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cvFile.name}</div>
-                                                <div style={{ fontSize: 10, color: 'var(--ink4)' }}>{(cvFile.size / 1024).toFixed(0)} KB</div>
-                                            </div>
-                                            <button className="btn btn-secondary btn-sm" onClick={() => setCvFile(null)}>Remove</button>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            onDrop={onDrop}
-                                            onDragEnter={onDragOver}
-                                            onDragOver={onDragOver}
-                                            onDragLeave={onDragLeave}
-                                            onClick={browseFile}
-                                            style={{
-                                                border: `2px dashed ${dragging ? 'var(--sea3)' : 'var(--wire2)'}`,
-                                                borderRadius: 'var(--rsm)',
-                                                padding: '18px 14px',
-                                                textAlign: 'center',
-                                                display: 'block',
-                                                background: dragging ? 'var(--sea-pale)' : 'var(--mist2)',
-                                                cursor: 'pointer',
-                                                transition: 'all .15s ease',
-                                            }}
-                                        >
-                                            <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink)' }}>Drop file here or browse</div>
-                                            <div style={{ fontSize: 11, color: 'var(--ink4)', marginTop: 3 }}>PDF, DOC, DOCX · max 10 MB</div>
-                                            <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept=".pdf,.doc,.docx"
-                                                style={{ display: 'none' }}
-                                                onChange={e => handleFile(e.target.files?.[0])}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                                    <div className="form-group">
-                                        <label className="form-label">First name *</label>
-                                        <input className="form-input" value={form.first_name} onChange={e => f('first_name', e.target.value)} placeholder="Sarah" />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Last name *</label>
-                                        <input className="form-input" value={form.last_name} onChange={e => f('last_name', e.target.value)} placeholder="Wong" />
-                                    </div>
-                                </div>
-
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                                    <div className="form-group">
-                                        <label className="form-label">Current role</label>
-                                        <input className="form-input" value={form.current_role} onChange={e => f('current_role', e.target.value)} placeholder="CHRO" />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Company</label>
-                                        <input className="form-input" value={form.current_company} onChange={e => f('current_company', e.target.value)} placeholder="OCBC Bank" />
-                                    </div>
-                                </div>
-
-                                <div className="form-group" style={{ marginBottom: 10 }}>
-                                    <label className="form-label">Email</label>
-                                    <input className="form-input" type="email" value={form.email} onChange={e => f('email', e.target.value)} placeholder="sarah@example.com" />
-                                </div>
-                                <div className="form-group" style={{ marginBottom: 14 }}>
-                                    <label className="form-label">LinkedIn URL</label>
-                                    <input className="form-input" value={form.linkedin_url} onChange={e => f('linkedin_url', e.target.value)} placeholder="linkedin.com/in/..." />
-                                </div>
-                            </>
-                        )}
-
-                        {mode === 'existing' && (
-                            <div className="form-group" style={{ marginBottom: 14 }}>
-                                <label className="form-label">Select existing candidate</label>
-                                <select className="form-input" value={form.existing_candidate_id} onChange={e => onSelectExisting(e.target.value)}>
-                                    <option value="">Choose from database</option>
-                                    {candidates.map(c => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.first_name} {c.last_name}{c.current_role ? ` - ${c.current_role}` : ''}{c.current_company ? `, ${c.current_company}` : ''}
-                                        </option>
-                                    ))}
-                                </select>
-                                {selectedCandidate && (
-                                    <div style={{ fontSize: 11, color: 'var(--ink4)', marginTop: 5 }}>
-                                        {selectedCandidate.cv_url ? 'CV found. AI preview is running against job requirements.' : 'No CV found. AI preview will use candidate profile fields.'}
-                                    </div>
-                                )}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                            <div className="form-group">
+                                <label className="form-label">First name * {autoFilledFields.first_name && <span style={{ color: 'var(--sea2)' }}>(AI)</span>}</label>
+                                <input className="form-input" value={form.first_name} onChange={e => f('first_name', e.target.value)} placeholder="Sarah" />
                             </div>
-                        )}
+                            <div className="form-group">
+                                <label className="form-label">Last name * {autoFilledFields.last_name && <span style={{ color: 'var(--sea2)' }}>(AI)</span>}</label>
+                                <input className="form-input" value={form.last_name} onChange={e => f('last_name', e.target.value)} placeholder="Wong" />
+                            </div>
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: 10 }}>
+                            <label className="form-label">Current role and company</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                <input className="form-input" value={form.current_role} onChange={e => f('current_role', e.target.value)} placeholder="CHRO" />
+                                <input className="form-input" value={form.current_company} onChange={e => f('current_company', e.target.value)} placeholder="OCBC Bank" />
+                            </div>
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: 10 }}>
+                            <label className="form-label">Email {autoFilledFields.email && <span style={{ color: 'var(--sea2)' }}>(AI)</span>}</label>
+                            <input className="form-input" type="email" value={form.email} onChange={e => f('email', e.target.value)} placeholder="sarah@example.com" />
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                            <div className="form-group">
+                                <label className="form-label">LinkedIn URL {autoFilledFields.linkedin_url && <span style={{ color: 'var(--sea2)' }}>(AI)</span>}</label>
+                                <input className="form-input" value={form.linkedin_url} onChange={e => f('linkedin_url', e.target.value)} placeholder="linkedin.com/in/..." />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Location {autoFilledFields.location && <span style={{ color: 'var(--sea2)' }}>(AI)</span>}</label>
+                                <input className="form-input" value={form.location} onChange={e => f('location', e.target.value)} placeholder="Singapore" />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                            <div className="form-group">
+                                <label className="form-label">Years experience {autoFilledFields.years_experience && <span style={{ color: 'var(--sea2)' }}>(AI)</span>}</label>
+                                <input className="form-input" type="number" min="0" max="60" value={form.years_experience} onChange={e => f('years_experience', e.target.value)} placeholder="15" />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Notes</label>
+                                <input className="form-input" value={form.notes} onChange={e => f('notes', e.target.value)} placeholder="Optional notes" />
+                            </div>
+                        </div>
 
                         <div className="form-group" style={{ marginBottom: 18 }}>
                             <label className="form-label">Initial stage</label>
